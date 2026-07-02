@@ -1,0 +1,29 @@
+.app{
+
+    display:flex;
+
+    height:calc(100vh - 72px - 90px);
+
+}
+
+.sidebar-container{
+
+    width:260px;
+
+    backdrop-filter:blur(18px);
+
+    background:rgba(255,255,255,.03);
+
+    border-right:1px solid rgba(255,255,255,.08);
+
+}
+
+.main-content{
+
+    flex:1;
+
+    overflow-y:auto;
+
+    padding:35px;
+
+}

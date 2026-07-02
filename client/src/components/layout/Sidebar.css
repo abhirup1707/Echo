@@ -1,0 +1,51 @@
+.sidebar{
+
+    height:100%;
+
+    padding:25px;
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.logo{
+
+    font-size:34px;
+
+    font-weight:700;
+
+    margin-bottom:40px;
+
+}
+
+.sidebar a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:14px 18px;
+
+    margin-bottom:8px;
+
+    border-radius:15px;
+
+    transition:.3s;
+
+    color:#DDD;
+
+}
+
+.sidebar a:hover{
+
+    background:linear-gradient(90deg,#7C3AED,#4F46E5);
+
+    color:white;
+
+    transform:translateX(8px);
+
+}
