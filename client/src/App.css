@@ -1,20 +1,83 @@
+:root{
+
+    --primary:#7C3AED;
+    --primary2:#A855F7;
+    --bg:#09090B;
+    --card:#15151F;
+    --border:rgba(255,255,255,.06);
+
+}
+
+*{
+
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+}
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+body{
+
+    font-family:Inter,sans-serif;
+
+    background:
+    radial-gradient(circle at top,#3b076420,transparent 30%),
+    radial-gradient(circle at right,#7c3aed18,transparent 35%),
+    #09090B;
+
+    color:white;
+
+    overflow-x:hidden;
+
+}
+
+::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:#0d0d13;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:linear-gradient(#7c3aed,#4f46e5);
+
+    border-radius:50px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#8b5cf6;
+
+}
+
+/* ================= APP ================= */
+
 .app{
 
     display:flex;
 
-    height:calc(100vh - 72px - 90px);
+    min-height:calc(100vh - 72px);
 
 }
 
 .sidebar-container{
 
-    width:260px;
+    width:270px;
 
-    backdrop-filter:blur(18px);
-
-    background:rgba(255,255,255,.03);
-
-    border-right:1px solid rgba(255,255,255,.08);
+    flex-shrink:0;
 
 }
 
@@ -22,8 +85,136 @@
 
     flex:1;
 
+    min-height:100vh;
+
+    padding:34px;
+
+    padding-bottom:120px;
+
     overflow-y:auto;
 
-    padding:35px;
+    animation:fade .45s ease;
+
+}
+
+@keyframes fade{
+
+from{
+
+opacity:0;
+
+transform:translateY(12px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:none;
+
+}
+
+}
+
+/* cards */
+
+.glass{
+
+    background:rgba(255,255,255,.04);
+
+    backdrop-filter:blur(18px);
+
+    border:1px solid rgba(255,255,255,.05);
+
+    border-radius:22px;
+
+}
+
+/* buttons */
+
+button{
+
+    transition:.25s;
+
+}
+
+button:hover{
+
+    transform:translateY(-2px);
+
+}
+
+/* headings */
+
+h1{
+
+    font-size:42px;
+
+    font-weight:800;
+
+    letter-spacing:.5px;
+
+    margin-bottom:26px;
+
+}
+
+h2{
+
+    font-weight:700;
+
+}
+
+input{
+
+    outline:none;
+
+}
+
+input:focus{
+
+    box-shadow:
+
+    0 0 0 3px rgba(124,58,237,.25);
+
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+.app{
+
+display:block;
+
+}
+
+.sidebar-container{
+
+display:none;
+
+}
+
+.main-content{
+
+    height:100vh;
+
+    overflow-y:auto;
+
+    overflow-x:hidden;
+
+    padding:20px;
+
+    padding-bottom:90px;
+
+}
+
+h1{
+
+font-size:28px;
+
+margin-bottom:20px;
+
+}
 
 }

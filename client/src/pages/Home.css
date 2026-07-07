@@ -1,0 +1,179 @@
+.home-page{
+
+    width:100%;
+
+    animation:fadeHome .45s ease;
+
+}
+
+/* ================= TITLE ================= */
+
+.home-title{
+
+    position:relative;
+
+    font-size:44px;
+
+    font-weight:800;
+
+    letter-spacing:.6px;
+
+    margin-bottom:36px;
+
+    display:inline-block;
+
+}
+
+.home-title::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    bottom:-8px;
+
+    width:70%;
+
+    height:4px;
+
+    border-radius:10px;
+
+    background:
+
+    linear-gradient(
+
+        90deg,
+
+        #7C3AED,
+
+        transparent
+
+    );
+
+}
+
+.home-title::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:180px;
+
+    height:180px;
+
+    left:-70px;
+
+    top:-70px;
+
+    background:#7C3AED;
+
+    opacity:.12;
+
+    filter:blur(80px);
+
+    border-radius:50%;
+
+    z-index:-1;
+
+}
+
+/* ================= GRID ================= */
+
+.home-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill,minmax(440px,1fr));
+
+    gap:22px;
+
+    align-items:start;
+
+}
+
+/* ================= SECTION GAP ================= */
+
+.home-page section{
+
+    margin-bottom:42px;
+
+}
+
+/* ================= ENTRY ================= */
+
+@keyframes fadeHome{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(12px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:1200px){
+
+.home-grid{
+
+grid-template-columns:repeat(auto-fill,minmax(380px,1fr));
+
+}
+
+}
+
+@media(max-width:768px){
+
+.home-page{
+
+padding-bottom:135px;
+
+}
+
+.home-title{
+
+font-size:28px;
+
+margin-bottom:22px;
+
+}
+
+.home-title::before{
+
+width:120px;
+
+height:120px;
+
+left:-40px;
+
+top:-40px;
+
+filter:blur(55px);
+
+}
+
+.home-grid{
+
+display:flex;
+
+flex-direction:column;
+
+gap:16px;
+
+}
+
+}

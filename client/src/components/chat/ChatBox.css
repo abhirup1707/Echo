@@ -1,0 +1,303 @@
+.chat-box{
+
+    display:flex;
+
+    flex-direction:column;
+
+    height:420px;
+
+    max-height:420px;
+
+ 
+
+
+
+    min-height:340px;
+
+    background:#18181f;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    border:1px solid rgba(255,255,255,.05);
+
+}
+
+/* Header */
+
+.chat-box h2{
+
+    margin:0;
+
+    padding:14px 18px;
+
+    font-size:20px;
+
+    border-bottom:1px solid rgba(255,255,255,.06);
+
+}
+
+/* Messages */
+
+.chat-messages{
+
+    flex:1;
+
+    overflow-y:auto;
+
+    overflow-x:hidden;
+
+    padding:14px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+}
+
+/* Bubble */
+
+.chat-message{
+
+    width:fit-content;
+
+    max-width:72%;
+
+    padding:8px 12px;
+
+    border-radius:16px;
+
+    animation:pop .2s ease;
+
+}
+
+.chat-message.mine{
+
+    align-self:flex-end;
+
+    background:linear-gradient(135deg,#7C3AED,#5B21B6);
+
+    border-bottom-right-radius:5px;
+
+}
+
+.chat-message.other{
+
+    align-self:flex-start;
+
+    background:#262636;
+
+    border-bottom-left-radius:5px;
+
+}
+
+/* Username */
+
+.chat-user{
+
+    display:block;
+
+    color:#b794f4;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    margin-bottom:2px;
+
+}
+
+/* Text */
+
+.chat-text{
+
+    margin:0;
+
+    color:white;
+
+    font-size:14px;
+
+    line-height:1.35;
+
+    word-break:break-word;
+
+}
+
+/* Time */
+
+.chat-time{
+
+    display:block;
+
+    margin-top:4px;
+
+    text-align:right;
+
+    color:#9ca3af;
+
+    font-size:10px;
+
+}
+
+/* Input */
+
+.chat-input{
+
+    display:flex;
+
+    gap:8px;
+
+    padding:12px;
+
+    border-top:1px solid rgba(255,255,255,.06);
+
+}
+
+.chat-input input{
+
+    flex:1;
+
+    height:42px;
+
+    padding:0 14px;
+
+    border:none;
+
+    outline:none;
+
+    border-radius:10px;
+
+    background:#252533;
+
+    color:white;
+
+    font-size:14px;
+
+}
+
+.chat-input button{
+
+    width:90px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:linear-gradient(135deg,#7C3AED,#4F46E5);
+
+    color:white;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+}
+
+/* Animation */
+
+@keyframes pop{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(6px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
+}
+
+/* Mobile */
+
+@media(max-width:768px){
+
+.chat-box{
+
+height:300px;
+
+max-height:300px;
+
+}
+
+.chat-box h2{
+
+    padding:12px 14px;
+
+    font-size:17px;
+
+}
+
+.chat-messages{
+
+    padding:10px;
+
+    gap:8px;
+
+}
+
+.chat-message{
+
+    max-width:78%;
+
+    padding:7px 10px;
+
+}
+
+.chat-user{
+
+    font-size:11px;
+
+}
+
+.chat-text{
+
+    font-size:13px;
+
+}
+
+.chat-time{
+
+    font-size:9px;
+
+}
+
+.chat-input{
+
+    padding:10px;
+
+    gap:6px;
+
+    flex-direction:row;   /* keep input and button side by side */
+
+}
+
+.chat-input input{
+
+    height:36px;
+
+    font-size:12px;
+
+}
+
+.chat-input button{
+
+    width:70px;
+
+    height:36px;
+
+    font-size:12px;
+
+}
+
+}

@@ -1,51 +1,246 @@
 .sidebar{
 
-    height:100%;
+    width:270px;
 
-    padding:25px;
+    height:100vh;
+
+    position:fixed;
+
+    left:0;
+
+    top:0;
+
+    background:
+    linear-gradient(
+        180deg,
+        rgba(18,18,28,.96),
+        rgba(10,10,16,.98)
+    );
+
+    backdrop-filter:blur(24px);
+
+    border-right:1px solid rgba(255,255,255,.05);
+
+    padding:26px 18px;
 
     display:flex;
 
     flex-direction:column;
 
+    overflow:hidden;
+
 }
+
+/* ================= LOGO ================= */
 
 .logo{
 
     font-size:34px;
 
-    font-weight:700;
+    font-weight:800;
 
-    margin-bottom:40px;
+    color:white;
+
+    letter-spacing:1px;
+
+    margin-bottom:42px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    user-select:none;
 
 }
 
-.sidebar a{
+.logo::before{
+
+    content:"🎧";
+
+    font-size:38px;
+
+    margin-bottom:8px;
+
+    filter:drop-shadow(0 0 15px #7C3AED);
+
+}
+
+.logo span{
+
+    margin-top:8px;
+
+    font-size:13px;
+
+    color:#9ca3af;
+
+    font-weight:400;
+
+}
+
+/* ================= MENU ================= */
+
+.sidebar-menu{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+}
+
+.sidebar-menu a{
+
+    position:relative;
+
+    text-decoration:none;
+
+    color:#cfcfcf;
 
     display:flex;
 
     align-items:center;
 
-    gap:14px;
+    gap:16px;
 
-    padding:14px 18px;
+    padding:15px 18px;
 
-    margin-bottom:8px;
+    border-radius:18px;
 
-    border-radius:15px;
+    font-size:17px;
 
-    transition:.3s;
+    transition:.28s;
 
-    color:#DDD;
+    overflow:hidden;
 
 }
 
-.sidebar a:hover{
+.sidebar-menu a::before{
 
-    background:linear-gradient(90deg,#7C3AED,#4F46E5);
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:0;
+
+    height:100%;
+
+    background:
+
+    linear-gradient(
+
+        135deg,
+
+        rgba(124,58,237,.18),
+
+        rgba(124,58,237,.04)
+
+    );
+
+    transition:.28s;
+
+}
+
+.sidebar-menu a:hover::before{
+
+    width:100%;
+
+}
+
+.sidebar-menu a:hover{
 
     color:white;
 
-    transform:translateX(8px);
+    transform:translateX(6px);
+
+}
+
+.sidebar-menu svg{
+
+    font-size:21px;
+
+    transition:.25s;
+
+}
+
+.sidebar-menu a:hover svg{
+
+    color:#8b5cf6;
+
+    transform:scale(1.12);
+
+}
+
+/* ================= ACTIVE ================= */
+
+.active-link{
+
+    background:
+
+    linear-gradient(
+
+        135deg,
+
+        #7C3AED,
+
+        #5B21B6
+
+    );
+
+    color:white !important;
+
+    box-shadow:
+
+        0 0 25px rgba(124,58,237,.40);
+
+}
+
+.active-link svg{
+
+    color:white;
+
+}
+
+/* ================= BOTTOM GLOW ================= */
+
+.sidebar::after{
+
+    content:"";
+
+    position:absolute;
+
+    bottom:-120px;
+
+    left:-60px;
+
+    width:260px;
+
+    height:260px;
+
+    background:#7C3AED;
+
+    opacity:.18;
+
+    filter:blur(90px);
+
+    border-radius:50%;
+
+    pointer-events:none;
+
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+.sidebar{
+
+display:none;
+
+}
 
 }

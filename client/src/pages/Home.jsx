@@ -1,49 +1,56 @@
+import "./Home.css";
+import { SessionContext } from "../context/SessionContext";
+import { ProfileContext } from "../context/ProfileContext";
 import { useContext } from "react";
 import { MusicContext } from "../context/MusicContext";
 import SongCard from "../components/music/SongCard";
 
 function Home() {
 
-  const { recentSongs, playSong } = useContext(MusicContext);
+    const { addToQueue } = useContext(SessionContext);
+const { profile } = useContext(ProfileContext);
 
-  return (
-    <div>
+    const {
 
-      <h1
-        style={{
-          marginBottom: "30px",
-          fontSize: "38px",
-        }}
-      >
-        Recently Played
-      </h1>
+        recentSongs,
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(430px,1fr))",
-          gap: "18px",
-        }}
-      >
+        playSong
 
-        {recentSongs.map((song) => (
+    } = useContext(MusicContext);
 
-          <SongCard
+    return (
 
-            key={song.videoId}
+        <div className="home-page">
 
-            song={song}
+            <h1 className="home-title">
 
-            onPlay={playSong}
+                Recently Played
 
-          />
+            </h1>
 
-        ))}
+            <div className="home-grid">
 
-      </div>
+                {
 
-    </div>
-  );
+                    recentSongs.map(song=>(
+
+<SongCard
+    key={song.videoId}
+    song={song}
+    onPlay={playSong}
+    onQueue={(song) => addToQueue(song, profile.username)}
+/>
+
+                    ))
+
+                }
+
+            </div>
+
+        </div>
+
+    );
+
 }
 
 export default Home;

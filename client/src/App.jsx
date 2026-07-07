@@ -1,21 +1,29 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import "./App.css";
-
+import { useContext } from "react";
+import { ProfileContext } from "./context/ProfileContext";
+import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
-import Library from "./pages/Library";
-import Playlist from "./pages/Playlist";
+import Settings from "./pages/Settings";
 import Room from "./pages/Room";
 import Profile from "./pages/Profile";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-
+import Videos from "./pages/Videos";
+import FloatingVideoPlayer from "./components/video/FloatingVideoPlayer";
 import Navbar from "./components/layout/Navbar";
 import Sidebar from "./components/layout/Sidebar";
 import BottomPlayer from "./components/player/BottomPlayer";
+import MobileNav from "./components/layout/MobileNav";
 
 function App() {
+  const { profile } = useContext(ProfileContext);
+
+if (!profile.username) {
+
+    return <Welcome />;
+
+}
   return (
     <BrowserRouter>
 
@@ -31,29 +39,31 @@ function App() {
 
         <div className="main-content">
 
+          <FloatingVideoPlayer />
+
           <Routes>
 
             <Route path="/" element={<Home />} />
 
             <Route path="/search" element={<Search />} />
 
-            <Route path="/library" element={<Library />} />
+            <Route path="/videos" element={<Videos />} />
 
-            <Route path="/playlist" element={<Playlist />} />
+            <Route path="/settings" element={<Settings />} />
 
             <Route path="/room" element={<Room />} />
 
             <Route path="/profile" element={<Profile />} />
 
-            <Route path="/login" element={<Login />} />
-
-            <Route path="/signup" element={<Signup />} />
+            
 
           </Routes>
 
         </div>
 
       </div>
+
+      <MobileNav/>
 
       <BottomPlayer />
 

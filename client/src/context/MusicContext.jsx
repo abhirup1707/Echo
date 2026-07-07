@@ -1,9 +1,11 @@
 import { createContext, useEffect, useState } from "react";
-
+import { useContext } from "react";
+import { ProfileContext } from "./ProfileContext";
 export const MusicContext = createContext();
 
 export default function MusicProvider({ children }) {
   const [currentSong, setCurrentSong] = useState(null);
+  const { playSong: updateStats } = useContext(ProfileContext);
 const [isPlaying, setIsPlaying] = useState(false);
   const [recentSongs, setRecentSongs] = useState(() => {
     const saved = localStorage.getItem("recentSongs");
@@ -19,6 +21,7 @@ function playSong(song) {
     setCurrentSong(song);
 
     setIsPlaying(true);
+    updateStats(song);
 
     setRecentSongs((prev) => {
 
@@ -36,10 +39,12 @@ function playSong(song) {
     <MusicContext.Provider
 value={{
     currentSong,
+    setCurrentSong,
     playSong,
     recentSongs,
     isPlaying,
     setIsPlaying,
+    
 }}
     >
       {children}

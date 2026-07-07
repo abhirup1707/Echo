@@ -1,45 +1,107 @@
 .song-card{
 
+    position:relative;
+
     display:flex;
+
     align-items:center;
 
-    gap:18px;
+    gap:20px;
 
-    background:rgba(255,255,255,.04);
+    padding:16px;
 
-    border:1px solid rgba(255,255,255,.07);
+    border-radius:24px;
 
-    padding:14px;
+    background:
+    linear-gradient(
+        145deg,
+        rgba(255,255,255,.05),
+        rgba(255,255,255,.025)
+    );
 
-    border-radius:22px;
+    backdrop-filter:blur(18px);
 
-    transition:.3s ease;
+    border:1px solid rgba(255,255,255,.06);
+
+    overflow:hidden;
+
+    transition:.35s;
+
+}
+
+/* Purple Glow */
+
+.song-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+
+    radial-gradient(
+
+        circle at top right,
+
+        rgba(124,58,237,.18),
+
+        transparent 55%
+
+    );
+
+    opacity:0;
+
+    transition:.35s;
+
+}
+
+.song-card:hover::before{
+
+    opacity:1;
 
 }
 
 .song-card:hover{
 
-    background:rgba(255,255,255,.07);
+    transform:translateY(-8px) scale(1.015);
 
-    transform:translateY(-4px);
+    border-color:rgba(124,58,237,.35);
 
-    box-shadow:0 10px 25px rgba(124,58,237,.30);
+    box-shadow:
+
+        0 15px 40px rgba(0,0,0,.45),
+
+        0 0 35px rgba(124,58,237,.28);
 
 }
+
+/* ================= IMAGE ================= */
 
 .song-image{
 
-    width:180px;
+    width:190px;
 
-    height:100px;
+    height:108px;
 
     object-fit:cover;
 
-    border-radius:14px;
+    border-radius:18px;
 
     flex-shrink:0;
 
+    transition:.35s;
+
 }
+
+.song-card:hover .song-image{
+
+    transform:scale(1.05);
+
+}
+
+/* ================= INFO ================= */
 
 .song-info{
 
@@ -47,17 +109,19 @@
 
     min-width:0;
 
+    z-index:2;
+
 }
 
 .song-title{
 
     margin:0;
 
-    font-size:28px;
+    font-size:23px;
 
-    font-weight:600;
+    font-weight:700;
 
-    color:#ffffff;
+    color:white;
 
     white-space:nowrap;
 
@@ -71,9 +135,9 @@
 
     margin-top:10px;
 
-    font-size:18px;
+    font-size:17px;
 
-    color:#9ca3af;
+    color:#a1a1aa;
 
     white-space:nowrap;
 
@@ -83,17 +147,31 @@
 
 }
 
-/* ---------- ROUND PLAY BUTTON ---------- */
+/* ================= BUTTONS ================= */
+
+.song-actions{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    z-index:2;
+
+}
 
 .play-btn{
 
-    width:56px;
+    width:58px;
 
-    height:56px;
+    height:58px;
 
     border:none;
 
     border-radius:50%;
+
+    cursor:pointer;
 
     display:flex;
 
@@ -101,60 +179,65 @@
 
     justify-content:center;
 
-    background:linear-gradient(135deg,#7c3aed,#4f46e5);
+    font-size:18px;
 
     color:white;
 
-    font-size:18px;
+    background:
 
-    cursor:pointer;
+    linear-gradient(
 
-    transition:.25s;
+        135deg,
 
-    flex-shrink:0;
+        #8B5CF6,
+
+        #6D28D9
+
+    );
+
+    transition:.3s;
+
+    box-shadow:
+
+        0 0 20px rgba(124,58,237,.35);
 
 }
 
 .play-btn:hover{
 
-    transform:scale(1.12);
+    transform:scale(1.15) rotate(8deg);
 
-    box-shadow:0 0 22px rgba(124,58,237,.6);
+    box-shadow:
+
+        0 0 28px rgba(124,58,237,.65);
 
 }
 
 .play-btn svg{
 
-    margin-left:3px;
-
-}
-.song-actions{
-
-    display:flex;
-
-    gap:10px;
+    margin-left:2px;
 
 }
 
 .queue-song-btn{
 
-    width:46px;
+    width:48px;
 
-    height:46px;
-
-    border-radius:50%;
+    height:48px;
 
     border:none;
 
+    border-radius:50%;
+
     cursor:pointer;
 
-    background:#2b2b2b;
+    background:#242433;
 
     color:white;
 
-    font-size:24px;
+    font-size:22px;
 
-    transition:.25s;
+    transition:.3s;
 
 }
 
@@ -162,6 +245,102 @@
 
     background:#7C3AED;
 
-    transform:scale(1.08);
+    transform:scale(1.12);
+
+    box-shadow:0 0 20px rgba(124,58,237,.45);
+
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+.song-card{
+
+    display:grid;
+
+    grid-template-columns:70px 1fr auto;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:8px;
+
+}
+
+.song-image{
+
+width:70px;
+
+height:70px;
+
+border-radius:10px;
+
+flex-shrink:0;
+
+}
+
+.song-title{
+
+font-size:14px;
+
+line-height:1.25;
+
+}
+
+.song-artist{
+
+font-size:11px;
+
+margin-top:2px;
+
+}
+
+.play-btn{
+
+width:34px;
+
+height:34px;
+
+font-size:12px;
+
+}
+
+.queue-song-btn{
+
+width:30px;
+
+height:30px;
+
+font-size:14px;
+
+}
+
+.song-actions{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-shrink:0;
+
+}
+
+.song-info{
+
+flex:1;
+
+min-width:0;
+
+overflow:hidden;
+
+}
 
 }

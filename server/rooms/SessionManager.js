@@ -19,11 +19,20 @@ function createSession(hostSocketId, username, sessionName) {
         ],
 
         currentSong: null,
-        queue: [],
-        chat: [],
-        playing: false,
-        currentTime: 0,
-        createdAt: new Date()
+currentMovie: null,
+currentVideo: null,
+
+
+
+queue: [],
+
+chat: [],
+
+playing: false,
+
+currentTime: 0,
+
+createdAt: new Date()
     };
 
     return sessions[code];

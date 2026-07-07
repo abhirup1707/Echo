@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { searchSongs } from "../services/youtube";
 import { SessionContext } from "../context/SessionContext";
-
+import { ProfileContext } from "../context/ProfileContext";
 import "./Search.css";
 
 import SongCard from "../components/music/SongCard";
@@ -9,7 +9,7 @@ import SongCard from "../components/music/SongCard";
 function Search() {
 
   const [query, setQuery] = useState("");
-
+const { profile } = useContext(ProfileContext);
   const [songs, setSongs] = useState([]);
 
   const {
@@ -92,7 +92,7 @@ function Search() {
 
     onPlay={sendSong}
 
-    onQueue={(song) => addToQueue(song, username)}
+    onQueue={(song) => addToQueue(song, profile.username)}
 
 />
 

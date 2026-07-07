@@ -3,18 +3,58 @@ import "./Sidebar.css";
 import {
     FaHome,
     FaSearch,
-    FaBook,
-    FaList,
+    FaVideo,
     FaUsers,
-    FaHeart,
+    FaUserCircle,
     FaCog
 } from "react-icons/fa";
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-function Sidebar(){
+function Sidebar() {
 
-    return(
+    const location = useLocation();
+
+const menu = [
+
+    {
+        name: "Home",
+        path: "/",
+        icon: <FaHome />
+    },
+
+    {
+        name: "Music",
+        path: "/search",
+        icon: <FaSearch />
+    },
+
+    {
+        name: "Videos",
+        path: "/videos",
+        icon: <FaVideo />
+    },
+
+    {
+        name: "Session",
+        path: "/room",
+        icon: <FaUsers />
+    },
+
+    {
+        name: "Profile",
+        path: "/profile",
+        icon: <FaUserCircle />
+    },
+
+    {
+        name: "Settings",
+        path: "/settings",
+        icon: <FaCog />
+    }
+
+];
+    return (
 
         <div className="sidebar">
 
@@ -22,39 +62,49 @@ function Sidebar(){
 
                 🎵 Echo
 
+                <span>
+
+                    Listen Together
+
+                </span>
+
             </div>
 
-            <Link to="/">
-                <FaHome/> Home
-            </Link>
+            <div className="sidebar-menu">
 
-            <Link to="/search">
-                <FaSearch/> Search
-            </Link>
+                {
 
-            <Link to="/library">
-                <FaBook/> Library
-            </Link>
+                    menu.map(item => (
 
-            <Link to="/playlist">
-                <FaList/> Playlist
-            </Link>
+                        <Link
 
-            <Link to="/room">
-                <FaUsers/> Rooms
-            </Link>
+                            key={item.path}
 
-            <Link to="/profile">
-                <FaHeart/> Profile
-            </Link>
+                            to={item.path}
 
-            <Link to="#">
-                <FaCog/> Settings
-            </Link>
+                            className={location.pathname === item.path ? "active-link" : ""}
+
+                        >
+
+                            {item.icon}
+
+                            <span>
+
+                                {item.name}
+
+                            </span>
+
+                        </Link>
+
+                    ))
+
+                }
+
+            </div>
 
         </div>
 
-    )
+    );
 
 }
 
