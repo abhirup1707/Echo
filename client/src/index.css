@@ -16,18 +16,19 @@ body,
 
 body{
 
-    font-family:Inter,Segoe UI,sans-serif;
+    margin:0;
+
+    font-family:inherit;
+
+    background:
+
+        radial-gradient(circle at top,#24103d 0%,#0b0b12 45%),
+
+        linear-gradient(180deg,#09090f,#050507);
 
     color:white;
 
     overflow-x:hidden;
-
-    overflow-y:auto;
-
-    background:
-    radial-gradient(circle at top left,#4F46E522,transparent 40%),
-    radial-gradient(circle at bottom right,#7C3AED22,transparent 40%),
-    #09090B;
 
 }
 
@@ -78,5 +79,191 @@ input{
 ::-webkit-scrollbar-track{
 
     background:transparent;
+
+}
+
+/* ===============================
+   Animated Glow Background
+================================ */
+
+body::before{
+
+    content:"";
+
+    position:fixed;
+
+    width:550px;
+
+    height:550px;
+
+    border-radius:50%;
+
+    background:rgba(124,58,237,.18);
+
+    filter:blur(140px);
+
+    top:-180px;
+
+    right:-180px;
+
+    animation:glowMove 12s ease-in-out infinite alternate;
+
+    pointer-events:none;
+
+    z-index:-1;
+
+}
+
+body::after{
+
+    content:"";
+
+    position:fixed;
+
+    width:450px;
+
+    height:450px;
+
+    border-radius:50%;
+
+    background:rgba(79,70,229,.12);
+
+    filter:blur(130px);
+
+    bottom:-160px;
+
+    left:-150px;
+
+    animation:glowMove2 14s ease-in-out infinite alternate;
+
+    pointer-events:none;
+
+    z-index:-1;
+
+}
+
+@keyframes glowMove{
+
+    from{
+
+        transform:translate(0,0);
+
+    }
+
+    to{
+
+        transform:translate(-70px,80px);
+
+    }
+
+}
+
+@keyframes glowMove2{
+
+    from{
+
+        transform:translate(0,0);
+
+    }
+
+    to{
+
+        transform:translate(80px,-60px);
+
+    }
+
+}
+
+/* ===============================
+   Global Button Style
+================================ */
+
+button{
+
+background:linear-gradient(135deg,#7C3AED,#5B21B6);
+
+border:none;
+
+color:white;
+
+cursor:pointer;
+
+transition:.3s;
+
+position:relative;
+
+overflow:hidden;
+
+}
+
+button:hover{
+
+transform:translateY(-2px);
+
+box-shadow:
+
+0 0 18px rgba(124,58,237,.45),
+
+0 10px 30px rgba(0,0,0,.35);
+
+}
+
+button:active{
+
+transform:scale(.96);
+
+}
+
+/* ===============================
+   Smooth Animation
+================================ */
+
+*{
+
+transition:
+
+background .25s,
+
+color .25s,
+
+box-shadow .25s,
+
+transform .25s,
+
+border-color .25s;
+
+}
+
+::-webkit-scrollbar{
+
+width:8px;
+
+}
+
+::-webkit-scrollbar-track{
+
+background:#0e0e14;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+background:#7C3AED;
+
+border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+background:#9D6CFF;
+
+}
+
+::selection{
+
+background:#7C3AED;
+
+color:white;
 
 }

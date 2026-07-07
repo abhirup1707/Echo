@@ -55,13 +55,31 @@
 
 .logo::before{
 
-    content:"🎧";
+content:"🎧";
 
-    font-size:38px;
+font-size:38px;
 
-    margin-bottom:8px;
+margin-bottom:8px;
 
-    filter:drop-shadow(0 0 15px #7C3AED);
+filter:drop-shadow(0 0 15px #7C3AED);
+
+animation:logoFloat 3s ease-in-out infinite;
+
+}
+
+@keyframes logoFloat{
+
+0%,100%{
+
+transform:translateY(0);
+
+}
+
+50%{
+
+transform:translateY(-8px);
+
+}
 
 }
 
@@ -179,23 +197,45 @@
 
 .active-link{
 
-    background:
+background:
 
-    linear-gradient(
+linear-gradient(
 
-        135deg,
+135deg,
 
-        #7C3AED,
+#7C3AED,
 
-        #5B21B6
+#5B21B6
 
-    );
+);
 
-    color:white !important;
+color:white!important;
 
-    box-shadow:
+box-shadow:
 
-        0 0 25px rgba(124,58,237,.40);
+0 0 25px rgba(124,58,237,.45);
+
+animation:pulseGlow 2s infinite;
+
+}
+
+@keyframes pulseGlow{
+
+0%,100%{
+
+box-shadow:
+
+0 0 20px rgba(124,58,237,.45);
+
+}
+
+50%{
+
+box-shadow:
+
+0 0 35px rgba(124,58,237,.75);
+
+}
 
 }
 
@@ -240,6 +280,56 @@
 .sidebar{
 
 display:none;
+
+}
+
+}
+
+.sidebar::before{
+
+content:"";
+
+position:absolute;
+
+top:0;
+
+left:-60%;
+
+width:60%;
+
+height:100%;
+
+background:
+
+linear-gradient(
+
+90deg,
+
+transparent,
+
+rgba(255,255,255,.05),
+
+transparent
+
+);
+
+animation:sidebarSweep 8s linear infinite;
+
+pointer-events:none;
+
+}
+
+@keyframes sidebarSweep{
+
+0%{
+
+left:-60%;
+
+}
+
+100%{
+
+left:160%;
 
 }
 

@@ -2,7 +2,7 @@ globalThis.global = globalThis;
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import WebRTCProvider from "./context/WebRTCContext";
+
 import App from "./App";
 import "./index.css";
 import ProfileProvider from "./context/ProfileContext";
@@ -19,11 +19,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
 <SessionProvider>
 
-<WebRTCProvider>
+
 
 <App/>
 
-</WebRTCProvider>
+
 
 </SessionProvider>
 

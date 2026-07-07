@@ -352,18 +352,31 @@ margin-top:22px;
 
 .online{
 
-    width:11px;
+width:11px;
 
-    height:11px;
+height:11px;
 
-    border-radius:50%;
+border-radius:50%;
 
-    background:#22c55e;
+background:#22c55e;
 
-    box-shadow:
+animation:onlinePulse 1.8s infinite;
 
-        0 0 15px #22c55e;
+}
 
+@keyframes onlinePulse{
+
+0%{
+
+box-shadow:0 0 0 0 #22c55e;
+
+}
+
+100%{
+
+box-shadow:0 0 0 12px transparent;
+
+}
 }
 
 /* ================= NOW PLAYING ================= */
@@ -386,17 +399,29 @@ margin-top:22px;
 
 .playing-cover{
 
-    width:95px;
+width:95px;
 
-    height:95px;
+height:95px;
 
-    object-fit:cover;
+object-fit:cover;
 
-    border-radius:18px;
+border-radius:18px;
 
-    box-shadow:
+animation:albumSpin 18s linear infinite;
 
-        0 10px 28px rgba(0,0,0,.35);
+box-shadow:
+
+0 12px 30px rgba(0,0,0,.4);
+
+}
+
+@keyframes albumSpin{
+
+to{
+
+transform:rotate(360deg);
+
+}
 
 }
 
