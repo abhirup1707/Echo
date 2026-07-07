@@ -48,7 +48,7 @@ function Videos() {
 
         const response = await fetch(
 
-            `http://localhost:5000/upload/${roomCode}`,
+            `${import.meta.env.VITE_API_URL}/upload/${roomCode}`,
 
             {
 

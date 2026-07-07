@@ -76,7 +76,7 @@ function MoviePlayer() {
 
                 width="100%"
 
-                src={`http://localhost:5000${currentMovie.url}`}
+                src={`${import.meta.env.VITE_API_URL}${currentMovie.url}`}
 
                 onPlay={handlePlay}
                 onPause={handlePause}
