@@ -15,6 +15,7 @@ import Navbar from "./components/layout/Navbar";
 import Sidebar from "./components/layout/Sidebar";
 import BottomPlayer from "./components/player/BottomPlayer";
 import MobileNav from "./components/layout/MobileNav";
+import JoinRoom from "./pages/JoinRoom";
 
 function App() {
   const { profile } = useContext(ProfileContext);
@@ -52,6 +53,8 @@ if (!profile.username) {
             <Route path="/settings" element={<Settings />} />
 
             <Route path="/room" element={<Room />} />
+
+            <Route path="/join/:roomCode" element={<JoinRoom />} />
 
             <Route path="/profile" element={<Profile />} />
 

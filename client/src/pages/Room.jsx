@@ -8,7 +8,11 @@ import ChatBox from "../components/chat/ChatBox";
 function Room() {
   const { profile } = useContext(ProfileContext);
   const [username] = useState(profile.username);
-  const [roomCode, setRoomCode] = useState("");
+const [roomCode, setRoomCode] = useState(
+
+    sessionStorage.getItem("echoRoomCode") || ""
+
+);
  
   
 const {
@@ -99,6 +103,8 @@ socket.emit("create-session", {
 setSessionRoomCode(roomCode);
 
 setSessionUsername(username);
+
+sessionStorage.removeItem("echoRoomCode");
   }
 function leaveRoom() {
 
@@ -139,24 +145,113 @@ Room Code
 </strong>
 
 <button
-
 className="copy-room-btn"
-
 onClick={() => {
 
 navigator.clipboard.writeText(sessionRoomCode);
 
+alert("Room code copied!");
 
+}}
+>
+📋
+</button>
+
+
+
+</p>
+
+{
+
+sessionRoomCode && (
+
+<div
+className="invite-box"
+>
+
+<p>
+
+🔗 Invite Link
+
+</p>
+
+<input
+
+readOnly
+
+value={`${window.location.origin}/join/${sessionRoomCode}`}
+
+/>
+
+<div className="invite-buttons">
+
+<button
+
+className="invite-btn"
+
+onClick={() => {
+
+navigator.clipboard.writeText(
+
+`${window.location.origin}/join/${sessionRoomCode}`
+
+);
+
+alert("Invite link copied!");
 
 }}
 
 >
 
-📋
+📋 Copy Invite
 
 </button>
 
-</p>
+<button
+
+className="invite-btn"
+
+onClick={async()=>{
+
+const link=
+
+`${window.location.origin}/join/${sessionRoomCode}`;
+
+if(navigator.share){
+
+await navigator.share({
+
+title:"Join my Echo Session",
+
+text:"Join my Echo room!",
+
+url:link
+
+});
+
+}else{
+
+navigator.clipboard.writeText(link);
+
+alert("Invite copied!");
+
+}
+
+}}
+
+>
+
+📤 Share
+
+</button>
+
+</div>
+
+</div>
+
+)
+
+}
 
 </div>
 

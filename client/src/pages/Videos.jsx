@@ -3,6 +3,7 @@ import { searchVideos } from "../services/youtube";
 import { SessionContext } from "../context/SessionContext";
 import VideoCard from "../components/video/VideoCard";
 import MoviePlayer from "../components/video/MoviePlayer";
+import axios from "axios";
 
 import "../components/video/Videos.css";
 
@@ -15,6 +16,20 @@ function Videos() {
     const [videos, setVideos] = useState([]);
 
     const { roomCode } = useContext(SessionContext);
+
+    const [uploadProgress, setUploadProgress] = useState(0);
+
+    const [uploadedSize, setUploadedSize] = useState("");
+
+const [totalSize, setTotalSize] = useState("");
+
+const [uploadSpeed, setUploadSpeed] = useState("");
+
+const [remainingTime, setRemainingTime] = useState("");
+
+const [uploading, setUploading] = useState(false);
+
+const [uploadStatus, setUploadStatus] = useState("");
 
     async function loadVideos() {
 
@@ -32,42 +47,119 @@ function Videos() {
 
     }
 
-    async function uploadMovie(file) {
+async function uploadMovie(file) {
 
-        if (!roomCode) {
+    if (!roomCode) {
 
-            alert("Join a room first.");
+        alert("Join a room first.");
 
-            return;
+        return;
 
-        }
+    }
 
-        const formData = new FormData();
+    const formData = new FormData();
 
-        formData.append("movie", file);
+    formData.append("movie", file);
 
-        const response = await fetch(
+    const startTime = Date.now();
+
+    try {
+
+        setUploading(true);
+        setUploadProgress(0);
+        setUploadStatus("Uploading...");
+
+        const response = await axios.post(
 
             `${import.meta.env.VITE_API_URL}/upload/${roomCode}`,
 
+            formData,
+
             {
 
-                method: "POST",
+                headers: {
 
-                body: formData
+                    "Content-Type": "multipart/form-data"
+
+                },
+
+                onUploadProgress: (progressEvent) => {
+
+                    const loaded = progressEvent.loaded;
+
+                    const total = progressEvent.total || 1;
+
+                    const percent = Math.round((loaded * 100) / total);
+
+                    setUploadProgress(percent);
+
+                    const loadedMB = (loaded / 1024 / 1024).toFixed(1);
+
+                    const totalMB = (total / 1024 / 1024).toFixed(1);
+
+                    setUploadedSize(loadedMB);
+
+                    setTotalSize(totalMB);
+
+                    const elapsed = (Date.now() - startTime) / 1000;
+
+                    const speed = loaded / elapsed;
+
+                    const speedMB = (speed / 1024 / 1024).toFixed(2);
+
+                    setUploadSpeed(speedMB);
+
+                    const remainingBytes = total - loaded;
+
+                    const secondsLeft = speed > 0
+                        ? Math.ceil(remainingBytes / speed)
+                        : 0;
+
+                    setRemainingTime(secondsLeft);
+
+                }
 
             }
 
         );
 
-        const data = await response.json();
+        console.log(response.data);
 
-        console.log(data);
+        setUploadProgress(100);
 
-        // Allow selecting the same movie again later
+        setUploadStatus("Preparing Movie...");
+
+        setTimeout(() => {
+
+            setUploadStatus("Movie Ready ✅");
+
+        }, 700);
+
+        setTimeout(() => {
+
+            setUploading(false);
+
+            setUploadProgress(0);
+
+            setUploadStatus("");
+
+        }, 1500);
+
         fileInputRef.current.value = "";
 
     }
+
+    catch (err) {
+
+        console.error(err);
+
+        setUploading(false);
+
+        setUploadStatus("Upload Failed");
+
+    }
+
+}
 
     useEffect(() => {
 
@@ -152,6 +244,88 @@ function Videos() {
                     🎬 Choose Movie
 
                 </button>
+
+                {
+
+uploading && (
+
+<div className="upload-progress">
+
+<div className="progress-header">
+
+<div>
+
+<strong>{uploadStatus}</strong>
+
+</div>
+
+<div>
+
+{uploadProgress}%
+
+</div>
+
+</div>
+
+<div className="progress-bar">
+
+<div
+
+className="progress-fill"
+
+style={{
+
+width:`${uploadProgress}%`
+
+}}
+
+></div>
+
+</div>
+
+<div className="upload-details">
+
+<p>
+
+📦 {uploadedSize} MB / {totalSize} MB
+
+</p>
+
+<p>
+
+⚡ {uploadSpeed} MB/s
+
+</p>
+
+<p>
+
+⏳ {remainingTime} sec remaining
+
+</p>
+
+</div>
+
+<div className="progress-bar">
+
+<div
+
+className="progress-fill"
+
+style={{
+
+width: `${uploadProgress}%`
+
+}}
+
+></div>
+
+</div>
+
+</div>
+
+)
+
+}
 
                 <input
 
