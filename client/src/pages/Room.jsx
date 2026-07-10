@@ -5,6 +5,8 @@ import { ProfileContext } from "../context/ProfileContext";
 import { MusicContext } from "../context/MusicContext";
 import { SessionContext } from "../context/SessionContext";
 import ChatBox from "../components/chat/ChatBox";
+
+
 function Room() {
   const { profile } = useContext(ProfileContext);
   const [username] = useState(profile.username);

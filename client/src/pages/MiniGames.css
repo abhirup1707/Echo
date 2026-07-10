@@ -1,0 +1,23 @@
+.games-page{
+
+padding:35px;
+
+color:white;
+
+}
+
+.games-page h1{
+
+margin-bottom:35px;
+
+}
+
+.games-grid{
+
+display:grid;
+
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+
+gap:25px;
+
+}

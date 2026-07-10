@@ -4,7 +4,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const upload = require("./middleware/upload");
 const path = require("path");
-
+const registerScribbleEvents = require("./games/scribble/ScribbleEvents");
 const registerSessionHandlers = require("./socket/sessionHandlers");
 
 const app = express();
@@ -37,7 +37,11 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
+
     registerSessionHandlers(io, socket);
+
+    registerScribbleEvents(io, socket);
+
 });
 
 const { getSession } = require("./rooms/SessionManager");

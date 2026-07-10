@@ -1,16 +1,12 @@
 import {
 
 FaHome,
-
 FaSearch,
-
 FaVideo,
-
 FaUsers,
-
 FaUser,
-
-FaCog
+FaCog,
+FaGamepad
 
 } from "react-icons/fa";
 
@@ -40,6 +36,12 @@ return(
 <NavLink to="/videos">
 
 <FaVideo/>
+
+</NavLink>
+
+<NavLink to="/games">
+
+    <FaGamepad/>
 
 </NavLink>
 

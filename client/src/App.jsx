@@ -16,6 +16,8 @@ import Sidebar from "./components/layout/Sidebar";
 import BottomPlayer from "./components/player/BottomPlayer";
 import MobileNav from "./components/layout/MobileNav";
 import JoinRoom from "./pages/JoinRoom";
+import MiniGames from "./pages/MiniGames";
+import Scribble from "./pages/games/Scribble";
 
 function App() {
   const { profile } = useContext(ProfileContext);
@@ -57,6 +59,10 @@ if (!profile.username) {
             <Route path="/join/:roomCode" element={<JoinRoom />} />
 
             <Route path="/profile" element={<Profile />} />
+
+            <Route path="/games" element={<MiniGames />} />
+
+<Route path="/games/scribble" element={<Scribble />} />
 
             
 

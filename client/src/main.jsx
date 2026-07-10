@@ -8,6 +8,7 @@ import "./index.css";
 import ProfileProvider from "./context/ProfileContext";
 import MusicProvider from "./context/MusicContext";
 import SessionProvider from "./context/SessionContext";
+import { ScribbleProvider } from "./context/ScribbleContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -19,11 +20,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
 <SessionProvider>
 
-
+<ScribbleProvider>
 
 <App/>
 
-
+</ScribbleProvider>
 
 </SessionProvider>
 

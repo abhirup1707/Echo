@@ -8,7 +8,7 @@ import {
     FaUserCircle,
     FaCog
 } from "react-icons/fa";
-
+import { FaGamepad } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 
 function Sidebar() {
@@ -40,6 +40,12 @@ const menu = [
         path: "/room",
         icon: <FaUsers />
     },
+
+    {
+    name: "Mini Games",
+    path: "/games",
+    icon: <FaGamepad />
+},
 
     {
         name: "Profile",
