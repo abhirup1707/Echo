@@ -1,18 +1,71 @@
 /* =========================================================
    ECHO SCRIBBLE — MAIN GAME
+   Layout fix: the game shell is pinned to all four edges of
+   the "content area" so it always sits between:
+     - the left sidebar (desktop) / nothing (mobile)
+     - the top bar
+     - the bottom nav (mobile)
+     - the BottomPlayer bar (mobile, when a track is queued)
+   Tune the variables below to match your real components —
+   everything else derives from them, so you never need to
+   touch a magic padding number again.
 ========================================================= */
 
-.scribble-game-shell {
-    width: 100%;
-    min-height: calc(100vh - 80px);
-    padding: 24px;
-    color: white;
-    box-sizing: border-box;
+:root {
+    /* Desktop chrome */
+    --scribble-topbar-h-desktop: 76px;
+    --scribble-sidebar-w-desktop: 264px;
+
+    /* Mobile chrome */
+    --scribble-topbar-h-mobile: 56px;
+    --scribble-bottomnav-h-mobile: 64px;
+    --scribble-bottomplayer-h-mobile: 72px;
+}
+
+/* If your sidebar can collapse to icon-only, toggle this
+   class on a parent (e.g. <body class="sidebar-collapsed">)
+   and the shell will resize itself automatically. */
+.sidebar-collapsed {
+    --scribble-sidebar-w-desktop: 84px;
+}
+
+/* If no track is queued and BottomPlayer isn't rendered,
+   toggle this class on <body> (or the game shell's parent)
+   and mobile will reclaim that space. */
+.no-bottom-player {
+    --scribble-bottomplayer-h-mobile: 0px;
 }
 
 
 /* =========================================================
-   TOP BAR
+   GAME SHELL — pinned between the four edges
+========================================================= */
+
+.scribble-game-shell {
+    position: fixed;
+    top: var(--scribble-topbar-h-desktop);
+    left: var(--scribble-sidebar-w-desktop);
+    right: 0;
+    bottom: 0;
+
+    width: auto;
+    height: auto;
+
+    padding: 24px;
+    box-sizing: border-box;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    color: white;
+
+    /* smooth on iOS */
+    -webkit-overflow-scrolling: touch;
+}
+
+
+/* =========================================================
+   TOP BAR (in-game: word / timer, NOT the app's Echo topbar)
 ========================================================= */
 
 .scribble-game-topbar {
@@ -101,7 +154,7 @@
 
 
 /* =========================================================
-   MAIN 3-COLUMN GAME LAYOUT
+   MAIN 3-COLUMN GAME LAYOUT (desktop)
 ========================================================= */
 
 .scribble-main-grid {
@@ -211,7 +264,7 @@
     font-weight: 800;
 
     box-shadow:
-        0 5px 16px rgba(124, 58, 237, 0.35);
+        0 5px 16px rgba(124, 58, 237, 0.35); 
 }
 
 .scribble-player-details {
@@ -410,7 +463,7 @@
 
 
 /* =========================================================
-   CHAT PANEL
+   CHAT / GUESSES PANEL
 ========================================================= */
 
 .scribble-chat-panel {
@@ -852,19 +905,46 @@
    TABLET
 ========================================================= */
 
+@media (max-width: 900px) and (min-width: 601px) {
+
+    .scribble-game-shell {
+        left: var(--scribble-sidebar-w-desktop);
+    }
+
+    .scribble-main-grid {
+        grid-template-columns: minmax(160px, 200px) minmax(320px, 1fr);
+    }
+
+    .scribble-chat-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+
 /* =========================================================
    PHONE — ECHO SCRIBBLE
 ========================================================= */
 
 @media (max-width: 600px) {
 
+    /* -----------------------------------------------------
+       SHELL — pinned between the mobile topbar (top) and
+       the stacked BottomPlayer + bottom nav (bottom).
+       No more magic padding-bottom guess.
+    ----------------------------------------------------- */
+
     .scribble-game-shell {
+        top: var(--scribble-topbar-h-mobile);
+        left: 0;
+        right: 0;
+        bottom: calc(
+            var(--scribble-bottomnav-h-mobile) +
+            var(--scribble-bottomplayer-h-mobile)
+        );
+
         padding: 8px;
 
-        /* Space for fixed BottomPlayer + MobileNav */
-        padding-bottom: 190px;
-
-        min-height: 100vh;
+        min-height: 0;
 
         box-sizing: border-box;
     }
@@ -912,7 +992,7 @@
 
 
     /* =====================================================
-       MAIN LAYOUT
+       MAIN LAYOUT — single column, shell scrolls internally
     ===================================================== */
 
     .scribble-main-grid {
@@ -921,22 +1001,24 @@
         flex-direction: column;
 
         gap: 16px;
+
+        height: 100%;
+        min-height: 0;
     }
 
 
     /* =====================================================
-       PLAYERS — COMPACT ON MOBILE
+       PLAYERS — compact horizontal strip on mobile
     ===================================================== */
 
     .scribble-players-panel {
-        min-height: auto;
+        flex-shrink: 0;
 
+        min-height: auto;
         height: auto;
 
         display: flex;
-
         flex-wrap: wrap;
-
         gap: 6px;
 
         padding: 10px;
@@ -974,6 +1056,8 @@
     ===================================================== */
 
     .scribble-canvas-section {
+        flex-shrink: 0;
+
         border-radius: 12px;
 
         min-height: auto;
@@ -1018,21 +1102,20 @@
 
 
     /* =====================================================
-       FIXED-SIZE GUESS / CHAT BOX
+       CHAT / GUESSES — takes remaining space, scrolls
+       internally so the outer shell never grows past its
+       fixed box
     ===================================================== */
 
     .scribble-chat-panel {
         display: flex;
-
         flex-direction: column;
+
+        flex: 1 1 auto;
 
         width: 100%;
 
-        height: 380px;
-
-        min-height: 380px;
-
-        max-height: 380px;
+        min-height: 220px;
 
         overflow: hidden;
 
@@ -1041,7 +1124,6 @@
         box-sizing: border-box;
     }
 
-
     .scribble-chat-panel h2 {
         flex-shrink: 0;
 
@@ -1049,14 +1131,6 @@
 
         padding: 14px;
     }
-
-
-    /*
-       THIS is the important fix.
-
-       Messages scroll inside this area instead
-       of making the whole chat panel taller.
-    */
 
     .scribble-chat-messages {
         flex: 1 1 0;
@@ -1072,18 +1146,15 @@
         padding: 10px;
 
         overflow-y: auto;
-
         overflow-x: hidden;
 
         box-sizing: border-box;
 
         scrollbar-width: thin;
-
         scrollbar-color: #6d28d9 transparent;
 
         overscroll-behavior: contain;
     }
-
 
     .scribble-message {
         flex-shrink: 0;
@@ -1113,7 +1184,6 @@
 
         background: #181821;
     }
-
 
     .scribble-guessed-message,
     .scribble-drawer-message {

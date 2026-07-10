@@ -140,13 +140,6 @@ function registerScribbleEvents(io, socket) {
 
             }
 
-            /*
-                Important:
-                A user may reconnect with a new socket ID.
-
-                Therefore we first check by username.
-            */
-
             let player = room.players.find(
                 p => p.username === username
             );
@@ -157,22 +150,17 @@ function registerScribbleEvents(io, socket) {
 
                 player.id = socket.id;
 
-                /*
-                    Update references if this reconnecting
-                    player was host or drawer.
-                */
-
                 if (room.host === oldId) {
+
                     room.host = socket.id;
+
                 }
 
                 if (room.drawer === oldId) {
-                    room.drawer = socket.id;
-                }
 
-                /*
-                    Move score from old socket ID to new ID.
-                */
+                    room.drawer = socket.id;
+
+                }
 
                 if (
                     oldId !== socket.id &&
@@ -400,7 +388,15 @@ function registerScribbleEvents(io, socket) {
 
             if (!stroke) return;
 
-            room.canvas.push(stroke);
+            const action = {
+
+                type: "stroke",
+
+                ...stroke
+
+            };
+
+            room.canvas.push(action);
 
             /*
                 Prevent unlimited server memory growth.
@@ -416,7 +412,98 @@ function registerScribbleEvents(io, socket) {
                 `${roomCode}-scribble`
             ).emit(
                 "scribble-draw",
-                stroke
+                action
+            );
+
+        }
+    );
+
+
+    // =========================================================
+    // FILL TOOL
+    // =========================================================
+
+    socket.on(
+        "scribble-fill",
+        ({ roomCode, fill }) => {
+
+            const room = getScribbleRoom(roomCode);
+
+            if (!room) return;
+
+            if (room.phase !== "drawing") return;
+
+            if (room.drawer !== socket.id) return;
+
+            if (!fill) return;
+
+            const action = {
+
+                type: "fill",
+
+                ...fill
+
+            };
+
+            room.canvas.push(action);
+
+            /*
+                Send to everyone, including drawer.
+
+                This means the drawer doesn't need to apply
+                the fill locally before emitting.
+            */
+
+            io.to(
+                `${roomCode}-scribble`
+            ).emit(
+                "scribble-fill",
+                action
+            );
+
+        }
+    );
+
+
+    // =========================================================
+    // UNDO LAST ACTION
+    // =========================================================
+
+    socket.on(
+        "scribble-undo",
+        ({ roomCode }) => {
+
+            const room = getScribbleRoom(roomCode);
+
+            if (!room) return;
+
+            if (room.phase !== "drawing") return;
+
+            if (room.drawer !== socket.id) return;
+
+            if (room.canvas.length === 0) return;
+
+            /*
+                Remove the latest canvas action.
+
+                NOTE:
+                Right now each scribble-draw event is one
+                history action, so a single Undo may remove
+                only one small line segment.
+            */
+
+            room.canvas.pop();
+
+            /*
+                Send the entire remaining canvas history
+                to everyone, including the drawer.
+            */
+
+            io.to(
+                `${roomCode}-scribble`
+            ).emit(
+                "scribble-canvas-state",
+                room.canvas
             );
 
         }
@@ -434,6 +521,8 @@ function registerScribbleEvents(io, socket) {
             const room = getScribbleRoom(roomCode);
 
             if (!room) return;
+
+            if (room.phase !== "drawing") return;
 
             if (room.drawer !== socket.id) return;
 
@@ -453,113 +542,185 @@ function registerScribbleEvents(io, socket) {
     // SUBMIT GUESS
     // =========================================================
 
-    socket.on(
-        "scribble-guess",
-        ({ roomCode, guess }) => {
+socket.on(
+    "scribble-guess",
+    ({ roomCode, guess }) => {
 
-            const room = getScribbleRoom(roomCode);
+        const room = getScribbleRoom(roomCode);
 
-            if (!room) return;
+        if (!room) return;
 
-            if (room.phase !== "drawing") return;
+        if (room.phase !== "drawing") return;
 
-            if (room.drawer === socket.id) return;
+        if (room.drawer === socket.id) return;
 
-            const player = room.players.find(
-                p => p.id === socket.id
+
+        const player = room.players.find(
+            p => p.id === socket.id
+        );
+
+        if (!player) return;
+
+
+        const cleanGuess =
+            String(guess || "").trim();
+
+        if (!cleanGuess) return;
+
+
+        /*
+            Check whether player has already
+            guessed the correct answer.
+        */
+
+        const alreadyGuessed =
+            room.correctGuessers.includes(
+                socket.id
             );
 
-            if (!player) return;
+
+        /*
+            Don't allow additional guesses after
+            this player has already guessed correctly.
+        */
+
+        if (alreadyGuessed) return;
+
+
+        const isCorrect =
+            cleanGuess.toLowerCase() ===
+            room.currentWord.toLowerCase();
+
+
+        // =================================================
+        // CORRECT GUESS
+        // =================================================
+
+        if (isCorrect) {
+
+            const points = calculatePoints(
+                room.timeLeft,
+                room.drawTime
+            );
+
+
+            room.correctGuessers.push(
+                socket.id
+            );
+
+
+            room.scores[socket.id] =
+                (
+                    room.scores[socket.id] || 0
+                ) + points;
+
+
+            room.scores[room.drawer] =
+                (
+                    room.scores[room.drawer] || 0
+                ) + 15;
+
+
+            /*
+                IMPORTANT:
+                Don't reveal the actual correct word
+                to other players in chat.
+            */
+
+            const message = {
+
+                id:
+                    `${Date.now()}-${Math.random()}`,
+
+                author:
+                    player.username,
+
+                text:
+                    "guessed the word!",
+
+                type:
+                    "correct"
+
+            };
+
+
+            /*
+                Store permanently in room chat.
+            */
+
+            room.chat.push(message);
+
+
+            /*
+                Update everyone.
+            */
+
+            emitRoomState(io, room);
+
+
+            /*
+                If every non-drawer player has guessed,
+                finish this turn early.
+            */
 
             if (
-                room.correctGuessers.includes(socket.id)
-            ) return;
+                room.correctGuessers.length >=
+                room.players.length - 1
+            ) {
 
-            const cleanGuess =
-                String(guess || "").trim();
-
-            if (!cleanGuess) return;
-
-            const isCorrect =
-                cleanGuess.toLowerCase() ===
-                room.currentWord.toLowerCase();
-
-            if (isCorrect) {
-
-                const points = calculatePoints(
-                    room.timeLeft,
-                    room.drawTime
-                );
-
-                room.correctGuessers.push(socket.id);
-
-                room.scores[socket.id] =
-                    (room.scores[socket.id] || 0) +
-                    points;
-
-                room.scores[room.drawer] =
-                    (room.scores[room.drawer] || 0) +
-                    15;
-
-                const message = {
-
-                    id: `${Date.now()}-${Math.random()}`,
-
-                    author: player.username,
-
-                    text: "guessed the word!",
-
-                    type: "correct"
-
-                };
-
-                room.chat.push(message);
-
-                emitRoomState(io, room);
-
-                /*
-                    End early if every guesser got it.
-                */
-
-                if (
-                    room.correctGuessers.length >=
-                    room.players.length - 1
-                ) {
-
-                    endCurrentTurn(
-                        io,
-                        room
-                    );
-
-                }
-
-            } else {
-
-                const message = {
-
-                    id: `${Date.now()}-${Math.random()}`,
-
-                    author: player.username,
-
-                    text: cleanGuess,
-
-                    type: "guess"
-
-                };
-
-                room.chat.push(message);
-
-                io.to(
-                    `${roomCode}-scribble`
-                ).emit(
-                    "scribble-chat-message",
-                    message
+                endCurrentTurn(
+                    io,
+                    room
                 );
 
             }
 
+
+            return;
+
         }
-    );
+
+
+        // =================================================
+        // NORMAL / WRONG GUESS
+        // =================================================
+
+        const message = {
+
+            id:
+                `${Date.now()}-${Math.random()}`,
+
+            author:
+                player.username,
+
+            text:
+                cleanGuess,
+
+            type:
+                "guess"
+
+        };
+
+
+        /*
+            THIS stores every message typed by players.
+        */
+
+        room.chat.push(message);
+
+
+        /*
+            Broadcast the updated complete room state.
+
+            This guarantees every client receives the
+            complete chat history, not only the latest
+            message.
+        */
+
+        emitRoomState(io, room);
+
+    }
+);
 
 
     // =========================================================
@@ -573,11 +734,6 @@ function registerScribbleEvents(io, socket) {
             const room = getScribbleRoom(roomCode);
 
             if (!room) return;
-
-            /*
-                Only drawer controls timer ticks for now.
-                Later this can be replaced by server intervals.
-            */
 
             if (room.drawer !== socket.id) return;
 

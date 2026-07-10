@@ -36,17 +36,30 @@ export default function ScribbleGame({
 
     const lastPointRef = useRef(null);
 
+    const chatEndRef = useRef(null);
+
+
     const [color, setColor] =
         useState("#111827");
 
     const [brushSize, setBrushSize] =
         useState(5);
 
-    const [eraser, setEraser] =
-        useState(false);
+    /*
+        Available tools:
+
+        brush
+        eraser
+        fill
+    */
+
+    const [tool, setTool] =
+        useState("brush");
+
 
     const [guess, setGuess] =
         useState("");
+
 
     const [timeLeft, setTimeLeft] =
         useState(
@@ -78,6 +91,15 @@ export default function ScribbleGame({
 
     }, [scribbleRoom?.timeLeft]);
 
+useEffect(() => {
+
+    chatEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+    });
+
+}, [scribbleRoom?.chat?.length]);
+
 
     // =====================================================
     // SOCKET LISTENERS
@@ -87,7 +109,14 @@ export default function ScribbleGame({
 
         function handleRemoteStroke(stroke) {
 
-            drawStroke(stroke);
+            drawAction(stroke);
+
+        }
+
+
+        function handleRemoteFill(fill) {
+
+            applyFill(fill);
 
         }
 
@@ -95,6 +124,13 @@ export default function ScribbleGame({
         function handleClearCanvas() {
 
             clearCanvasLocally();
+
+        }
+
+
+        function handleCanvasState(actions) {
+
+            redrawCanvas(actions);
 
         }
 
@@ -112,8 +148,18 @@ export default function ScribbleGame({
         );
 
         socket.on(
+            "scribble-fill",
+            handleRemoteFill
+        );
+
+        socket.on(
             "scribble-clear-canvas",
             handleClearCanvas
+        );
+
+        socket.on(
+            "scribble-canvas-state",
+            handleCanvasState
         );
 
         socket.on(
@@ -130,8 +176,18 @@ export default function ScribbleGame({
             );
 
             socket.off(
+                "scribble-fill",
+                handleRemoteFill
+            );
+
+            socket.off(
                 "scribble-clear-canvas",
                 handleClearCanvas
+            );
+
+            socket.off(
+                "scribble-canvas-state",
+                handleCanvasState
             );
 
             socket.off(
@@ -156,14 +212,8 @@ export default function ScribbleGame({
             return;
         }
 
-        clearCanvasLocally();
-
-        scribbleRoom?.canvas?.forEach(
-            stroke => {
-
-                drawStroke(stroke);
-
-            }
+        redrawCanvas(
+            scribbleRoom?.canvas || []
         );
 
     }, [
@@ -220,6 +270,7 @@ export default function ScribbleGame({
 
         if (!canvas) return null;
 
+
         const rect =
             canvas.getBoundingClientRect();
 
@@ -265,6 +316,10 @@ export default function ScribbleGame({
     }
 
 
+    // =====================================================
+    // DRAW ONE STROKE
+    // =====================================================
+
     function drawStroke(stroke) {
 
         const canvas =
@@ -306,6 +361,33 @@ export default function ScribbleGame({
     }
 
 
+    // =====================================================
+    // DRAW ANY CANVAS ACTION
+    // =====================================================
+
+    function drawAction(action) {
+
+        if (!action) return;
+
+
+        if (action.type === "fill") {
+
+            applyFill(action);
+
+            return;
+
+        }
+
+
+        drawStroke(action);
+
+    }
+
+
+    // =====================================================
+    // CLEAR CANVAS LOCALLY
+    // =====================================================
+
     function clearCanvasLocally() {
 
         const canvas =
@@ -313,8 +395,10 @@ export default function ScribbleGame({
 
         if (!canvas) return;
 
+
         const ctx =
             canvas.getContext("2d");
+
 
         ctx.clearRect(
             0,
@@ -323,13 +407,275 @@ export default function ScribbleGame({
             canvas.height
         );
 
+
         ctx.fillStyle = "#ffffff";
+
 
         ctx.fillRect(
             0,
             0,
             canvas.width,
             canvas.height
+        );
+
+    }
+
+
+    // =====================================================
+    // REDRAW COMPLETE CANVAS HISTORY
+    // =====================================================
+
+    function redrawCanvas(actions) {
+
+        clearCanvasLocally();
+
+
+        if (!Array.isArray(actions)) return;
+
+
+        actions.forEach(action => {
+
+            drawAction(action);
+
+        });
+
+    }
+
+
+    // =====================================================
+    // HEX COLOR TO RGBA
+    // =====================================================
+
+    function hexToRGBA(hex) {
+
+        const cleanHex =
+            hex.replace("#", "");
+
+
+        const value =
+            parseInt(cleanHex, 16);
+
+
+        return [
+
+            (value >> 16) & 255,
+
+            (value >> 8) & 255,
+
+            value & 255,
+
+            255
+
+        ];
+
+    }
+
+
+    // =====================================================
+    // FLOOD FILL
+    // =====================================================
+
+    function applyFill(fill) {
+
+        const canvas =
+            canvasRef.current;
+
+        if (!canvas) return;
+
+
+        const ctx =
+            canvas.getContext(
+                "2d",
+                {
+                    willReadFrequently: true
+                }
+            );
+
+
+        const width =
+            canvas.width;
+
+        const height =
+            canvas.height;
+
+
+        const startX =
+            Math.floor(fill.x);
+
+        const startY =
+            Math.floor(fill.y);
+
+
+        if (
+            startX < 0 ||
+            startX >= width ||
+            startY < 0 ||
+            startY >= height
+        ) {
+
+            return;
+
+        }
+
+
+        const imageData =
+            ctx.getImageData(
+                0,
+                0,
+                width,
+                height
+            );
+
+
+        const data =
+            imageData.data;
+
+
+        function getPixelIndex(x, y) {
+
+            return (
+                y * width + x
+            ) * 4;
+
+        }
+
+
+        const startIndex =
+            getPixelIndex(
+                startX,
+                startY
+            );
+
+
+        const targetColor = [
+
+            data[startIndex],
+
+            data[startIndex + 1],
+
+            data[startIndex + 2],
+
+            data[startIndex + 3]
+
+        ];
+
+
+        const fillColor =
+            hexToRGBA(fill.color);
+
+
+        /*
+            Don't do anything if the selected
+            fill color already matches the area.
+        */
+
+        if (
+            targetColor[0] === fillColor[0] &&
+            targetColor[1] === fillColor[1] &&
+            targetColor[2] === fillColor[2] &&
+            targetColor[3] === fillColor[3]
+        ) {
+
+            return;
+
+        }
+
+
+        function matchesTarget(index) {
+
+            return (
+
+                data[index] ===
+                    targetColor[0] &&
+
+                data[index + 1] ===
+                    targetColor[1] &&
+
+                data[index + 2] ===
+                    targetColor[2] &&
+
+                data[index + 3] ===
+                    targetColor[3]
+
+            );
+
+        }
+
+
+        function colorPixel(index) {
+
+            data[index] =
+                fillColor[0];
+
+            data[index + 1] =
+                fillColor[1];
+
+            data[index + 2] =
+                fillColor[2];
+
+            data[index + 3] =
+                255;
+
+        }
+
+
+        /*
+            Stack-based flood fill.
+
+            This avoids recursive call-stack errors.
+        */
+
+        const stack = [
+            [startX, startY]
+        ];
+
+
+        while (stack.length > 0) {
+
+            const [x, y] =
+                stack.pop();
+
+
+            if (
+                x < 0 ||
+                x >= width ||
+                y < 0 ||
+                y >= height
+            ) {
+
+                continue;
+
+            }
+
+
+            const index =
+                getPixelIndex(x, y);
+
+
+            if (!matchesTarget(index)) {
+
+                continue;
+
+            }
+
+
+            colorPixel(index);
+
+
+            stack.push(
+                [x + 1, y],
+                [x - 1, y],
+                [x, y + 1],
+                [x, y - 1]
+            );
+
+        }
+
+
+        ctx.putImageData(
+            imageData,
+            0,
+            0
         );
 
     }
@@ -349,12 +695,56 @@ export default function ScribbleGame({
             return;
         }
 
+
         event.preventDefault();
+
 
         const point =
             getCanvasPoint(event);
 
+
         if (!point) return;
+
+
+        /*
+            FILL TOOL
+        */
+
+        if (tool === "fill") {
+
+            const fill = {
+
+                type: "fill",
+
+                x: point.x,
+
+                y: point.y,
+
+                color
+
+            };
+
+
+            socket.emit(
+                "scribble-fill",
+                {
+
+                    roomCode,
+
+                    fill
+
+                }
+            );
+
+
+            return;
+
+        }
+
+
+        /*
+            BRUSH OR ERASER
+        */
 
         isDrawingRef.current = true;
 
@@ -369,18 +759,26 @@ export default function ScribbleGame({
 
         if (!isDrawingRef.current) return;
 
+        if (tool === "fill") return;
+
+
         event.preventDefault();
+
 
         const point =
             getCanvasPoint(event);
 
+
         const previous =
             lastPointRef.current;
+
 
         if (!point || !previous) return;
 
 
         const stroke = {
+
+            type: "stroke",
 
             fromX: previous.x,
 
@@ -392,14 +790,21 @@ export default function ScribbleGame({
 
             color,
 
-            size: eraser
-                ? brushSize * 3
-                : brushSize,
+            size:
+                tool === "eraser"
+                    ? brushSize * 3
+                    : brushSize,
 
-            eraser
+            eraser:
+                tool === "eraser"
 
         };
 
+
+        /*
+            Draw immediately on drawer's canvas
+            for zero perceived latency.
+        */
 
         drawStroke(stroke);
 
@@ -434,8 +839,24 @@ export default function ScribbleGame({
 
         if (!isDrawer) return;
 
+
         socket.emit(
             "scribble-clear-canvas",
+            {
+                roomCode
+            }
+        );
+
+    }
+
+
+    function undoCanvas() {
+
+        if (!isDrawer) return;
+
+
+        socket.emit(
+            "scribble-undo",
             {
                 roomCode
             }
@@ -472,7 +893,9 @@ export default function ScribbleGame({
 
         event.preventDefault();
 
+
         if (!guess.trim()) return;
+
 
         socket.emit(
             "scribble-guess",
@@ -484,6 +907,7 @@ export default function ScribbleGame({
 
             }
         );
+
 
         setGuess("");
 
@@ -632,6 +1056,7 @@ export default function ScribbleGame({
 
                     </h1>
 
+
                     <div className="scribble-final-leaderboard">
 
                         {
@@ -658,11 +1083,13 @@ export default function ScribbleGame({
 
                                         </span>
 
+
                                         <strong>
 
                                             {player.username}
 
                                         </strong>
+
 
                                         <b>
 
@@ -970,7 +1397,7 @@ export default function ScribbleGame({
                                                     key={item}
                                                     className={
                                                         color === item &&
-                                                        !eraser
+                                                        tool !== "eraser"
                                                             ? "active"
                                                             : ""
                                                     }
@@ -981,7 +1408,19 @@ export default function ScribbleGame({
 
                                                         setColor(item);
 
-                                                        setEraser(false);
+                                                        /*
+                                                            If using eraser and a
+                                                            color is selected,
+                                                            switch to brush.
+                                                        */
+
+                                                        if (
+                                                            tool === "eraser"
+                                                        ) {
+
+                                                            setTool("brush");
+
+                                                        }
 
                                                     }}
                                                 />
@@ -1002,6 +1441,7 @@ export default function ScribbleGame({
 
                                     </span>
 
+
                                     <input
                                         type="range"
                                         min="2"
@@ -1021,18 +1461,58 @@ export default function ScribbleGame({
 
                                 <button
                                     className={
-                                        eraser
+                                        tool === "brush"
                                             ? "scribble-tool-btn active"
                                             : "scribble-tool-btn"
                                     }
                                     onClick={() =>
-                                        setEraser(
-                                            current => !current
-                                        )
+                                        setTool("brush")
+                                    }
+                                >
+
+                                    🖌 Brush
+
+                                </button>
+
+
+                                <button
+                                    className={
+                                        tool === "eraser"
+                                            ? "scribble-tool-btn active"
+                                            : "scribble-tool-btn"
+                                    }
+                                    onClick={() =>
+                                        setTool("eraser")
                                     }
                                 >
 
                                     🧽 Eraser
+
+                                </button>
+
+
+                                <button
+                                    className={
+                                        tool === "fill"
+                                            ? "scribble-tool-btn active"
+                                            : "scribble-tool-btn"
+                                    }
+                                    onClick={() =>
+                                        setTool("fill")
+                                    }
+                                >
+
+                                    🪣 Fill
+
+                                </button>
+
+
+                                <button
+                                    className="scribble-tool-btn"
+                                    onClick={undoCanvas}
+                                >
+
+                                    ↩ Undo
 
                                 </button>
 
@@ -1065,46 +1545,51 @@ export default function ScribbleGame({
                     </h2>
 
 
-                    <div className="scribble-chat-messages">
+<div className="scribble-chat-messages">
 
-                        {
+    {
 
-                            scribbleRoom.chat.map(
-                                message => (
+        (scribbleRoom.chat || []).map(
+            message => (
 
-                                    <div
-                                        className={
-                                            `scribble-message ${message.type}`
-                                        }
-                                        key={message.id}
-                                    >
+                <div
+                    className={
+                        `scribble-message ${message.type}`
+                    }
+                    key={message.id}
+                >
 
-                                        {
-                                            message.type !== "system" && (
+                    {
+                        message.type !== "system" && (
 
-                                                <strong>
+                            <strong>
 
-                                                    {message.author}
+                                {message.author}
 
-                                                </strong>
+                            </strong>
 
-                                            )
-                                        }
+                        )
+                    }
 
-                                        <span>
+                    <span>
 
-                                            {message.text}
+                        {message.text}
 
-                                        </span>
+                    </span>
 
-                                    </div>
+                </div>
 
-                                )
-                            )
+            )
+        )
 
-                        }
+    }
 
-                    </div>
+
+    {/* Invisible element used for auto-scroll */}
+
+    <div ref={chatEndRef} />
+
+</div>
 
 
                     {
@@ -1127,6 +1612,7 @@ export default function ScribbleGame({
                                     placeholder="Type your guess..."
                                     autoComplete="off"
                                 />
+
 
                                 <button type="submit">
 
