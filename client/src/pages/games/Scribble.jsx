@@ -5,6 +5,10 @@ import {
 } from "react";
 
 import {
+    useNavigate
+} from "react-router-dom";
+
+import {
     SessionContext
 } from "../../context/SessionContext";
 
@@ -20,6 +24,8 @@ import "../../components/games/scribble/Lobby.css";
 
 
 export default function Scribble() {
+
+    const navigate = useNavigate();
 
     const {
         roomCode
@@ -48,11 +54,6 @@ export default function Scribble() {
     useEffect(() => {
 
         if (!roomCode) return;
-
-        localStorage.setItem(
-            "activeGame",
-            "scribble"
-        );
 
         joinScribble();
 
@@ -188,11 +189,7 @@ export default function Scribble() {
                 <button
                     onClick={() => {
 
-                        localStorage.removeItem(
-                            "activeGame"
-                        );
-
-                        window.history.back();
+                        navigate("/games");
 
                     }}
                 >

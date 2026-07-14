@@ -1,27 +1,94 @@
 import "./MiniGames.css";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import {
+    useContext,
+    useEffect,
+    useState
+} from "react";
+import {
+    Navigate,
+    useNavigate
+} from "react-router-dom";
 import GameCard from "../components/games/GameCard";
+import socket from "../socket";
+import {
+    SessionContext
+} from "../context/SessionContext";
+import {
+    useScribble
+} from "../context/ScribbleContext";
 
 export default function MiniGames(){
 
 const navigate=useNavigate();
 
+const {
+    roomCode
+} = useContext(SessionContext);
+
+const {
+    joined,
+    scribbleRoom
+} = useScribble();
+
+const [scribblePlayerCount, setScribblePlayerCount] =
+    useState(0);
+
+
 useEffect(() => {
 
-    const game = localStorage.getItem("activeGame");
+    if (!roomCode) {
 
-    if (game === "scribble") {
+        setScribblePlayerCount(0);
 
-        navigate("/games/scribble", {
-
-            replace: true
-
-        });
+        return undefined;
 
     }
 
-}, []);
+
+    function handleScribbleStatus(status) {
+
+        if (status.roomCode !== roomCode) return;
+
+        setScribblePlayerCount(
+            status.playerCount
+        );
+
+    }
+
+
+    socket.on(
+        "scribble-status",
+        handleScribbleStatus
+    );
+
+    socket.emit(
+        "scribble-watch-status",
+        { roomCode }
+    );
+
+
+    return () => {
+
+        socket.emit(
+            "scribble-unwatch-status",
+            { roomCode }
+        );
+
+        socket.off(
+            "scribble-status",
+            handleScribbleStatus
+        );
+
+    };
+
+}, [roomCode]);
+
+
+if (joined && scribbleRoom) {
+
+    return <Navigate to="/games/scribble" replace />;
+
+}
 
 return(
 
@@ -37,7 +104,7 @@ title="🎨 Scribble"
 
 description="Draw and guess with your friends."
 
-players="0"
+players={scribblePlayerCount}
 
 maxPlayers="20"
 

@@ -35,6 +35,9 @@ function createScribbleRoom(roomCode, hostId) {
 
         wordChoices: 5,
 
+        // Word selection always begins with a full 10-second countdown.
+        chooseTimeLeft: 10,
+
         timeLeft: 150,
 
         correctGuessers: [],

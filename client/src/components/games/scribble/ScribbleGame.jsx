@@ -67,6 +67,12 @@ export default function ScribbleGame({
         );
 
 
+const [chooseTimeLeft, setChooseTimeLeft] =
+    useState(
+        scribbleRoom?.chooseTimeLeft ?? 0
+    );
+
+
     const isDrawer =
         scribbleRoom?.drawer === socket.id;
 
@@ -80,7 +86,30 @@ export default function ScribbleGame({
 
 
     // =====================================================
-    // TIME UPDATE
+    // CHOOSING TIME UPDATE
+    // =====================================================
+
+// =====================================================
+// CHOOSING TIME UPDATE
+// =====================================================
+
+useEffect(() => {
+
+    if (
+        typeof scribbleRoom?.chooseTimeLeft === "number"
+    ) {
+
+        setChooseTimeLeft(
+            scribbleRoom.chooseTimeLeft
+        );
+
+    }
+
+}, [scribbleRoom?.chooseTimeLeft]);
+
+
+    // =====================================================
+    // DRAWING TIME UPDATE
     // =====================================================
 
     useEffect(() => {
@@ -91,14 +120,19 @@ export default function ScribbleGame({
 
     }, [scribbleRoom?.timeLeft]);
 
-useEffect(() => {
 
-    chatEndRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest"
-    });
+    // =====================================================
+    // CHAT AUTO SCROLL
+    // =====================================================
 
-}, [scribbleRoom?.chat?.length]);
+    useEffect(() => {
+
+        chatEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
+
+    }, [scribbleRoom?.chat?.length]);
 
 
     // =====================================================
@@ -142,6 +176,13 @@ useEffect(() => {
         }
 
 
+        function handleChooseTime(time) {
+
+            setChooseTimeLeft(time);
+
+        }
+
+
         socket.on(
             "scribble-draw",
             handleRemoteStroke
@@ -165,6 +206,11 @@ useEffect(() => {
         socket.on(
             "scribble-time",
             handleTime
+        );
+
+        socket.on(
+            "scribble-choose-time",
+            handleChooseTime
         );
 
 
@@ -195,6 +241,11 @@ useEffect(() => {
                 handleTime
             );
 
+            socket.off(
+                "scribble-choose-time",
+                handleChooseTime
+            );
+
         };
 
     }, []);
@@ -222,7 +273,7 @@ useEffect(() => {
 
 
     // =====================================================
-    // DRAWER CONTROLS TIMER
+    // DRAWER CONTROLS DRAWING TIMER
     // =====================================================
 
     useEffect(() => {
@@ -564,11 +615,6 @@ useEffect(() => {
             hexToRGBA(fill.color);
 
 
-        /*
-            Don't do anything if the selected
-            fill color already matches the area.
-        */
-
         if (
             targetColor[0] === fillColor[0] &&
             targetColor[1] === fillColor[1] &&
@@ -618,12 +664,6 @@ useEffect(() => {
 
         }
 
-
-        /*
-            Stack-based flood fill.
-
-            This avoids recursive call-stack errors.
-        */
 
         const stack = [
             [startX, startY]
@@ -706,10 +746,6 @@ useEffect(() => {
         if (!point) return;
 
 
-        /*
-            FILL TOOL
-        */
-
         if (tool === "fill") {
 
             const fill = {
@@ -741,10 +777,6 @@ useEffect(() => {
 
         }
 
-
-        /*
-            BRUSH OR ERASER
-        */
 
         isDrawingRef.current = true;
 
@@ -800,11 +832,6 @@ useEffect(() => {
 
         };
 
-
-        /*
-            Draw immediately on drawer's canvas
-            for zero perceived latency.
-        */
 
         drawStroke(stroke);
 
@@ -928,6 +955,16 @@ useEffect(() => {
 
                 <div className="scribble-choosing-card">
 
+
+                    {/* FIXED 10 SECOND WORD CHOOSING TIMER */}
+
+                    <div className="scribble-choose-timer">
+
+                        ⏱ {chooseTimeLeft}s
+
+                    </div>
+
+
                     {
 
                         isDrawer ? (
@@ -948,7 +985,7 @@ useEffect(() => {
 
                                 <p>
 
-                                    Choose one word and start drawing.
+                                    Choose one word before time runs out.
 
                                 </p>
 
@@ -957,7 +994,7 @@ useEffect(() => {
 
                                     {
 
-                                        scribbleRoom.wordOptions.map(
+                                        (scribbleRoom.wordOptions || []).map(
                                             word => (
 
                                                 <button
@@ -1189,7 +1226,7 @@ useEffect(() => {
 
                                 <strong>
 
-                                    {scribbleRoom.currentWord}
+                                    {scribbleRoom.currentWord || "Waiting..."}
 
                                 </strong>
 
@@ -1200,12 +1237,8 @@ useEffect(() => {
                             <strong>
 
                                 {
-                                    scribbleRoom.currentWord
-                                        ? scribbleRoom.currentWord
-                                            .split("")
-                                            .map(() => "_")
-                                            .join(" ")
-                                        : "Waiting..."
+                                    scribbleRoom.wordPattern ||
+                                    "Waiting..."
                                 }
 
                             </strong>
@@ -1408,12 +1441,6 @@ useEffect(() => {
 
                                                         setColor(item);
 
-                                                        /*
-                                                            If using eraser and a
-                                                            color is selected,
-                                                            switch to brush.
-                                                        */
-
                                                         if (
                                                             tool === "eraser"
                                                         ) {
@@ -1545,51 +1572,49 @@ useEffect(() => {
                     </h2>
 
 
-<div className="scribble-chat-messages">
+                    <div className="scribble-chat-messages">
 
-    {
+                        {
 
-        (scribbleRoom.chat || []).map(
-            message => (
+                            (scribbleRoom.chat || []).map(
+                                message => (
 
-                <div
-                    className={
-                        `scribble-message ${message.type}`
-                    }
-                    key={message.id}
-                >
+                                    <div
+                                        className={
+                                            `scribble-message ${message.type}`
+                                        }
+                                        key={message.id}
+                                    >
 
-                    {
-                        message.type !== "system" && (
+                                        {
+                                            message.type !== "system" && (
 
-                            <strong>
+                                                <strong>
 
-                                {message.author}
+                                                    {message.author}
 
-                            </strong>
+                                                </strong>
 
-                        )
-                    }
+                                            )
+                                        }
 
-                    <span>
+                                        <span>
 
-                        {message.text}
+                                            {message.text}
 
-                    </span>
+                                        </span>
 
-                </div>
+                                    </div>
 
-            )
-        )
+                                )
+                            )
 
-    }
+                        }
 
 
-    {/* Invisible element used for auto-scroll */}
+                        <div ref={chatEndRef} />
 
-    <div ref={chatEndRef} />
-
-</div>
+                    </div>
 
 
                     {
