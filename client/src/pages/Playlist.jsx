@@ -6,6 +6,7 @@ import { ProfileContext } from "../context/ProfileContext";
 import { MusicContext } from "../context/MusicContext";
 import { searchSongs } from "../services/youtube";
 import SongCard from "../components/music/SongCard";
+import socket from "../socket";
 import "./Playlist.css";
 
 function Playlist() {
@@ -27,7 +28,8 @@ function Playlist() {
         deletePlaylist,
         deleteCollabPlaylist,
         leaveCollabPlaylist,
-        renamePlaylist
+        renamePlaylist,
+        joinCollabPlaylist
     } = useContext(PlaylistContext);
 
     const isCollab = !!code;
@@ -42,6 +44,9 @@ function Playlist() {
     const [editing, setEditing] = useState(false);
     const [editName, setEditName] = useState("");
     const [copied, setCopied] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
+    const [joining, setJoining] = useState(false);
+    const [showMembers, setShowMembers] = useState(false);
 
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
@@ -61,7 +66,36 @@ function Playlist() {
         return () => clearTimeout(searchTimerRef.current);
     }, [searchQuery, showSearch]);
 
-    if (!playlist) {
+    useEffect(() => {
+        if (isCollab && !playlist && profile.username && !joining) {
+            setJoining(true);
+            joinCollabPlaylist(code);
+        }
+    }, [isCollab, playlist, profile.username]);
+
+    if (isCollab && !playlist) {
+        return (
+            <div className="playlist-page">
+                <div className="playlist-empty">
+                    {joining ? (
+                        <>
+                            <h2>Joining playlist...</h2>
+                            <p style={{ color: "#777" }}>Connecting to {code}</p>
+                        </>
+                    ) : (
+                        <>
+                            <h2>Playlist not found</h2>
+                            <button onClick={() => navigate("/")}>
+                                Go Home
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    if (!isCollab && !playlist) {
         return (
             <div className="playlist-page">
                 <div className="playlist-empty">
@@ -120,6 +154,13 @@ function Playlist() {
         navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    }
+
+    function handleCopyLink() {
+        const url = `${window.location.origin}/playlist/collab/${code || playlist.code}`;
+        navigator.clipboard.writeText(url);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
     }
 
     function handleLeave() {
@@ -189,7 +230,15 @@ function Playlist() {
                         {playlist.songs.length} song{playlist.songs.length !== 1 ? "s" : ""}
 
                         {isCollab && (
-                            <> · {playlist.members?.length || 0} member{(playlist.members?.length || 0) !== 1 ? "s" : ""}</>
+                            <>
+                                {" · "}
+                                <button
+                                    className="playlist-code-btn"
+                                    onClick={() => setShowMembers(true)}
+                                >
+                                    {playlist.members?.length || 0} member{(playlist.members?.length || 0) !== 1 ? "s" : ""}
+                                </button>
+                            </>
                         )}
 
                         {isCollab && (
@@ -200,6 +249,13 @@ function Playlist() {
                                     onClick={handleCopyCode}
                                 >
                                     {copied ? "Copied!" : `Code: ${code || playlist.code}`}
+                                </button>
+                                {" · "}
+                                <button
+                                    className="playlist-code-btn"
+                                    onClick={handleCopyLink}
+                                >
+                                    {linkCopied ? "Link Copied!" : "🔗 Copy Invite Link"}
                                 </button>
                             </>
                         )}
@@ -354,6 +410,39 @@ function Playlist() {
                 </div>
 
             ) : null}
+
+
+            {/* ── MEMBERS OVERLAY ── */}
+
+            {showMembers && isCollab && (
+                <div
+                    className="playlist-members-overlay"
+                    onClick={() => setShowMembers(false)}
+                >
+                    <div
+                        className="playlist-members-modal"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="playlist-members-header">
+                            <h2>Members ({playlist.members?.length || 0})</h2>
+                            <button onClick={() => setShowMembers(false)}>✕</button>
+                        </div>
+                        <div className="playlist-members-list">
+                            {(playlist.members || []).map(member => (
+                                <div className="playlist-member-item" key={member.id}>
+                                    <div className="playlist-member-avatar">
+                                        {member.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span>{member.username}</span>
+                                    {member.id === socket.id && (
+                                        <span className="playlist-member-you">You</span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
 

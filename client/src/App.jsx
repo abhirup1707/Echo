@@ -19,6 +19,7 @@ import JoinRoom from "./pages/JoinRoom";
 import MiniGames from "./pages/MiniGames";
 import Scribble from "./pages/games/Scribble";
 import Playlist from "./pages/Playlist";
+import TicTacToe from "./pages/games/TicTacToe";
 
 function App() {
   const { profile } = useContext(ProfileContext);
@@ -64,6 +65,8 @@ if (!profile.username) {
             <Route path="/games" element={<MiniGames />} />
 
 <Route path="/games/scribble" element={<Scribble />} />
+
+            <Route path="/games/tictactoe" element={<TicTacToe />} />
 
             <Route path="/playlist/:id" element={<Playlist />} />
 

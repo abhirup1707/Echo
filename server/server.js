@@ -6,6 +6,7 @@ const upload = require("./middleware/upload");
 const path = require("path");
 const registerScribbleEvents = require("./games/scribble/ScribbleEvents");
 const registerSessionHandlers = require("./socket/sessionHandlers");
+const registerTicTacToeEvents = require("./games/tictactoe/TicTacToeEvents");
 const registerPlaylistHandlers = require("./socket/playlistHandlers");
 
 const app = express();
@@ -44,6 +45,8 @@ io.on("connection", (socket) => {
     registerScribbleEvents(io, socket);
 
     registerPlaylistHandlers(io, socket);
+
+    registerTicTacToeEvents(io, socket);
 
 });
 

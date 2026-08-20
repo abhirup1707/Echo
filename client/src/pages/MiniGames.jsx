@@ -138,7 +138,9 @@ players="0"
 
 maxPlayers="2"
 
-available={false}
+available={true}
+
+onClick={()=>navigate("/games/tictactoe")}
 
 />
 
