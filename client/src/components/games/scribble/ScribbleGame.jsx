@@ -11,14 +11,22 @@ import "./ScribbleGame.css";
 
 const COLORS = [
     "#111827",
+    "#6b7280",
     "#ef4444",
     "#f97316",
     "#eab308",
+    "#84cc16",
     "#22c55e",
+    "#14b8a6",
     "#06b6d4",
     "#3b82f6",
+    "#6366f1",
     "#8b5cf6",
-    "#ec4899"
+    "#a855f7",
+    "#ec4899",
+    "#f43f5e",
+    "#92400e",
+    "#ffffff"
 ];
 
 
@@ -38,20 +46,20 @@ export default function ScribbleGame({
 
     const chatEndRef = useRef(null);
 
+    useEffect(() => {
+        document.body.classList.add("scribble-active");
+
+        return () => {
+            document.body.classList.remove("scribble-active");
+        };
+    }, []);
+
 
     const [color, setColor] =
         useState("#111827");
 
     const [brushSize, setBrushSize] =
         useState(5);
-
-    /*
-        Available tools:
-
-        brush
-        eraser
-        fill
-    */
 
     const [tool, setTool] =
         useState("brush");
@@ -67,10 +75,10 @@ export default function ScribbleGame({
         );
 
 
-const [chooseTimeLeft, setChooseTimeLeft] =
-    useState(
-        scribbleRoom?.chooseTimeLeft ?? 0
-    );
+    const [chooseTimeLeft, setChooseTimeLeft] =
+        useState(
+            scribbleRoom?.chooseTimeLeft ?? 0
+        );
 
 
     const isDrawer =
@@ -89,23 +97,19 @@ const [chooseTimeLeft, setChooseTimeLeft] =
     // CHOOSING TIME UPDATE
     // =====================================================
 
-// =====================================================
-// CHOOSING TIME UPDATE
-// =====================================================
+    useEffect(() => {
 
-useEffect(() => {
+        if (
+            typeof scribbleRoom?.chooseTimeLeft === "number"
+        ) {
 
-    if (
-        typeof scribbleRoom?.chooseTimeLeft === "number"
-    ) {
+            setChooseTimeLeft(
+                scribbleRoom.chooseTimeLeft
+            );
 
-        setChooseTimeLeft(
-            scribbleRoom.chooseTimeLeft
-        );
+        }
 
-    }
-
-}, [scribbleRoom?.chooseTimeLeft]);
+    }, [scribbleRoom?.chooseTimeLeft]);
 
 
     // =====================================================
@@ -956,8 +960,6 @@ useEffect(() => {
                 <div className="scribble-choosing-card">
 
 
-                    {/* FIXED 10 SECOND WORD CHOOSING TIMER */}
-
                     <div className="scribble-choose-timer">
 
                         ⏱ {chooseTimeLeft}s
@@ -1195,15 +1197,13 @@ useEffect(() => {
 
         <div className="scribble-game-shell">
 
-            <div className="scribble-game-topbar">
+            {/* ── HEADER BOX ── */}
 
-                <div>
+            <div className="scribble-header-box">
 
-                    <span>
+                <div className="scribble-header-round">
 
-                        Round
-
-                    </span>
+                    Round{" "}
 
                     <strong>
 
@@ -1232,13 +1232,23 @@ useEffect(() => {
 
                             </>
 
+                        ) : hasGuessed ? (
+
+                            <strong className="scribble-word-revealed">
+
+                                {scribbleRoom.currentWord}
+
+                            </strong>
+
                         ) : (
 
                             <strong>
 
                                 {
+
                                     scribbleRoom.wordPattern ||
                                     "Waiting..."
+
                                 }
 
                             </strong>
@@ -1259,121 +1269,14 @@ useEffect(() => {
             </div>
 
 
-            <div className="scribble-main-grid">
+            {/* ── MAIN AREA: Canvas + Chat side by side ── */}
 
-                {/* PLAYERS */}
-
-                <aside className="scribble-players-panel">
-
-                    <h2>
-
-                        👥 Players
-
-                    </h2>
-
-
-                    {
-
-                        [...scribbleRoom.players]
-                            .sort(
-                                (a, b) =>
-                                    (
-                                        scribbleRoom.scores[b.id] || 0
-                                    ) -
-                                    (
-                                        scribbleRoom.scores[a.id] || 0
-                                    )
-                            )
-                            .map(player => {
-
-                                const playerIsDrawer =
-                                    player.id ===
-                                    scribbleRoom.drawer;
-
-                                const playerGuessed =
-                                    scribbleRoom.correctGuessers.includes(
-                                        player.id
-                                    );
-
-
-                                return (
-
-                                    <div
-                                        className="scribble-score-player"
-                                        key={player.id}
-                                    >
-
-                                        <div className="scribble-player-avatar">
-
-                                            {
-                                                player.username
-                                                    .charAt(0)
-                                                    .toUpperCase()
-                                            }
-
-                                        </div>
-
-
-                                        <div className="scribble-player-details">
-
-                                            <strong>
-
-                                                {player.username}
-
-                                            </strong>
-
-                                            <span>
-
-                                                {
-                                                    scribbleRoom.scores[
-                                                        player.id
-                                                    ] || 0
-                                                } pts
-
-                                            </span>
-
-                                        </div>
-
-
-                                        {
-                                            playerIsDrawer && (
-
-                                                <span>
-
-                                                    ✏️
-
-                                                </span>
-
-                                            )
-                                        }
-
-
-                                        {
-                                            playerGuessed && (
-
-                                                <span>
-
-                                                    ✅
-
-                                                </span>
-
-                                            )
-                                        }
-
-                                    </div>
-
-                                );
-
-                            })
-
-                    }
-
-                </aside>
+            <div className="scribble-play-area">
 
 
                 {/* CANVAS */}
 
-                <main className="scribble-canvas-section">
+                <div className="scribble-canvas-box">
 
                     {
                         scribbleRoom.phase === "reveal" && (
@@ -1393,7 +1296,6 @@ useEffect(() => {
                         )
                     }
 
-
                     <canvas
                         ref={canvasRef}
                         width={900}
@@ -1411,7 +1313,6 @@ useEffect(() => {
                         onTouchMove={continueDrawing}
                         onTouchEnd={stopDrawing}
                     />
-
 
                     {
                         isDrawer &&
@@ -1435,7 +1336,10 @@ useEffect(() => {
                                                             : ""
                                                     }
                                                     style={{
-                                                        background: item
+                                                        background: item,
+                                                        border: item === "#ffffff"
+                                                            ? "2px solid #555"
+                                                            : undefined
                                                     }}
                                                     onClick={() => {
 
@@ -1558,19 +1462,12 @@ useEffect(() => {
                         )
                     }
 
-                </main>
+                </div>
 
 
-                {/* CHAT */}
+                {/* CHAT + GUESS INPUT */}
 
-                <aside className="scribble-chat-panel">
-
-                    <h2>
-
-                        💬 Guesses
-
-                    </h2>
-
+                <div className="scribble-chat-box">
 
                     <div className="scribble-chat-messages">
 
@@ -1618,9 +1515,24 @@ useEffect(() => {
 
 
                     {
-                        !isDrawer &&
-                        !hasGuessed &&
-                        scribbleRoom.phase === "drawing" && (
+
+                        isDrawer ? (
+
+                            <div className="scribble-footer-status drawer">
+
+                                ✏️ You're drawing!
+
+                            </div>
+
+                        ) : hasGuessed ? (
+
+                            <div className="scribble-footer-status correct">
+
+                                ✅ You guessed correctly!
+
+                            </div>
+
+                        ) : scribbleRoom.phase === "drawing" ? (
 
                             <form
                                 className="scribble-guess-form"
@@ -1647,36 +1559,114 @@ useEffect(() => {
 
                             </form>
 
-                        )
+                        ) : null
+
                     }
 
+                </div>
 
-                    {
-                        hasGuessed && (
+            </div>
 
-                            <div className="scribble-guessed-message">
 
-                                ✅ You guessed correctly!
+            {/* ── PLAYERS STRIP ── */}
 
-                            </div>
+            <div className="scribble-players-strip">
 
+                {
+
+                    [...scribbleRoom.players]
+                        .sort(
+                            (a, b) =>
+                                (
+                                    scribbleRoom.scores[b.id] || 0
+                                ) -
+                                (
+                                    scribbleRoom.scores[a.id] || 0
+                                )
                         )
-                    }
+                        .map(player => {
+
+                            const playerIsDrawer =
+                                player.id ===
+                                scribbleRoom.drawer;
+
+                            const playerGuessed =
+                                scribbleRoom.correctGuessers.includes(
+                                    player.id
+                                );
 
 
-                    {
-                        isDrawer && (
+                            return (
 
-                            <div className="scribble-drawer-message">
+                                <div
+                                    className="scribble-strip-player"
+                                    key={player.id}
+                                >
 
-                                ✏️ You're drawing!
+                                    <div className="scribble-strip-avatar">
 
-                            </div>
+                                        {
+                                            player.username
+                                                .charAt(0)
+                                                .toUpperCase()
+                                        }
 
-                        )
-                    }
+                                    </div>
 
-                </aside>
+
+                                    <div className="scribble-strip-info">
+
+                                        <strong>
+
+                                            {player.username}
+
+                                        </strong>
+
+                                        <span>
+
+                                            {
+                                                scribbleRoom.scores[
+                                                    player.id
+                                                ] || 0
+                                            } pts
+
+                                        </span>
+
+                                    </div>
+
+
+                                    {
+                                        playerIsDrawer && (
+
+                                            <span className="scribble-strip-badge">
+
+                                                ✏️
+
+                                            </span>
+
+                                        )
+                                    }
+
+
+                                    {
+                                        playerGuessed && (
+
+                                            <span className="scribble-strip-badge">
+
+                                                ✅
+
+                                            </span>
+
+                                        )
+                                    }
+
+                                </div>
+
+                            );
+
+                        })
+
+                }
 
             </div>
 

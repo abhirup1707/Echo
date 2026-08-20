@@ -130,7 +130,18 @@ function getPublicRoom(room, socketId = null) {
             room.canvas || [],
 
         chat:
-            room.chat || [],
+            (room.chat || []).filter(msg => {
+
+                if (msg.type === "correct") {
+
+                    return msg.guesserId === socketId ||
+                        socketId === room.drawer;
+
+                }
+
+                return true;
+
+            }),
 
         scores:
             room.scores || {}
@@ -1256,7 +1267,10 @@ function registerScribbleEvents(io, socket) {
                         "guessed the word!",
 
                     type:
-                        "correct"
+                        "correct",
+
+                    guesserId:
+                        socket.id
 
                 };
 

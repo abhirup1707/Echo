@@ -199,7 +199,7 @@ navigator.clipboard.writeText(
 
 );
 
-alert("Invite link copied!");
+
 
 }}
 
