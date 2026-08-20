@@ -7,6 +7,7 @@ const path = require("path");
 const registerScribbleEvents = require("./games/scribble/ScribbleEvents");
 const registerSessionHandlers = require("./socket/sessionHandlers");
 const registerTicTacToeEvents = require("./games/tictactoe/TicTacToeEvents");
+const registerSnakeLadderEvents = require("./games/snakeandladder/SLEvents");
 const registerPlaylistHandlers = require("./socket/playlistHandlers");
 
 const app = express();
@@ -47,6 +48,8 @@ io.on("connection", (socket) => {
     registerPlaylistHandlers(io, socket);
 
     registerTicTacToeEvents(io, socket);
+
+    registerSnakeLadderEvents(io, socket);
 
 });
 

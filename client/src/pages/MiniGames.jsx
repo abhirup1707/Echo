@@ -176,13 +176,15 @@ available={false}
 
 title="🐍 Snake & Ladder"
 
-description="Race to the finish."
+description="Race to 100 with friends."
 
 players="0"
 
-maxPlayers="4"
+maxPlayers="6"
 
-available={false}
+available={true}
+
+onClick={()=>navigate("/games/snakeandladder")}
 
 />
 

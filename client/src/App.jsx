@@ -20,6 +20,7 @@ import MiniGames from "./pages/MiniGames";
 import Scribble from "./pages/games/Scribble";
 import Playlist from "./pages/Playlist";
 import TicTacToe from "./pages/games/TicTacToe";
+import SnakeLadder from "./pages/games/SnakeLadder";
 
 function App() {
   const { profile } = useContext(ProfileContext);
@@ -67,6 +68,8 @@ if (!profile.username) {
 <Route path="/games/scribble" element={<Scribble />} />
 
             <Route path="/games/tictactoe" element={<TicTacToe />} />
+
+            <Route path="/games/snakeandladder" element={<SnakeLadder />} />
 
             <Route path="/playlist/:id" element={<Playlist />} />
 
