@@ -9,6 +9,7 @@ import ProfileProvider from "./context/ProfileContext";
 import MusicProvider from "./context/MusicContext";
 import SessionProvider from "./context/SessionContext";
 import { ScribbleProvider } from "./context/ScribbleContext";
+import { PlaylistProvider } from "./context/PlaylistContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -22,7 +23,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
 <ScribbleProvider>
 
+<PlaylistProvider>
+
 <App/>
+
+</PlaylistProvider>
 
 </ScribbleProvider>
 

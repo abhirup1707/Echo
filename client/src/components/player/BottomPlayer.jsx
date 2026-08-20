@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { MusicContext } from "../../context/MusicContext";
 import { SessionContext } from "../../context/SessionContext";
 import {
@@ -23,7 +23,84 @@ function BottomPlayer() {
 
     const [showQueue, setShowQueue] = useState(false);
 
-    if (!currentSong) return null;
+    const playerContainerRef = useRef(null);
+    const playerRef = useRef(null);
+    const currentVideoIdRef = useRef(null);
+    const apiReadyRef = useRef(false);
+
+    const playNextRef = useRef(playNext);
+    playNextRef.current = playNext;
+
+    const queueRef = useRef(queue);
+    queueRef.current = queue;
+
+    useEffect(() => {
+        function createPlayer() {
+            if (playerRef.current) return;
+            if (!playerContainerRef.current) return;
+
+            playerRef.current = new window.YT.Player(playerContainerRef.current, {
+                height: "1",
+                width: "1",
+                playerVars: {
+                    autoplay: 1,
+                    controls: 0,
+                    rel: 0,
+                    modestbranding: 1,
+                    disablekb: 1
+                },
+                events: {
+                    onStateChange: (event) => {
+                        if (event.data === 0) {
+                            if (queueRef.current.length > 0) {
+                                playNextRef.current();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function onYouTubeIframeAPIReady() {
+            apiReadyRef.current = true;
+            createPlayer();
+        }
+
+        if (window.YT && window.YT.Player) {
+            onYouTubeIframeAPIReady();
+            return;
+        }
+
+        if (!document.getElementById("yt-iframe-api")) {
+            const tag = document.createElement("script");
+            tag.id = "yt-iframe-api";
+            tag.src = "https://www.youtube.com/iframe_api";
+            document.head.appendChild(tag);
+        }
+
+        window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+    }, []);
+
+    useEffect(() => {
+        if (!currentSong) return;
+        if (!playerRef.current) return;
+
+        const vid = currentSong.videoId;
+        if (vid === currentVideoIdRef.current) return;
+        currentVideoIdRef.current = vid;
+
+        const loadVideo = async () => {
+            for (let attempt = 0; attempt < 20; attempt++) {
+                try {
+                    await playerRef.current.loadVideoById(vid);
+                    return;
+                } catch (e) {
+                    await new Promise(r => setTimeout(r, 500));
+                }
+            }
+        };
+        loadVideo();
+    }, [currentSong]);
 
     return (
 
@@ -31,85 +108,77 @@ function BottomPlayer() {
 
             <div className="hidden-player">
 
-                <iframe
-
-                    width="1"
-
-                    height="1"
-
-                    src={`https://www.youtube.com/embed/${currentSong.videoId}?autoplay=1`}
-
-                    title="player"
-
-                    allow="autoplay"
-
-                />
+                <div ref={playerContainerRef} id="yt-player" />
 
             </div>
 
-            <div className="bottom-player">
+            {currentSong && (
 
-                <div className="player-left">
+                <div className="bottom-player">
 
-                    <img
+                    <div className="player-left">
 
-                        src={currentSong.cover}
+                        <img
 
-                        className="cover"
+                            src={currentSong.cover}
 
-                        alt="cover"
+                            className="cover"
 
-                    />
+                            alt="cover"
 
-                    <div className="song-details">
+                        />
 
-                        <h3 className="song-name">
+                        <div className="song-details">
 
-                            {currentSong.title}
+                            <h3 className="song-name">
 
-                        </h3>
+                                {currentSong.title}
 
-                        <p className="artist-name">
+                            </h3>
 
-                            {currentSong.artist}
+                            <p className="artist-name">
 
-                        </p>
+                                {currentSong.artist}
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div className="player-center">
+
+                        <FaCompactDisc className="disc"/>
+
+                        <span>
+
+                            Now Playing
+
+                        </span>
+
+                    </div>
+
+                    <div className="player-right">
+
+                        <button
+
+                            className="queue-btn"
+
+                            onClick={() => setShowQueue(true)}
+
+                        >
+
+                            <FaListUl/>
+
+                            Queue
+
+                        </button>
 
                     </div>
 
                 </div>
 
-                <div className="player-center">
-
-                    <FaCompactDisc className="disc"/>
-
-                    <span>
-
-                        Now Playing
-
-                    </span>
-
-                </div>
-
-                <div className="player-right">
-
-                    <button
-
-                        className="queue-btn"
-
-                        onClick={() => setShowQueue(true)}
-
-                    >
-
-                        <FaListUl/>
-
-                        Queue
-
-                    </button>
-
-                </div>
-
-            </div>
+            )}
 
             {
 
