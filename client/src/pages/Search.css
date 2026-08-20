@@ -1,229 +1,125 @@
-.search-page{
-
-    animation:searchFade .45s ease;
-
+.search-page {
+    animation: searchFade 0.45s ease;
 }
 
-/* ================= TITLE ================= */
-
-.search-title{
-
-    position:relative;
-
-    display:inline-block;
-
-    font-size:44px;
-
-    font-weight:800;
-
-    margin-bottom:30px;
-
+.search-title {
+    position: relative;
+    display: inline-block;
+    font-size: 44px;
+    font-weight: 800;
+    margin-bottom: 32px;
+    background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.search-title::after{
-
-    content:"";
-
-    position:absolute;
-
-    left:0;
-
-    bottom:-8px;
-
-    width:70%;
-
-    height:4px;
-
-    border-radius:20px;
-
-    background:linear-gradient(90deg,#7C3AED,transparent);
-
+.search-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    width: 70%;
+    height: 4px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #7C3AED, transparent);
 }
 
-.search-title::before{
-
-    content:"";
-
-    position:absolute;
-
-    width:180px;
-
-    height:180px;
-
-    left:-70px;
-
-    top:-70px;
-
-    background:#7C3AED;
-
-    opacity:.12;
-
-    filter:blur(80px);
-
-    border-radius:50%;
-
-    z-index:-1;
-
+.search-title::before {
+    content: "";
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    left: -70px;
+    top: -70px;
+    background: #7C3AED;
+    opacity: 0.12;
+    filter: blur(80px);
+    border-radius: 50%;
+    z-index: -1;
 }
 
-/* ================= SEARCH BAR ================= */
-
-.search-input{
-
-    width:100%;
-
-    height:64px;
-
-    padding:0 26px;
-
-    border-radius:20px;
-
-    border:1px solid rgba(255,255,255,.06);
-
-    background:
-
-    linear-gradient(
-
-        145deg,
-
-        rgba(255,255,255,.05),
-
-        rgba(255,255,255,.02)
-
-    );
-
-    backdrop-filter:blur(20px);
-
-    color:white;
-
-    font-size:17px;
-
-    transition:.3s;
-
-    margin-bottom:35px;
-
+.search-input {
+    width: 100%;
+    height: 64px;
+    padding: 0 26px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: white;
+    font-size: 17px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 35px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-.search-input::placeholder{
-
-    color:#8d8d98;
-
+.search-input::placeholder {
+    color: #6d6d7a;
 }
 
-.search-input:focus{
-
-    border-color:#7C3AED;
-
+.search-input:focus {
+    border-color: rgba(124, 58, 237, 0.5);
     box-shadow:
-
-        0 0 0 3px rgba(124,58,237,.18),
-
-        0 0 30px rgba(124,58,237,.25);
-
+        0 0 0 3px rgba(124,58,237,0.12),
+        0 0 30px rgba(124,58,237,0.15);
+    background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
 }
 
-/* ================= GRID ================= */
-
-.results-grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(auto-fill,minmax(430px,1fr));
-
-    gap:22px;
-
-    align-items:start;
-
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+    gap: 22px;
+    align-items: start;
 }
 
-/* ================= ANIMATION ================= */
-
-@keyframes searchFade{
-
-from{
-
-opacity:0;
-
-transform:translateY(12px);
-
+@keyframes searchFade {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
-to{
-
-opacity:1;
-
-transform:none;
-
+@media (max-width: 1200px) {
+    .results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    }
 }
 
-}
+@media (max-width: 768px) {
+    .search-page {
+        padding-bottom: 135px;
+    }
 
-/* ================= TABLET ================= */
+    .search-title {
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
 
-@media(max-width:1200px){
+    .search-title::before {
+        width: 120px;
+        height: 120px;
+        left: -40px;
+        top: -40px;
+        filter: blur(55px);
+    }
 
-.results-grid{
+    .search-input {
+        height: 54px;
+        padding: 0 18px;
+        border-radius: 16px;
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
 
-grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
-
-}
-
-}
-
-/* ================= MOBILE ================= */
-
-@media(max-width:768px){
-
-.search-page{
-
-padding-bottom:135px;
-
-}
-
-.search-title{
-
-font-size:28px;
-
-margin-bottom:20px;
-
-}
-
-.search-title::before{
-
-width:120px;
-
-height:120px;
-
-left:-40px;
-
-top:-40px;
-
-filter:blur(55px);
-
-}
-
-.search-input{
-
-height:54px;
-
-padding:0 18px;
-
-border-radius:16px;
-
-font-size:15px;
-
-margin-bottom:20px;
-
-}
-
-.results-grid{
-
-display:flex;
-
-flex-direction:column;
-
-gap:16px;
-
-}
-
+    .results-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
 }

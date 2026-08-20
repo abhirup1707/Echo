@@ -39,17 +39,17 @@ export default function TicTacToe() {
 
     if (!roomCode) {
         return (
-            <div className="scribble-no-room">
-                <h1>⭕ Tic Tac Toe</h1>
-                <p>Join an Echo Session first.</p>
+            <div className="scribble-no-room" style={{ textAlign: "center" }}>
+                <h1 style={{ fontSize: 36, fontWeight: 800, background: "linear-gradient(135deg, #fff 0%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12 }}>⭕ Tic Tac Toe</h1>
+                <p style={{ color: "#888", fontSize: 15 }}>Join an Echo Session first.</p>
             </div>
         );
     }
 
     if (!tttRoom) {
         return (
-            <div className="scribble-no-room">
-                <h1>⭕ Joining Tic Tac Toe...</h1>
+            <div className="scribble-no-room" style={{ textAlign: "center" }}>
+                <h1 style={{ fontSize: 36, fontWeight: 800, background: "linear-gradient(135deg, #fff 0%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12 }}>⭕ Joining Tic Tac Toe...</h1>
             </div>
         );
     }

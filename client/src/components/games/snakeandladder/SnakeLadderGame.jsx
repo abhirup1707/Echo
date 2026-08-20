@@ -123,19 +123,19 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
 
 
 
-                    {slRoom.players.map(p => {
+                    {slRoom.players.map((p, idx) => {
                         const pos = getPlayerPosition(p);
+                        const glowStyle = {
+                            background: p.color,
+                            "--token-glow": p.color,
+                        };
                         if (pos <= 0) {
                             const startC = getCellCenter(1);
                             return (
                                 <div
                                     key={p.id}
                                     className="sl-token"
-                                    style={{
-                                        left: `${startC.x - 2}%`,
-                                        top: `${startC.y - 5}%`,
-                                        background: p.color,
-                                    }}
+                                    style={{ ...glowStyle, left: `${startC.x - 2}%`, top: `${startC.y - 5}%` }}
                                     title={p.username}
                                 >
                                     {p.username.charAt(0).toUpperCase()}
@@ -145,14 +145,15 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
                         const c = getCellCenter(pos);
                         const tokensHere = (playerPositions[pos] || []).filter(tp => tp.id !== p.id);
                         const offset = tokensHere.findIndex(tp => tp.id === p.id);
+                        const isMyTurn = idx === slRoom.currentTurn;
                         return (
                             <div
                                 key={p.id}
-                                className="sl-token"
+                                className={`sl-token${isMyTurn ? " sl-token-active" : ""}`}
                                 style={{
+                                    ...glowStyle,
                                     left: `${c.x - 2 + (offset >= 0 ? (offset + 1) * 1.5 : 0)}%`,
                                     top: `${c.y - 5}%`,
-                                    background: p.color,
                                 }}
                                 title={`${p.username} (${pos})`}
                             >

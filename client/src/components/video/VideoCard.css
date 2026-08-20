@@ -1,75 +1,61 @@
-.video-card{
-
-    background:#1b1b24;
-
-    border-radius:18px;
-
-    overflow:hidden;
-
-    transition:.25s;
-
-    display:flex;
-
-    flex-direction:column;
-
+.video-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
-.video-card:hover{
-
-    transform:translateY(-6px);
-
-    box-shadow:0 0 25px rgba(124,58,237,.35);
-
+.video-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(124, 58, 237, 0.25);
+    box-shadow:
+        0 12px 36px rgba(0,0,0,0.3),
+        0 0 24px rgba(124,58,237,0.12);
 }
 
-.video-card img{
-
-    width:100%;
-
-    height:190px;
-
-    object-fit:cover;
-
+.video-card img {
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
 }
 
-.video-info{
-
-    padding:18px;
-
+.video-info {
+    padding: 18px;
 }
 
-.video-info h3{
-
-    font-size:17px;
-
-    margin-bottom:10px;
-
-    color:white;
-
+.video-info h3 {
+    font-size: 17px;
+    margin-bottom: 10px;
+    color: white;
+    font-weight: 700;
 }
 
-.video-info p{
-
-    color:#999;
-
+.video-info p {
+    color: #888;
+    font-size: 13px;
 }
 
-.video-card button{
+.video-card button {
+    margin: 18px;
+    padding: 13px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #7C3AED, #6D28D9);
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+}
 
-    margin:18px;
-
-    padding:13px;
-
-    border:none;
-
-    border-radius:12px;
-
-    background:linear-gradient(135deg,#7C3AED,#4F46E5);
-
-    color:white;
-
-    cursor:pointer;
-
-    font-weight:600;
-
+.video-card button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }

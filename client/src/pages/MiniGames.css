@@ -1,23 +1,22 @@
-.games-page{
-
-padding:35px;
-
-color:white;
-
+.games-page {
+    padding: 35px;
+    color: white;
+    animation: fadeHome 0.4s ease;
 }
 
-.games-page h1{
-
-margin-bottom:35px;
-
+.games-page h1 {
+    margin-bottom: 40px;
+    font-size: 38px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
 }
 
-.games-grid{
-
-display:grid;
-
-grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-
-gap:25px;
-
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
 }
