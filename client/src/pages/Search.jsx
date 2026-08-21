@@ -46,6 +46,21 @@ const { profile } = useContext(ProfileContext);
 
   },[query]);
 
+  const suggestions = [
+    "Blinding Lights - The Weeknd",
+    "Levitating - Dua Lipa",
+    "Bohemian Rhapsody - Queen",
+    "Shape of You - Ed Sheeran",
+    "Stairway to Heaven - Led Zeppelin",
+    "Smells Like Teen Spirit - Nirvana",
+    "Hotel California - Eagles",
+    "Lose Yourself - Eminem",
+    "Sweet Child O' Mine - Guns N Roses",
+    "Watermelon Sugar - Harry Styles",
+    "Bad Guy - Billie Eilish",
+    "Starboy - The Weeknd"
+  ];
+
   return(
 
     <div className="search-page">
@@ -67,6 +82,24 @@ const { profile } = useContext(ProfileContext);
       onChange={(e)=>setQuery(e.target.value)}
 
       />
+
+      {!query.trim() && songs.length === 0 && (
+        <div className="search-suggestions">
+          {suggestions.map((s, i) => (
+            <button
+              key={i}
+              className="search-suggestion-chip"
+              onClick={() => setQuery(s.split(" - ")[0])}
+              style={{ animationDelay: `${i * 0.04}s` }}
+            >
+              {s}
+            </button>
+          ))}
+          <p className="search-hint-text">
+            Try to search the appropriate audio file just as you do in Youtube
+          </p>
+        </div>
+      )}
 
       <div className="results-grid">
 
