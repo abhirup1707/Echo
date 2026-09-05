@@ -85,16 +85,13 @@ function BottomPlayer() {
                             setIsPlaying(true);
                             startBackgroundAudio();
                         } else if (event.data === 2) {
-                            // Paused
-                            // If tab is hidden and isPlaying is still true, prevent browser background auto-pause
-                            if (document.visibilityState === "hidden" && isPlaying) {
-                                try {
-                                    playerRef.current.playVideo();
-                                    return;
-                                } catch (e) {}
-                            }
+                            // Paused by user or background restriction
                             setIsPlaying(false);
-                            stopBackgroundAudio();
+                            // On mobile, if paused because user left the tab, keep the OS audio channel
+                            // active so Android keeps the Media Notification ready to resume with one tap!
+                            if (document.visibilityState !== "hidden") {
+                                stopBackgroundAudio();
+                            }
                         } else if (event.data === 0) {
                             // Ended
                             setIsPlaying(false);
