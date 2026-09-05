@@ -51,6 +51,7 @@ const {
 const {
     setCurrentSong,
     currentSong,
+    isPlaying,
     setIsPlaying
 } = useContext(MusicContext);
 
