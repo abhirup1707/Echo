@@ -4,7 +4,14 @@ import { ProfileContext } from "./ProfileContext";
 export const MusicContext = createContext();
 
 export default function MusicProvider({ children }) {
-  const [currentSong, setCurrentSong] = useState(null);
+  const [currentSong, setCurrentSong] = useState(() => {
+    try {
+      const saved = localStorage.getItem("echo_active_song");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
   const { playSong: updateStats } = useContext(ProfileContext);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -18,6 +25,14 @@ export default function MusicProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("recentSongs", JSON.stringify(recentSongs));
   }, [recentSongs]);
+
+  useEffect(() => {
+    if (currentSong) {
+      localStorage.setItem("echo_active_song", JSON.stringify(currentSong));
+    } else {
+      localStorage.removeItem("echo_active_song");
+    }
+  }, [currentSong]);
 
   function playSong(song) {
     setCurrentSong(song);

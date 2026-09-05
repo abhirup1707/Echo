@@ -11,6 +11,11 @@ import {
     FaVolumeUp,
     FaVolumeMute
 } from "react-icons/fa";
+import {
+    startBackgroundAudio,
+    stopBackgroundAudio,
+    updateMediaSession
+} from "../../utils/backgroundAudio";
 
 import "./BottomPlayer.css";
 
@@ -63,26 +68,37 @@ function BottomPlayer() {
             if (!playerContainerRef.current) return;
 
             playerRef.current = new window.YT.Player(playerContainerRef.current, {
-                height: "1",
-                width: "1",
+                height: "100%",
+                width: "100%",
                 playerVars: {
                     autoplay: 1,
                     controls: 0,
                     rel: 0,
                     modestbranding: 1,
-                    disablekb: 1
+                    disablekb: 1,
+                    playsinline: 1
                 },
                 events: {
                     onStateChange: (event) => {
                         if (event.data === 1) {
                             // Playing
                             setIsPlaying(true);
+                            startBackgroundAudio();
                         } else if (event.data === 2) {
                             // Paused
+                            // If tab is hidden and isPlaying is still true, prevent browser background auto-pause
+                            if (document.visibilityState === "hidden" && isPlaying) {
+                                try {
+                                    playerRef.current.playVideo();
+                                    return;
+                                } catch (e) {}
+                            }
                             setIsPlaying(false);
+                            stopBackgroundAudio();
                         } else if (event.data === 0) {
                             // Ended
                             setIsPlaying(false);
+                            stopBackgroundAudio();
                             if (queueRef.current.length > 0) {
                                 playNextRef.current();
                             }
@@ -154,15 +170,18 @@ function BottomPlayer() {
                     playerRef.current.seekTo(songSyncCommand.time, true);
                     setCurrentTime(songSyncCommand.time);
                 }
+                stopBackgroundAudio();
             } else if (songSyncCommand.type === "resume") {
                 if (typeof songSyncCommand.time === "number") {
                     playerRef.current.seekTo(songSyncCommand.time, true);
                     setCurrentTime(songSyncCommand.time);
                 }
                 playerRef.current.playVideo();
+                startBackgroundAudio();
             } else if (songSyncCommand.type === "stop") {
                 playerRef.current.stopVideo();
                 currentVideoIdRef.current = null;
+                stopBackgroundAudio();
             } else if (songSyncCommand.type === "seek") {
                 if (typeof songSyncCommand.time === "number") {
                     playerRef.current.seekTo(songSyncCommand.time, true);
@@ -173,6 +192,88 @@ function BottomPlayer() {
             console.warn("YouTube player command error:", e);
         }
     }, [songSyncCommand]);
+
+    // Keep active audio stream alive across tab visibility & screen locks
+    useEffect(() => {
+        function handleVisibilityChange() {
+            if (document.visibilityState === "hidden") {
+                if (isPlaying) {
+                    startBackgroundAudio();
+                    if (playerRef.current && typeof playerRef.current.getPlayerState === "function") {
+                        try {
+                            const state = playerRef.current.getPlayerState();
+                            if (state !== 1) {
+                                playerRef.current.playVideo();
+                            }
+                        } catch (e) {}
+                    }
+                }
+            } else {
+                if (isPlaying && playerRef.current && typeof playerRef.current.getPlayerState === "function") {
+                    try {
+                        const state = playerRef.current.getPlayerState();
+                        if (state === 2) {
+                            playerRef.current.playVideo();
+                        }
+                    } catch (e) {}
+                }
+            }
+        }
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [isPlaying]);
+
+    // Synchronize OS Lock Screen & Media Center (Media Session API)
+    useEffect(() => {
+        if (!currentSong) {
+            stopBackgroundAudio();
+            if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+                navigator.mediaSession.playbackState = "none";
+            }
+            return;
+        }
+
+        updateMediaSession({
+            title: currentSong.title,
+            artist: currentSong.artist,
+            cover: currentSong.cover,
+            isPlaying,
+            duration,
+            currentTime,
+            onPlay: () => {
+                if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+                    try { playerRef.current.playVideo(); } catch (e) {}
+                }
+                resumeSong(currentTime);
+                setIsPlaying(true);
+                startBackgroundAudio();
+            },
+            onPause: () => {
+                if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
+                    try { playerRef.current.pauseVideo(); } catch (e) {}
+                }
+                pauseSong(currentTime);
+                setIsPlaying(false);
+                stopBackgroundAudio();
+            },
+            onNext: () => {
+                if (queueRef.current.length > 0) {
+                    playNextRef.current();
+                }
+            },
+            onSeek: (seekTime) => {
+                if (playerRef.current && typeof playerRef.current.seekTo === "function") {
+                    try { playerRef.current.seekTo(seekTime, true); } catch (e) {}
+                }
+                seekSong(seekTime);
+                setCurrentTime(seekTime);
+            },
+            onStop: () => {
+                handleTurnOff();
+            }
+        });
+    }, [currentSong, isPlaying, duration, Math.floor(currentTime)]);
 
     // Track playback time
     useEffect(() => {
@@ -208,6 +309,7 @@ function BottomPlayer() {
                 } catch (e) {}
             }
             pauseSong(cur);
+            stopBackgroundAudio();
         } else {
             const cur =
                 playerRef.current && typeof playerRef.current.getCurrentTime === "function"
@@ -219,11 +321,13 @@ function BottomPlayer() {
                 } catch (e) {}
             }
             resumeSong(cur);
+            startBackgroundAudio();
         }
     }
 
     function handleTurnOff() {
         stopSong();
+        stopBackgroundAudio();
         if (playerRef.current && typeof playerRef.current.stopVideo === "function") {
             try {
                 playerRef.current.stopVideo();

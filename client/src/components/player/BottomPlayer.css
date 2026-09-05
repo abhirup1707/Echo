@@ -4,8 +4,21 @@
 
 .hidden-player {
     position: fixed;
-    left: -9999px;
-    top: -9999px;
+    bottom: 0;
+    right: 0;
+    width: 200px;
+    height: 150px;
+    opacity: 0.001;
+    pointer-events: none;
+    z-index: -9999;
+    overflow: hidden;
+}
+
+.hidden-player iframe,
+.hidden-player #yt-player {
+    width: 100% !important;
+    height: 100% !important;
+    border: none;
 }
 
 /* ================= FLOATING PLAYER CAPSULE ================= */

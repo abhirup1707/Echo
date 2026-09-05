@@ -26,7 +26,9 @@ const {
 
 } = useContext(ProfileContext);
 
-    const [roomCode, setRoomCode] = useState("");
+    const [roomCode, setRoomCode] = useState(() => {
+        return localStorage.getItem("echo_active_room_code") || "";
+    });
 
 const [currentVideo, setCurrentVideo] = useState(null);
 const [currentMovie,setCurrentMovie]=useState(null);
@@ -144,6 +146,12 @@ socket.on("movie-changed",(movie)=>{
 
 });
 
+        socket.on("room-not-found", () => {
+            console.warn("Room no longer active on server");
+            localStorage.removeItem("echo_active_room_code");
+            setRoomCode("");
+        });
+
         return () => {
 
             socket.off("song-changed");
@@ -162,10 +170,46 @@ socket.on("movie-changed",(movie)=>{
             socket.off("queue-updated");
             socket.off("chat-message");
             socket.off("chat-history");
+            socket.off("room-not-found");
 
         };
 
     }, []);
+
+    // Auto-restore room session when reopening browser or refreshing
+    useEffect(() => {
+        const savedRoom = localStorage.getItem("echo_active_room_code");
+        if (savedRoom && socket) {
+            const user = profile?.username || localStorage.getItem("echo_username") || "Echo User";
+            const avatar = profile?.avatar || "";
+            console.log("Auto-restoring room session on mount:", savedRoom);
+            socket.emit("join-session", {
+                roomCode: savedRoom,
+                username: user,
+                avatar: avatar
+            });
+        }
+    }, [profile?.username]);
+
+    // Re-sync with room when network reconnects (e.g. laptop wakes from sleep or screen unlocked)
+    useEffect(() => {
+        function handleReconnect() {
+            const savedRoom = localStorage.getItem("echo_active_room_code");
+            if (savedRoom && socket) {
+                const user = profile?.username || "Echo User";
+                const avatar = profile?.avatar || "";
+                console.log("Socket reconnected! Re-joining room:", savedRoom);
+                socket.emit("join-session", {
+                    roomCode: savedRoom,
+                    username: user,
+                    avatar: avatar
+                });
+            }
+        }
+
+        socket.on("connect", handleReconnect);
+        return () => socket.off("connect", handleReconnect);
+    }, [profile?.username]);
 
     function sendSong(song) {
 
@@ -380,7 +424,6 @@ function sendMessage(text) {
 
 }
 
-    // Call this whenever a room is successfully created or joined
 // Call this whenever a room is successfully created or joined
 function recordSession(room) {
 
@@ -390,9 +433,14 @@ function recordSession(room) {
 
     setCurrentVideo(null);
 
-    setRoomCode(room);
+    setRoomCode(room || "");
 
-    joinSession(room);
+    if (room) {
+        localStorage.setItem("echo_active_room_code", room);
+        joinSession(room);
+    } else {
+        localStorage.removeItem("echo_active_room_code");
+    }
 
 }
 
