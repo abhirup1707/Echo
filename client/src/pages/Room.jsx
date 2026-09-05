@@ -575,38 +575,33 @@ Join Room
 
 <div className="right-column">
 
-    <div className="room-card now-playing-card">
+    {/* Side-by-Side Compact Music Section: Now Playing + Scrollable Queue */}
+    <div className="room-music-section">
+        {/* Compact Now Playing Card */}
+        <div className="room-card now-playing-card compact">
+            <div className="now-playing-header">
+                <h2>🎵 Now Playing</h2>
+            </div>
 
-        <h2>
-
-            🎵 Now Playing
-
-        </h2>
-
-        {
-
-            currentSong ?
-
-            (
-
-                <div className={`playing-card ${isPlaying ? "is-playing" : "is-paused"}`}>
-                    <div className={`ambient-album-glow-wrap room-size ${isPlaying ? "playing" : "paused"}`}>
+            {currentSong ? (
+                <div className={`playing-card compact ${isPlaying ? "is-playing" : "is-paused"}`}>
+                    <div className={`ambient-album-glow-wrap room-size-compact ${isPlaying ? "playing" : "paused"}`}>
                         <div
                             className="ambient-album-glow"
                             style={{ backgroundImage: `url(${currentSong.cover})` }}
                         />
                         <img
                             src={currentSong.cover}
-                            className="playing-cover"
+                            className="playing-cover compact"
                             alt={currentSong.title}
                         />
                     </div>
 
-                    <div className="playing-info">
-                        <div className="room-playing-status-pill">
+                    <div className="playing-info compact">
+                        <div className="room-playing-status-pill compact">
                             <span className={`playing-dot ${isPlaying ? "live" : "paused"}`} />
-                            <span className="playing-status-text">{isPlaying ? "Live Audio" : "Paused"}</span>
-                            <div className={`music-wave-visualizer ${isPlaying ? "playing" : "paused"}`}>
+                            <span className="playing-status-text">{isPlaying ? "Live" : "Paused"}</span>
+                            <div className={`music-wave-visualizer mini ${isPlaying ? "playing" : "paused"}`}>
                                 <span className="wave-bar bar-1" />
                                 <span className="wave-bar bar-2" />
                                 <span className="wave-bar bar-3" />
@@ -614,125 +609,72 @@ Join Room
                             </div>
                         </div>
 
-                        <h3>
+                        <h3 title={currentSong.title}>
                             {currentSong.title}
                         </h3>
 
-                        <p>
+                        <p title={currentSong.artist}>
                             {currentSong.artist}
                         </p>
                     </div>
                 </div>
+            ) : (
+                <div className="nothing-playing compact">
+                    <span>No music playing</span>
+                </div>
+            )}
+        </div>
 
-            )
-
-            :
-
-            <div className="nothing-playing">
-
-                Nothing Playing
-
+        {/* Scrollable Queue Card */}
+        <div className="room-card room-queue-card">
+            <div className="room-queue-header">
+                <h2>🎵 Queue ({queue.length})</h2>
+                <button
+                    className="room-play-next"
+                    onClick={playNext}
+                    disabled={queue.length === 0}
+                    title={queue.length > 0 ? "Skip to next song" : "Queue is empty"}
+                >
+                    ▶ Play Next
+                </button>
             </div>
 
-        }
-
+            <div className="room-queue-scrollable">
+                {queue.length === 0 ? (
+                    <div className="room-queue-empty">
+                        <p>Queue Empty</p>
+                        <small>Add songs from Home or Search</small>
+                    </div>
+                ) : (
+                    queue.map((item, index) => (
+                        <div className="room-queue-song" key={index}>
+                            <span className="room-queue-num">{index + 1}</span>
+                            <img
+                                src={item.song.cover}
+                                alt={item.song.title}
+                                className="room-queue-thumb"
+                            />
+                            <div className="room-queue-info">
+                                <strong title={item.song.title}>
+                                    {item.song.title}
+                                </strong>
+                                <p title={item.song.artist}>
+                                    {item.song.artist}
+                                </p>
+                            </div>
+                            <span className="room-queue-adder" title={`Added by ${item.addedBy?.username || "Friend"}`}>
+                                👤 {item.addedBy?.username || "Friend"}
+                            </span>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
     </div>
 
-</div>
-
-<div className="chat-column">
-
-    <ChatBox/>
-
-</div>
-
-<div className="queue-column">
-
-    <div className="room-card queue-placeholder">
-
-        <h2>
-
-            🎵 Queue ({queue.length})
-
-        </h2>
-
-        <button
-
-            className="room-play-next"
-
-            onClick={playNext}
-
-            disabled={queue.length===0}
-
-        >
-
-            ▶ Play Next
-
-        </button>
-
-        {
-
-            queue.length===0 ?
-
-            <p
-                style={{
-                    marginTop:"20px",
-                    color:"#888"
-                }}
-            >
-
-                Queue Empty
-
-            </p>
-
-            :
-
-            queue.map((item,index)=>(
-
-                <div
-
-                    className="room-queue-song"
-
-                    key={index}
-
-                >
-
-                    <img
-
-                        src={item.song.cover}
-
-                        alt=""
-
-                    />
-
-                    <div className="room-queue-info">
-
-                        <strong>
-
-                            {item.song.title}
-
-                        </strong>
-
-                        <p>
-
-                            {item.song.artist}
-
-                        </p>
-
-                        <small>
-
-                            👤 {item.addedBy.username}
-
-                        </small>
-
-                    </div>
-
-                </div>
-
-            ))
-
-        }
-
+    {/* Chat Section */}
+    <div className="chat-section">
+        <ChatBox/>
     </div>
 
 </div>
