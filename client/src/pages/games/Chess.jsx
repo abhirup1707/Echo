@@ -31,14 +31,22 @@ export default function Chess() {
 
     useEffect(() => {
         if (!roomCode) return;
+        sessionStorage.setItem("echo_active_game", "/games/chess");
         socket.emit("chess-join", { roomCode, username: profile?.username || "Player" });
     }, [roomCode, profile?.username]);
 
     const handleLeave = () => {
+        sessionStorage.removeItem("echo_active_game");
         if (roomCode) {
             socket.emit("chess-leave", { roomCode });
         }
         navigate("/games");
+    };
+
+    const handleStart = () => {
+        if (roomCode) {
+            socket.emit("chess-start", { roomCode });
+        }
     };
 
     if (!roomCode) {
@@ -59,7 +67,10 @@ export default function Chess() {
                         fontWeight: "700",
                         cursor: "pointer"
                     }}
-                    onClick={() => navigate("/games")}
+                    onClick={() => {
+                        sessionStorage.removeItem("echo_active_game");
+                        navigate("/games");
+                    }}
                 >
                     ⬅ Back to Games
                 </button>
@@ -92,7 +103,9 @@ export default function Chess() {
         );
     }
 
-    if (chessRoom.status === "waiting" && chessRoom.players.length < 2) {
+    if (chessRoom.status === "waiting") {
+        const isHost = chessRoom.players[0]?.id === socket.id;
+
         return (
             <div className="scribble-page" style={{ maxWidth: 640, margin: "0 auto", padding: "30px 20px" }}>
                 <div style={{
@@ -103,7 +116,7 @@ export default function Chess() {
                 }}>
                     <div>
                         <h1 style={{ fontSize: 32, fontWeight: 900, background: "linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0 }}>
-                            ♟️ Chess Match
+                            ♟️ Chess Lobby
                         </h1>
                         <span style={{ color: "#94a3b8", fontSize: 14 }}>Room: {roomCode} • Official FIDE Rules (2 Players)</span>
                     </div>
@@ -128,7 +141,7 @@ export default function Chess() {
                         Players ({chessRoom.players.length} / 2)
                     </h2>
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 }}>
                         {chessRoom.players.map(p => (
                             <div
                                 key={p.id}
@@ -200,9 +213,33 @@ export default function Chess() {
                         )}
                     </div>
 
-                    <div style={{ textAlign: "center", color: "#64748b", fontSize: 13 }}>
-                        The chess match starts automatically as soon as the second player joins!
-                    </div>
+                    {chessRoom.players.length >= 2 ? (
+                        isHost ? (
+                            <div style={{ textAlign: "center", marginTop: 24 }}>
+                                <button
+                                    onClick={handleStart}
+                                    style={{
+                                        padding: "14px 36px",
+                                        fontSize: 16,
+                                        fontWeight: 800,
+                                        borderRadius: 14,
+                                        border: "none",
+                                        color: "#0f172a",
+                                        background: "linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%)",
+                                        cursor: "pointer",
+                                        boxShadow: "0 8px 24px rgba(255, 255, 255, 0.2)",
+                                        transition: "all 0.2s ease"
+                                    }}
+                                >
+                                    🚀 Start Chess Match
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 14, padding: "14px" }}>
+                                ⏳ Waiting for host to start match...
+                            </div>
+                        )
+                    ) : null}
                 </div>
             </div>
         );

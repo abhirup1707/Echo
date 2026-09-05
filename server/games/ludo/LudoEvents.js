@@ -89,6 +89,38 @@ function registerLudoEvents(io, socket) {
         }
     });
 
+    // PLAY AGAIN / RESTART LUDO
+    socket.on("ludo-play-again", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+
+        room.status = "waiting";
+        room.winner = null;
+        room.diceValue = null;
+        room.diceRolled = false;
+        room.lastAction = `${room.players.find(p => p.id === socket.id)?.username || "Player"} requested rematch! Waiting for host to start.`;
+        room.players.forEach(p => {
+            p.tokens = [];
+        });
+
+        io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+    });
+
+    socket.on("ludo-restart", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+
+        room.status = "waiting";
+        room.winner = null;
+        room.diceValue = null;
+        room.diceRolled = false;
+        room.players.forEach(p => {
+            p.tokens = [];
+        });
+
+        io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+    });
+
     // LEAVE LUDO
     socket.on("ludo-leave", ({ roomCode }) => {
         const room = getRoom(roomCode);

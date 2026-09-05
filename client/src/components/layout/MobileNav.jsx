@@ -1,70 +1,53 @@
+import { useContext } from "react";
 import {
-
-FaHome,
-FaSearch,
-FaVideo,
-FaUsers,
-FaUser,
-FaCog,
-FaGamepad
-
+    FaHome,
+    FaSearch,
+    FaVideo,
+    FaUsers,
+    FaUser,
+    FaCog,
+    FaGamepad
 } from "react-icons/fa";
-
 import { NavLink } from "react-router-dom";
-
+import { SessionContext } from "../../context/SessionContext";
 import "./MobileNav.css";
 
-export default function MobileNav(){
+export default function MobileNav() {
+    const { hasUnreadChat } = useContext(SessionContext);
+    const activeGamePath = sessionStorage.getItem("echo_active_game") || "/games";
 
-return(
+    return (
+        <div className="mobile-nav">
+            <NavLink to="/">
+                <FaHome />
+            </NavLink>
 
-<div className="mobile-nav">
+            <NavLink to="/search">
+                <FaSearch />
+            </NavLink>
 
-<NavLink to="/">
+            <NavLink to="/videos">
+                <FaVideo />
+            </NavLink>
 
-<FaHome/>
+            <NavLink to={activeGamePath}>
+                <FaGamepad />
+            </NavLink>
 
-</NavLink>
+            <NavLink to="/room">
+                <div className="mobile-icon-wrap">
+                    <FaUsers />
+                    {hasUnreadChat && <span className="mobile-unread-dot" />}
+                </div>
+            </NavLink>
 
-<NavLink to="/search">
+            <NavLink to="/profile">
+                <FaUser />
+            </NavLink>
 
-<FaSearch/>
-
-</NavLink>
-
-
-<NavLink to="/videos">
-
-<FaVideo/>
-
-</NavLink>
-
-<NavLink to="/games">
-
-    <FaGamepad/>
-
-</NavLink>
-
-<NavLink to="/room">
-
-<FaUsers/>
-
-</NavLink>
-
-<NavLink to="/profile">
-
-<FaUser/>
-
-</NavLink>
-
-<NavLink to="/settings">
-
-    <FaCog/>
-
-</NavLink>
-
-</div>
-
-);
-
+            <NavLink to="/settings">
+                <FaCog />
+            </NavLink>
+        </div>
+    );
 }

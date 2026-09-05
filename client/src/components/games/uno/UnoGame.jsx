@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import socket from "../../../socket";
+import { unoSounds } from "../../../utils/gameSounds";
 import "./UnoGame.css";
 
 const COLOR_MAP = {
@@ -20,6 +21,16 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
 
     const lastGameIdRef = useRef(unoRoom.gameId || 0);
     const lastReshuffleCountRef = useRef(unoRoom.reshuffleCount || 0);
+    const playedVictoryRef = useRef(false);
+
+    useEffect(() => {
+        if (unoRoom.status === "finished" && !playedVictoryRef.current) {
+            playedVictoryRef.current = true;
+            unoSounds.victory();
+        } else if (unoRoom.status !== "finished") {
+            playedVictoryRef.current = false;
+        }
+    }, [unoRoom.status]);
 
     const myId = socket.id;
     const me = unoRoom.players.find(p => p.id === myId);
@@ -92,6 +103,12 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
             return;
         }
 
+        if (["skip", "reverse", "draw2"].includes(card.type)) {
+            unoSounds.actionCard();
+        } else {
+            unoSounds.cardPlay();
+        }
+
         socket.emit("uno-play", {
             roomCode,
             cardId: card.id,
@@ -101,6 +118,13 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
 
     function handleColorSelect(chosenColor) {
         if (!selectedWildCard) return;
+
+        if (selectedWildCard.type === "swap") {
+            unoSounds.swapHands();
+        } else {
+            unoSounds.wildCard();
+        }
+
         socket.emit("uno-play", {
             roomCode,
             cardId: selectedWildCard.id,
@@ -111,15 +135,17 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
 
     function handleDraw() {
         if (!isMyTurn) return;
+        unoSounds.cardDraw();
         socket.emit("uno-draw", { roomCode });
     }
 
     function handleCallUno() {
+        unoSounds.unoCall();
         socket.emit("uno-call-uno", { roomCode });
     }
 
     function handleRestart() {
-        socket.emit("uno-restart", { roomCode });
+        socket.emit("uno-play-again", { roomCode });
     }
 
     const totalToDeal = unoRoom.players.length * 7;
@@ -353,11 +379,9 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
                         <h2>{unoRoom.winner?.username} Won!</h2>
                         <p>First to discard all cards!</p>
                         <div className="uno-winner-actions">
-                            {isHost && (
-                                <button className="uno-restart-btn" onClick={handleRestart}>
-                                    🔄 Play Again
-                                </button>
-                            )}
+                            <button className="uno-restart-btn" onClick={handleRestart}>
+                                🔄 Play Again
+                            </button>
                             <button className="uno-exit-btn" onClick={onLeave}>
                                 ⬅ Back to Games
                             </button>

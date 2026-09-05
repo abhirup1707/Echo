@@ -1,0 +1,276 @@
+﻿/* ==========================================================================
+   BRAVE & PWA INSTALL BANNER / ONBOARDING COMPONENT
+   ========================================================================== */
+
+.brave-install-banner {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(90deg, rgba(249, 115, 22, 0.18), rgba(139, 92, 246, 0.22));
+    border-bottom: 1px solid rgba(249, 115, 22, 0.35);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 10px 20px;
+    z-index: 999;
+    animation: bibSlideDown 0.3s ease-out;
+}
+
+@keyframes bibSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bib-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.bib-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+}
+
+.bib-emoji {
+    font-size: 20px;
+}
+
+.bib-text-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow: hidden;
+}
+
+.bib-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bib-badge {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.bib-title {
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.bib-desc {
+    color: #cbd5e1;
+    font-size: 12.5px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.bib-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.bib-btn {
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bib-btn.primary-btn {
+    background: linear-gradient(135deg, #f97316, #8b5cf6);
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+    white-space: nowrap;
+}
+
+.bib-btn.primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+}
+
+.bib-btn.close-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #94a3b8;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+}
+
+.bib-btn.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+    .brave-install-banner {
+        padding: 10px 14px;
+    }
+
+    .bib-content {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .bib-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .bib-btn.primary-btn {
+        flex: 1;
+    }
+}
+
+/* --- Manual Help Modal --- */
+.bib-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+.bib-modal-card {
+    background: #14141f;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 440px;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+    animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleUp {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.bib-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.bib-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+}
+
+.bib-modal-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.bib-modal-close:hover {
+    color: #ffffff;
+}
+
+.bib-modal-body p {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.bib-steps-list {
+    margin: 0 0 16px 20px;
+    padding: 0;
+    color: #e2e8f0;
+    font-size: 13.5px;
+    line-height: 1.8;
+}
+
+.bib-steps-list strong {
+    color: #ffffff;
+}
+
+.bib-brave-tip {
+    background: rgba(249, 115, 22, 0.12);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 12.5px;
+    color: #fdba74;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.bib-brave-tip strong {
+    color: #ffedd5;
+}
+
+.bib-modal-action-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bib-modal-action-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}

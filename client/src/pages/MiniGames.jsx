@@ -12,6 +12,14 @@ export default function MiniGames() {
     const { joined, scribbleRoom } = useScribble();
     const [scribblePlayerCount, setScribblePlayerCount] = useState(0);
 
+    // Auto-resume active minigame if user navigates back to /games without leaving
+    useEffect(() => {
+        const activeGame = sessionStorage.getItem("echo_active_game");
+        if (activeGame && activeGame !== "/games") {
+            navigate(activeGame, { replace: true });
+        }
+    }, [navigate]);
+
     useEffect(() => {
         if (!roomCode) {
             setScribblePlayerCount(0);

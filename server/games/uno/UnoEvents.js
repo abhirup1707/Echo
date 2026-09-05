@@ -95,15 +95,38 @@ function registerUnoEvents(io, socket) {
         }
     });
 
-    // RESTART UNO
+    // RESTART / PLAY AGAIN UNO
+    socket.on("uno-play-again", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+
+        // Reset to lobby so all players who want to play again enter the Start Game page
+        room.status = "waiting";
+        room.winner = null;
+        room.deck = [];
+        room.discardPile = [];
+        room.lastAction = `${room.players.find(p => p.id === socket.id)?.username || "Player"} requested rematch! Waiting for host to start.`;
+        room.players.forEach(p => {
+            p.hand = [];
+            p.hasCalledUno = false;
+        });
+
+        broadcastUnoRoom(io, room);
+    });
+
     socket.on("uno-restart", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
 
-        const isHost = room.players[0] && room.players[0].id === socket.id;
-        if (!isHost) return;
+        room.status = "waiting";
+        room.winner = null;
+        room.deck = [];
+        room.discardPile = [];
+        room.players.forEach(p => {
+            p.hand = [];
+            p.hasCalledUno = false;
+        });
 
-        startUnoGame(room);
         broadcastUnoRoom(io, room);
     });
 

@@ -8,7 +8,7 @@ import "./Navbar.css";
 function Navbar() {
   const navigate = useNavigate();
   const { profile } = useContext(ProfileContext);
-  const { roomCode } = useContext(SessionContext);
+  const { roomCode, hasUnreadChat } = useContext(SessionContext);
   const initial = profile.username ? profile.username.charAt(0).toUpperCase() : "?";
 
   return (
@@ -30,6 +30,7 @@ function Navbar() {
           >
             <span className="nav-room-dot" />
             <span>Room: {roomCode}</span>
+            {hasUnreadChat && <span className="nav-unread-dot" title="New message in room chat" />}
           </div>
         )}
 

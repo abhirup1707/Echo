@@ -34,8 +34,15 @@ export default function SnakeLadder() {
 
     useEffect(() => {
         if (!roomCode) return;
+        sessionStorage.setItem("echo_active_game", "/games/snakeandladder");
         socket.emit("sl-join", { roomCode, username: profile.username });
     }, [roomCode]);
+
+    const handleLeave = () => {
+        sessionStorage.removeItem("echo_active_game");
+        socket.emit("sl-leave", { roomCode });
+        navigate("/games");
+    };
 
     if (!roomCode) {
         return (
@@ -53,7 +60,10 @@ export default function SnakeLadder() {
                         fontWeight: "700",
                         cursor: "pointer"
                     }}
-                    onClick={() => navigate("/games")}
+                    onClick={() => {
+                        sessionStorage.removeItem("echo_active_game");
+                        navigate("/games");
+                    }}
                 >
                     ⬅ Back to Games
                 </button>
@@ -76,10 +86,7 @@ export default function SnakeLadder() {
                         fontWeight: "700",
                         cursor: "pointer"
                     }}
-                    onClick={() => {
-                        socket.emit("sl-leave", { roomCode });
-                        navigate("/games");
-                    }}
+                    onClick={handleLeave}
                 >
                     ⬅ Back to Games
                 </button>
@@ -98,10 +105,7 @@ export default function SnakeLadder() {
                     marginBottom: "25px"
                 }}>
                     <h1>🐍 Snake & Ladder Lobby</h1>
-                    <button onClick={() => {
-                        socket.emit("sl-leave", { roomCode });
-                        navigate("/games");
-                    }}>⬅ Back</button>
+                    <button onClick={handleLeave}>⬅ Back</button>
                 </div>
 
                 <div className="scribble-layout">

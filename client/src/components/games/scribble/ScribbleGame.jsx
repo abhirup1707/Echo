@@ -5,6 +5,7 @@ import {
 } from "react";
 
 import socket from "../../../socket";
+import { scribbleSounds } from "../../../utils/gameSounds";
 
 import "./ScribbleGame.css";
 
@@ -55,6 +56,26 @@ export default function ScribbleGame({
             document.body.classList.remove("scribble-active");
         };
     }, []);
+
+    const prevPhaseRef = useRef(scribbleRoom?.phase);
+    const prevGuessersCountRef = useRef(scribbleRoom?.correctGuessers?.length || 0);
+
+    useEffect(() => {
+        if (!scribbleRoom) return;
+
+        if (scribbleRoom.phase === "game_over" && prevPhaseRef.current !== "game_over") {
+            scribbleSounds.victory();
+        } else if (scribbleRoom.phase === "drawing" && prevPhaseRef.current !== "drawing") {
+            scribbleSounds.roundStart();
+        }
+        prevPhaseRef.current = scribbleRoom.phase;
+
+        const guessCount = scribbleRoom.correctGuessers ? scribbleRoom.correctGuessers.length : 0;
+        if (guessCount > prevGuessersCountRef.current) {
+            scribbleSounds.correctGuess();
+        }
+        prevGuessersCountRef.current = guessCount;
+    }, [scribbleRoom?.phase, scribbleRoom?.correctGuessers?.length]);
 
 
     const [color, setColor] =
@@ -1152,29 +1173,23 @@ export default function ScribbleGame({
                     </div>
 
 
-                    {
-                        scribbleRoom.host === socket.id && (
+                    <button
+                        className="scribble-play-again-btn"
+                        onClick={() => {
 
-                            <button
-                                className="scribble-play-again-btn"
-                                onClick={() => {
+                            socket.emit(
+                                "scribble-play-again",
+                                {
+                                    roomCode
+                                }
+                            );
 
-                                    socket.emit(
-                                        "scribble-play-again",
-                                        {
-                                            roomCode
-                                        }
-                                    );
+                        }}
+                    >
 
-                                }}
-                            >
+                        🔄 Play Again
 
-                                🔄 Play Again
-
-                            </button>
-
-                        )
-                    }
+                    </button>
 
                 </div>
 

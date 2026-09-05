@@ -45,10 +45,12 @@ export default function Ludo() {
 
     useEffect(() => {
         if (!roomCode) return;
+        sessionStorage.setItem("echo_active_game", "/games/ludo");
         socket.emit("ludo-join", { roomCode, username: profile?.username || "Player" });
     }, [roomCode, profile?.username]);
 
     const handleLeave = () => {
+        sessionStorage.removeItem("echo_active_game");
         if (roomCode) {
             socket.emit("ludo-leave", { roomCode });
         }

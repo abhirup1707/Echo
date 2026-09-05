@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import socket from "../../../socket";
+import { ludoSounds } from "../../../utils/gameSounds";
 import "./LudoGame.css";
 
 const START_INDEX = {
@@ -94,9 +95,33 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
         }
     }, [ludoRoom.diceValue]);
 
+    // Sound effect on game events
+    useEffect(() => {
+        if (!ludoRoom.lastAction) return;
+        const action = ludoRoom.lastAction.toLowerCase();
+        if (action.includes("captured") || action.includes("knocked") || action.includes("sent back")) {
+            ludoSounds.tokenCapture();
+        } else if (action.includes("safe") || action.includes("star")) {
+            ludoSounds.starSafe();
+        } else if (action.includes("home") || action.includes("finished")) {
+            ludoSounds.homeReach();
+        }
+    }, [ludoRoom.lastAction]);
+
+    const playedVictoryRef = useRef(false);
+    useEffect(() => {
+        if (ludoRoom.status === "finished" && !playedVictoryRef.current) {
+            playedVictoryRef.current = true;
+            ludoSounds.victory();
+        } else if (ludoRoom.status !== "finished") {
+            playedVictoryRef.current = false;
+        }
+    }, [ludoRoom.status]);
+
     function handleRoll() {
         if (!canRoll || isRolling) return;
 
+        ludoSounds.diceRoll();
         // Start optimistic rolling animation on click immediately
         setIsRolling(true);
         if (rollIntervalRef.current) clearInterval(rollIntervalRef.current);
@@ -112,11 +137,12 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
         if (!ludoRoom.diceRolled) return;
         if (!legalMoves.includes(token.id)) return;
 
+        ludoSounds.tokenStep();
         socket.emit("ludo-move", { roomCode, tokenId: token.id });
     }
 
     function handleRestart() {
-        socket.emit("ludo-start", { roomCode });
+        socket.emit("ludo-play-again", { roomCode });
     }
 
     // Helper to find tokens on a coordinate [r, c]
@@ -451,11 +477,9 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
                             Successfully brought all 4 tokens into the royal home!
                         </p>
                         <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-                            {ludoRoom.players[0]?.id === myId && (
-                                <button className="ludo-roll-btn" onClick={handleRestart} style={{ width: "auto" }}>
-                                    🔄 Play Again
-                                </button>
-                            )}
+                            <button className="ludo-roll-btn" onClick={handleRestart} style={{ width: "auto" }}>
+                                🔄 Play Again
+                            </button>
                             <button className="ludo-back-btn" onClick={onLeave}>
                                 ⬅ Back to Games
                             </button>

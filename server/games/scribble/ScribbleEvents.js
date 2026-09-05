@@ -1407,12 +1407,6 @@ function registerScribbleEvents(io, socket) {
 
             if (!room) return;
 
-            if (
-                room.host !== socket.id
-            ) {
-                return;
-            }
-
 
             stopChoosingTimer(
                 roomCode

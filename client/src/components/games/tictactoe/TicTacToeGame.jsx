@@ -1,8 +1,9 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import socket from "../../../socket";
 import { SessionContext } from "../../../context/SessionContext";
 import { ProfileContext } from "../../../context/ProfileContext";
+import { tttSounds } from "../../../utils/gameSounds";
 import "./TicTacToeGame.css";
 
 const WIN_LINES = [
@@ -19,10 +20,25 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
     const mySymbol = myPlayer ? myPlayer.symbol : null;
     const isMyTurn = tttRoom.status === "playing" && tttRoom.currentTurn === mySymbol;
     const isFinished = tttRoom.status === "finished";
+    const playedFinishedSoundRef = useRef(false);
+
+    useEffect(() => {
+        if (isFinished && !playedFinishedSoundRef.current) {
+            playedFinishedSoundRef.current = true;
+            if (tttRoom.winner === mySymbol) {
+                tttSounds.win();
+            } else if (tttRoom.winner === "draw") {
+                tttSounds.draw();
+            }
+        } else if (!isFinished) {
+            playedFinishedSoundRef.current = false;
+        }
+    }, [isFinished, tttRoom.winner, mySymbol]);
 
     function handleMove(index) {
         if (!isMyTurn) return;
         if (tttRoom.board[index] !== null) return;
+        tttSounds.place();
         socket.emit("ttt-move", { roomCode, index });
     }
 
@@ -31,6 +47,7 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
     }
 
     function handleLeave() {
+        sessionStorage.removeItem("echo_active_game");
         socket.emit("ttt-leave", { roomCode });
         navigate("/games");
     }

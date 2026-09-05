@@ -34,8 +34,15 @@ export default function TicTacToe() {
 
     useEffect(() => {
         if (!roomCode) return;
+        sessionStorage.setItem("echo_active_game", "/games/tictactoe");
         socket.emit("ttt-join", { roomCode, username: profile.username });
     }, [roomCode]);
+
+    const handleLeave = () => {
+        sessionStorage.removeItem("echo_active_game");
+        socket.emit("ttt-leave", { roomCode });
+        navigate("/games");
+    };
 
     if (!roomCode) {
         return (
@@ -53,7 +60,10 @@ export default function TicTacToe() {
                         fontWeight: "700",
                         cursor: "pointer"
                     }}
-                    onClick={() => navigate("/games")}
+                    onClick={() => {
+                        sessionStorage.removeItem("echo_active_game");
+                        navigate("/games");
+                    }}
                 >
                     ⬅ Back to Games
                 </button>
@@ -76,10 +86,7 @@ export default function TicTacToe() {
                         fontWeight: "700",
                         cursor: "pointer"
                     }}
-                    onClick={() => {
-                        socket.emit("ttt-leave", { roomCode });
-                        navigate("/games");
-                    }}
+                    onClick={handleLeave}
                 >
                     ⬅ Back to Games
                 </button>
@@ -97,10 +104,7 @@ export default function TicTacToe() {
                     marginBottom: "25px"
                 }}>
                     <h1>⭕ Tic Tac Toe Lobby</h1>
-                    <button onClick={() => {
-                        socket.emit("ttt-leave", { roomCode });
-                        navigate("/games");
-                    }}>⬅ Back</button>
+                    <button onClick={handleLeave}>⬅ Back</button>
                 </div>
 
                 <div className="scribble-card" style={{ maxWidth: 400 }}>

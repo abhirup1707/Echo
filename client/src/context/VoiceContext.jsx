@@ -23,11 +23,15 @@ export default function VoiceProvider({ children }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [voiceError, setVoiceError] = useState(null);
   const [peerStatuses, setPeerStatuses] = useState({});
+  const [speakingUsers, setSpeakingUsers] = useState({});
 
   const localStreamRef = useRef(null);
   const peerConnectionsRef = useRef(new Map());
   const remoteAudioElementsRef = useRef(new Map());
   const pendingCandidatesRef = useRef(new Map());
+  const audioCtxRef = useRef(null);
+  const localAnalyserRef = useRef(null);
+  const remoteAnalysersRef = useRef(new Map());
 
   const isMicOnRef = useRef(isMicOn);
   isMicOnRef.current = isMicOn;
@@ -55,6 +59,7 @@ export default function VoiceProvider({ children }) {
       remoteAudioElementsRef.current.delete(peerId);
     }
     pendingCandidatesRef.current.delete(peerId);
+    remoteAnalysersRef.current.delete(peerId);
     setPeerStatuses((prev) => {
       const updated = { ...prev };
       delete updated[peerId];
@@ -70,6 +75,9 @@ export default function VoiceProvider({ children }) {
     peerConnectionsRef.current.clear();
     remoteAudioElementsRef.current.clear();
     pendingCandidatesRef.current.clear();
+    remoteAnalysersRef.current.clear();
+    localAnalyserRef.current = null;
+    setSpeakingUsers({});
 
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => {
@@ -129,6 +137,26 @@ export default function VoiceProvider({ children }) {
       audio.play().catch((err) => {
         console.warn("Autoplay remote audio blocked, waiting for interaction:", err);
       });
+
+      try {
+        if (!audioCtxRef.current) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtxRef.current = new AudioContextClass();
+        }
+        if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+          audioCtxRef.current.resume().catch(() => {});
+        }
+        if (audioCtxRef.current && remoteStream) {
+          const source = audioCtxRef.current.createMediaStreamSource(remoteStream);
+          const analyser = audioCtxRef.current.createAnalyser();
+          analyser.fftSize = 256;
+          analyser.smoothingTimeConstant = 0.4;
+          source.connect(analyser);
+          remoteAnalysersRef.current.set(peerId, analyser);
+        }
+      } catch (err) {
+        console.warn("Could not create remote audio analyser:", err);
+      }
     };
 
     pc.onconnectionstatechange = () => {
@@ -158,6 +186,26 @@ export default function VoiceProvider({ children }) {
       stream.getAudioTracks().forEach((track) => {
         track.enabled = isMicOnRef.current;
       });
+
+      try {
+        if (!audioCtxRef.current) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtxRef.current = new AudioContextClass();
+        }
+        if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+          audioCtxRef.current.resume().catch(() => {});
+        }
+        if (audioCtxRef.current && stream) {
+          const source = audioCtxRef.current.createMediaStreamSource(stream);
+          const analyser = audioCtxRef.current.createAnalyser();
+          analyser.fftSize = 256;
+          analyser.smoothingTimeConstant = 0.4;
+          source.connect(analyser);
+          localAnalyserRef.current = analyser;
+        }
+      } catch (err) {
+        console.warn("Could not create local audio analyser:", err);
+      }
       setVoiceError(null);
       return stream;
     } catch (err) {
@@ -373,6 +421,59 @@ export default function VoiceProvider({ children }) {
     };
   }, [createPeerConnection, cleanupPeer]);
 
+  // Volume monitor loop for talking bars
+  useEffect(() => {
+    if (!isInCall) {
+      setSpeakingUsers({});
+      return;
+    }
+
+    const dataArray = new Uint8Array(128);
+    const interval = setInterval(() => {
+      const nextSpeaking = {};
+
+      // Check local mic
+      if (localAnalyserRef.current && isMicOnRef.current) {
+        localAnalyserRef.current.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+        if (avg > 10 && socket.id) {
+          nextSpeaking[socket.id] = true;
+        }
+      }
+
+      // Check remote peers
+      remoteAnalysersRef.current.forEach((analyser, peerId) => {
+        const isPeerMuted = peerStatuses[peerId]?.isMuted;
+        if (!isPeerMuted && isSpeakerOnRef.current) {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const avg = sum / dataArray.length;
+          if (avg > 10) {
+            nextSpeaking[peerId] = true;
+          }
+        }
+      });
+
+      setSpeakingUsers(prev => {
+        const prevKeys = Object.keys(prev).filter(k => prev[k]).sort();
+        const nextKeys = Object.keys(nextSpeaking).filter(k => nextSpeaking[k]).sort();
+        if (prevKeys.length !== nextKeys.length || prevKeys.some((k, i) => k !== nextKeys[i])) {
+          return nextSpeaking;
+        }
+        return prev;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isInCall, peerStatuses]);
+
   return (
     <VoiceContext.Provider
       value={{
@@ -382,6 +483,7 @@ export default function VoiceProvider({ children }) {
         isConnecting,
         voiceError,
         peerStatuses,
+        speakingUsers,
         toggleMic,
         toggleSpeaker,
         joinVoiceCall,

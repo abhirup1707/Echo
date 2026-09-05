@@ -21,26 +21,17 @@ const [roomCode, setRoomCode] = useState(
  
   
 const {
-
     roomCode: sessionRoomCode,
-
-    setRoomCode:setSessionRoomCode,
-
-    username:sessionUsername,
-
-    setUsername:setSessionUsername,
-
+    setRoomCode: setSessionRoomCode,
+    username: sessionUsername,
+    setUsername: setSessionUsername,
     members,
-
     setMembers,
-
     queue,
-
     setQueue,
-
-    playNext
-
-}=useContext(SessionContext);
+    playNext,
+    markChatRead
+} = useContext(SessionContext);
 
 const {
     setCurrentSong,
@@ -55,10 +46,17 @@ const {
     isConnecting,
     voiceError,
     peerStatuses,
+    speakingUsers = {},
     toggleMic,
     toggleSpeaker,
     leaveVoiceCall
 } = useContext(VoiceContext);
+
+useEffect(() => {
+    if (markChatRead) {
+        markChatRead();
+    }
+}, [markChatRead]);
 
   useEffect(() => {
 socket.on("session-created", (room) => {
@@ -488,26 +486,35 @@ Join Room
             members.map(member=>(
 
                 <div
-                    className="member"
+                    className={`member ${speakingUsers[member.id] ? "is-speaking" : ""}`}
                     key={member.id}
                 >
 
                     <div className="member-left">
 
-                        <UserAvatar
-                            avatar={member.avatar || (member.username === profile.username ? profile.avatar : "")}
-                            username={member.username}
-                            size={38}
-                        />
+                        <div className="member-avatar-box">
+                            <UserAvatar
+                                avatar={member.avatar || (member.username === profile.username ? profile.avatar : "")}
+                                username={member.username}
+                                size={38}
+                            />
+                            {speakingUsers[member.id] && <span className="avatar-speaking-glow" />}
+                        </div>
 
-                        <div>
-
-                            <strong>
-
-                                {member.username} {member.username === profile.username ? " (You)" : ""}
-
-                            </strong>
-
+                        <div className="member-info-col">
+                            <div className="member-name-row">
+                                <strong>
+                                    {member.username} {member.username === profile.username ? " (You)" : ""}
+                                </strong>
+                                {speakingUsers[member.id] && (
+                                    <div className="voice-talking-bars" title={`${member.username} is speaking`}>
+                                        <span className="voice-bar bar-1" />
+                                        <span className="voice-bar bar-2" />
+                                        <span className="voice-bar bar-3" />
+                                        <span className="voice-bar bar-4" />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                     </div>

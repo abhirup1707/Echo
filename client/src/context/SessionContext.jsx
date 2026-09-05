@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import socket from "../socket";
 import { MusicContext } from "./MusicContext";
 import { ProfileContext } from "./ProfileContext";
+import { playJoinSound, playLeaveSound } from "../utils/audioFx";
 
 export const SessionContext = createContext();
 
@@ -41,6 +42,8 @@ const [videoSyncCommand, setVideoSyncCommand] = useState(null);
     const [queue, setQueue] = useState([]);
     
 const [messages, setMessages] = useState([]);
+const [hasUnreadChat, setHasUnreadChat] = useState(false);
+const prevMembersCountRef = useRef(null);
 
     useEffect(() => {
 
@@ -130,6 +133,10 @@ const [messages, setMessages] = useState([]);
 
     ]);
 
+    if (window.location.pathname !== "/room") {
+        setHasUnreadChat(true);
+    }
+
 });
 
 socket.on("chat-history", (history) => {
@@ -210,6 +217,33 @@ socket.on("movie-changed",(movie)=>{
         socket.on("connect", handleReconnect);
         return () => socket.off("connect", handleReconnect);
     }, [profile?.username]);
+
+    const markChatRead = () => {
+        setHasUnreadChat(false);
+    };
+
+    // Play chime when members join or leave the room
+    useEffect(() => {
+        if (!roomCode) {
+            prevMembersCountRef.current = null;
+            return;
+        }
+
+        if (members.length === 0) return;
+
+        if (prevMembersCountRef.current === null) {
+            prevMembersCountRef.current = members.length;
+            return;
+        }
+
+        if (members.length > prevMembersCountRef.current) {
+            playJoinSound();
+        } else if (members.length < prevMembersCountRef.current) {
+            playLeaveSound();
+        }
+
+        prevMembersCountRef.current = members.length;
+    }, [members, roomCode]);
 
     function sendSong(song) {
 
@@ -490,7 +524,10 @@ setCurrentMovie,
 
     messages,
 
-sendMessage,
+    sendMessage,
+
+    hasUnreadChat,
+    markChatRead,
 
 }}
 >

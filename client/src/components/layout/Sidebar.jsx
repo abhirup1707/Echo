@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import "./Sidebar.css";
 
 import {
@@ -10,108 +11,83 @@ import {
 } from "react-icons/fa";
 import { FaGamepad } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
+import { SessionContext } from "../../context/SessionContext";
 
 function Sidebar() {
-
     const location = useLocation();
+    const { hasUnreadChat } = useContext(SessionContext);
+    const activeGamePath = sessionStorage.getItem("echo_active_game") || "/games";
 
-const menu = [
+    const menu = [
+        {
+            name: "Home",
+            path: "/",
+            icon: <FaHome />
+        },
+        {
+            name: "Music",
+            path: "/search",
+            icon: <FaSearch />
+        },
+        {
+            name: "Videos",
+            path: "/videos",
+            icon: <FaVideo />
+        },
+        {
+            name: "Session",
+            path: "/room",
+            icon: <FaUsers />,
+            hasDot: hasUnreadChat
+        },
+        {
+            name: "Mini Games",
+            path: activeGamePath,
+            basePath: "/games",
+            icon: <FaGamepad />
+        },
+        {
+            name: "Profile",
+            path: "/profile",
+            icon: <FaUserCircle />
+        },
+        {
+            name: "Settings",
+            path: "/settings",
+            icon: <FaCog />
+        }
+    ];
 
-    {
-        name: "Home",
-        path: "/",
-        icon: <FaHome />
-    },
-
-    {
-        name: "Music",
-        path: "/search",
-        icon: <FaSearch />
-    },
-
-    {
-        name: "Videos",
-        path: "/videos",
-        icon: <FaVideo />
-    },
-
-    {
-        name: "Session",
-        path: "/room",
-        icon: <FaUsers />
-    },
-
-    {
-    name: "Mini Games",
-    path: "/games",
-    icon: <FaGamepad />
-},
-
-    {
-        name: "Profile",
-        path: "/profile",
-        icon: <FaUserCircle />
-    },
-
-    {
-        name: "Settings",
-        path: "/settings",
-        icon: <FaCog />
-    }
-
-];
     return (
-
         <div className="sidebar">
-
             <div className="logo">
-
                 🎵 Echo
-
-                <span>
-
-                    Listen Together
-
-                </span>
-
+                <span>Listen Together</span>
             </div>
 
             <div className="sidebar-menu">
+                {menu.map(item => {
+                    const isActive = item.basePath
+                        ? location.pathname.startsWith(item.basePath)
+                        : location.pathname === item.path;
 
-                {
-
-                    menu.map(item => (
-
+                    return (
                         <Link
-
-                            key={item.path}
-
+                            key={item.name}
                             to={item.path}
-
-                            className={location.pathname === item.path ? "active-link" : ""}
-
+                            className={isActive ? "active-link" : ""}
                         >
-
-                            {item.icon}
-
-                            <span>
-
-                                {item.name}
-
-                            </span>
-
+                            <div className="sidebar-icon-wrap">
+                                {item.icon}
+                                {item.hasDot && <span className="sidebar-unread-dot" title="New chat message" />}
+                            </div>
+                            <span>{item.name}</span>
                         </Link>
-
-                    ))
-
-                }
-
+                    );
+                })}
             </div>
-
         </div>
-
     );
-
 }
 
 export default Sidebar;

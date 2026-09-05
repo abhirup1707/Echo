@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import socket from "../../../socket";
+import { chessSounds } from "../../../utils/gameSounds";
 import "./ChessGame.css";
 
 const SOLID_PIECES = {
@@ -27,6 +28,37 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
     const isMyTurn = chessRoom.turn === myColor;
     const isPlaying = chessRoom.status === "playing";
     const lastMove = chessRoom.lastMove;
+    const isGameOver = ["checkmate", "stalemate", "resigned"].includes(chessRoom.status);
+
+    const lastMoveRef = useRef(null);
+    const playedGameOverRef = useRef(false);
+
+    useEffect(() => {
+        if (!lastMove) return;
+        if (lastMove.from !== lastMoveRef.current?.from || lastMove.to !== lastMoveRef.current?.to) {
+            lastMoveRef.current = lastMove;
+            if (lastMove.captured) {
+                chessSounds.capture();
+            } else {
+                chessSounds.move();
+            }
+        }
+    }, [lastMove]);
+
+    useEffect(() => {
+        if (chessRoom.inCheck && isPlaying) {
+            chessSounds.check();
+        }
+    }, [chessRoom.inCheck, isPlaying]);
+
+    useEffect(() => {
+        if (isGameOver && !playedGameOverRef.current) {
+            playedGameOverRef.current = true;
+            chessSounds.checkmate();
+        } else if (!isGameOver) {
+            playedGameOverRef.current = false;
+        }
+    }, [isGameOver]);
 
     useEffect(() => {
         function handleLegalMoves(data) {
@@ -115,7 +147,7 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
     }
 
     function handleRematch() {
-        socket.emit("chess-restart", { roomCode });
+        socket.emit("chess-play-again", { roomCode });
     }
 
     // Build the 64 squares list based on board orientation
@@ -127,8 +159,6 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
 
     const topPlayer = flipped ? whitePlayer : blackPlayer;
     const bottomPlayer = flipped ? blackPlayer : whitePlayer;
-
-    const isGameOver = ["checkmate", "stalemate", "resigned"].includes(chessRoom.status);
 
     return (
         <div className="chess-container">

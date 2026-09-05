@@ -37,10 +37,12 @@ export default function Uno() {
 
     useEffect(() => {
         if (!roomCode) return;
+        sessionStorage.setItem("echo_active_game", "/games/uno");
         socket.emit("uno-join", { roomCode, username: profile?.username || "Player" });
     }, [roomCode, profile?.username]);
 
     const handleLeave = () => {
+        sessionStorage.removeItem("echo_active_game");
         if (roomCode) {
             socket.emit("uno-leave", { roomCode });
         }

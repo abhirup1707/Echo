@@ -16,6 +16,7 @@ import Navbar from "./components/layout/Navbar";
 import Sidebar from "./components/layout/Sidebar";
 import BottomPlayer from "./components/player/BottomPlayer";
 import MobileNav from "./components/layout/MobileNav";
+import BraveInstallBanner from "./components/common/BraveInstallBanner";
 import JoinRoom from "./pages/JoinRoom";
 import MiniGames from "./pages/MiniGames";
 import Scribble from "./pages/games/Scribble";
@@ -36,6 +37,8 @@ if (!profile.username) {
 }
   return (
     <BrowserRouter>
+
+      <BraveInstallBanner />
 
       <Navbar />
 

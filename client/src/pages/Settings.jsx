@@ -3,11 +3,21 @@ import { ProfileContext } from "../context/ProfileContext";
 import UserAvatar from "../components/common/UserAvatar";
 import AvatarModal from "../components/profile/AvatarModal";
 import { getAvatar } from "../utils/avatars";
-import { FaCamera, FaUserEdit, FaTrashAlt, FaCheck, FaSlidersH, FaVolumeUp } from "react-icons/fa";
+import { FaCamera, FaUserEdit, FaTrashAlt, FaCheck, FaSlidersH, FaVolumeUp, FaDownload, FaExternalLinkAlt } from "react-icons/fa";
+import { useBraveAndPwa } from "../hooks/useBraveAndPwa";
 import "./Settings.css";
 
 function Settings() {
     const { profile, setProfile, updateAvatar } = useContext(ProfileContext);
+    const {
+        isBrave,
+        isMobile,
+        isAndroid,
+        isStandalone,
+        canInstall,
+        promptInstall,
+        getBraveLaunchUrl
+    } = useBraveAndPwa();
     const [newName, setNewName] = useState(profile.username);
     const [savedNotice, setSavedNotice] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -156,6 +166,66 @@ function Settings() {
                         />
                         <span className="slider"></span>
                     </label>
+                </div>
+            </div>
+
+            {/* Mobile App & Background Audio Setup */}
+            <div className="settings-card brave-guide-card">
+                <div className="settings-card-header">
+                    <span style={{ fontSize: 26 }}>🦁</span>
+                    <div>
+                        <h2>24/7 Mobile Background Music & App Setup</h2>
+                        <p>Listen to music and watch videos with your phone locked or while using other apps.</p>
+                    </div>
+                </div>
+
+                <div className="brave-guide-steps">
+                    <div className="bg-step-item">
+                        <div className="bg-step-num">1</div>
+                        <div className="bg-step-info">
+                            <strong>Use Brave Browser on Mobile</strong>
+                            <p>Google Chrome forces YouTube to pause when locked. Brave allows continuous background audio.</p>
+                            {!isBrave && (
+                                <a
+                                    href={getBraveLaunchUrl()}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="settings-action-btn primary"
+                                    style={{ marginTop: 8, display: "inline-flex", textDecoration: "none" }}
+                                >
+                                    <FaExternalLinkAlt style={{ marginRight: 6 }} />
+                                    {isAndroid ? "Open / Get Brave" : "Download Brave Browser"}
+                                </a>
+                            )}
+                            {isBrave && <span className="brave-verified-tag">✓ You are currently using Brave!</span>}
+                        </div>
+                    </div>
+
+                    <div className="bg-step-item">
+                        <div className="bg-step-num">2</div>
+                        <div className="bg-step-info">
+                            <strong>Install Echo to Home Screen</strong>
+                            <p>Installs Echo as a dedicated full-screen shortcut on your home screen or taskbar.</p>
+                            {!isStandalone && (
+                                <button
+                                    className="settings-action-btn primary"
+                                    style={{ marginTop: 8 }}
+                                    onClick={promptInstall}
+                                >
+                                    <FaDownload style={{ marginRight: 6 }} /> Install Echo Shortcut
+                                </button>
+                            )}
+                            {isStandalone && <span className="brave-verified-tag">✓ Running as installed shortcut app!</span>}
+                        </div>
+                    </div>
+
+                    <div className="bg-step-item">
+                        <div className="bg-step-num">3</div>
+                        <div className="bg-step-info">
+                            <strong>Enable Background Play in Brave</strong>
+                            <p>Inside Brave on Android/iOS, go to: <em>Settings ➔ Background play ➔ Turn ON (Relaunch)</em>.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

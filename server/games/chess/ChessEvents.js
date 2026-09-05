@@ -81,8 +81,18 @@ function registerChessEvents(io, socket) {
         io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
     });
 
-    // RESTART
-    socket.on("chess-restart", ({ roomCode }) => {
+    // START CHESS
+    socket.on("chess-start", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+        if (room.players.length >= 2) {
+            room.status = "playing";
+            io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
+        }
+    });
+
+    // RESTART / PLAY AGAIN
+    socket.on("chess-play-again", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
 
@@ -96,7 +106,25 @@ function registerChessEvents(io, socket) {
 
         const newRoom = resetRoom(roomCode);
         newRoom.players = players;
-        newRoom.status = "playing";
+        newRoom.status = "waiting";
+
+        io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(newRoom));
+    });
+
+    socket.on("chess-restart", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+
+        const { createRoom: resetRoom } = require("./ChessManager");
+        const players = room.players;
+        if (players.length === 2) {
+            players[0].color = players[0].color === "w" ? "b" : "w";
+            players[1].color = players[1].color === "w" ? "b" : "w";
+        }
+
+        const newRoom = resetRoom(roomCode);
+        newRoom.players = players;
+        newRoom.status = "waiting";
 
         io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(newRoom));
     });

@@ -31,6 +31,7 @@ export default function Scribble() {
 
     useEffect(() => {
         if (!roomCode) return;
+        sessionStorage.setItem("echo_active_game", "/games/scribble");
         joinScribble();
     }, [roomCode, joinScribble]);
 
@@ -50,6 +51,7 @@ export default function Scribble() {
     ]);
 
     function handleBack() {
+        sessionStorage.removeItem("echo_active_game");
         leaveScribble();
         navigate("/games");
     }

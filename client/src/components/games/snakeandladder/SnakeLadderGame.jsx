@@ -92,6 +92,7 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
     }
 
     function handleLeave() {
+        sessionStorage.removeItem("echo_active_game");
         socket.emit("sl-leave", { roomCode });
         navigate("/games");
     }

@@ -88,10 +88,18 @@ function registerTicTacToeEvents(io, socket) {
 
 
     // =====================================================
-    // RESTART
+    // RESTART / PLAY AGAIN
     // =====================================================
 
+    socket.on("ttt-play-again", ({ roomCode }) => {
+        handleTttRestart(roomCode);
+    });
+
     socket.on("ttt-restart", ({ roomCode }) => {
+        handleTttRestart(roomCode);
+    });
+
+    function handleTttRestart(roomCode) {
 
         const room = getRoom(roomCode);
         if (!room) return;
@@ -116,7 +124,7 @@ function registerTicTacToeEvents(io, socket) {
 
         io.to(`ttt-${roomCode}`).emit("ttt-room", getPublicRoom(room));
 
-    });
+    }
 
 
     // =====================================================
