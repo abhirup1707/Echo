@@ -1,336 +1,130 @@
-.sidebar{
+/* =========================================
+   PREMIUM HD SIDEBAR
+   ========================================= */
 
-    width:270px;
-
-    height:100vh;
-
-    position:fixed;
-
-    left:0;
-
-    top:0;
-
-    background:
-    linear-gradient(
-        180deg,
-        rgba(18,18,28,.96),
-        rgba(10,10,16,.98)
-    );
-
-    backdrop-filter:blur(24px);
-
-    border-right:1px solid rgba(255,255,255,.05);
-
-    padding:26px 18px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    overflow:hidden;
-
+.sidebar {
+    width: 270px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: rgba(10, 10, 16, 0.85);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 28px 18px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
 }
 
 /* ================= LOGO ================= */
 
-.logo{
-
-    font-size:34px;
-
-    font-weight:800;
-
-    color:white;
-
-    letter-spacing:1px;
-
-    margin-bottom:42px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    user-select:none;
-
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 36px;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    padding: 0 8px;
+    background: linear-gradient(135deg, #ffffff 40%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.logo::before{
-
-content:"🎧";
-
-font-size:38px;
-
-margin-bottom:8px;
-
-filter:drop-shadow(0 0 15px #7C3AED);
-
-animation:logoFloat 3s ease-in-out infinite;
-
+.logo::before {
+    content: "🎧";
+    font-size: 34px;
+    margin-bottom: 10px;
+    -webkit-text-fill-color: initial;
+    filter: drop-shadow(0 0 16px rgba(124, 58, 237, 0.55));
+    animation: logoFloat 4s ease-in-out infinite alternate;
 }
 
-@keyframes logoFloat{
-
-0%,100%{
-
-transform:translateY(0);
-
+@keyframes logoFloat {
+    from { transform: translateY(0); }
+    to { transform: translateY(-5px); }
 }
 
-50%{
-
-transform:translateY(-8px);
-
-}
-
-}
-
-.logo span{
-
-    margin-top:8px;
-
-    font-size:13px;
-
-    color:#9ca3af;
-
-    font-weight:400;
-
+.logo span {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    -webkit-text-fill-color: #9ca3af;
 }
 
 /* ================= MENU ================= */
 
-.sidebar-menu{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:10px;
-
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.sidebar-menu a{
-
-    position:relative;
-
-    text-decoration:none;
-
-    color:#cfcfcf;
-
-    display:flex;
-
-    align-items:center;
-
-    gap:16px;
-
-    padding:15px 18px;
-
-    border-radius:18px;
-
-    font-size:17px;
-
-    transition:.28s;
-
-    overflow:hidden;
-
+.sidebar-menu a {
+    position: relative;
+    text-decoration: none;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid transparent;
 }
 
-.sidebar-menu a::before{
-
-    content:"";
-
-    position:absolute;
-
-    left:0;
-
-    top:0;
-
-    width:0;
-
-    height:100%;
-
-    background:
-
-    linear-gradient(
-
-        135deg,
-
-        rgba(124,58,237,.18),
-
-        rgba(124,58,237,.04)
-
-    );
-
-    transition:.28s;
-
+.sidebar-menu svg {
+    font-size: 18px;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s;
+    color: #9ca3af;
 }
 
-.sidebar-menu a:hover::before{
-
-    width:100%;
-
+.sidebar-menu a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.06);
+    transform: translateX(4px);
 }
 
-.sidebar-menu a:hover{
-
-    color:white;
-
-    transform:translateX(6px);
-
+.sidebar-menu a:hover svg {
+    color: #c4b5fd;
+    transform: scale(1.15);
 }
 
-.sidebar-menu svg{
+/* ================= ACTIVE LINK ================= */
 
-    font-size:21px;
-
-    transition:.25s;
-
+.active-link {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.28), rgba(91, 33, 182, 0.18)) !important;
+    border: 1px solid rgba(124, 58, 237, 0.45) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.25), inset 0 0 12px rgba(124, 58, 237, 0.15);
 }
 
-.sidebar-menu a:hover svg{
-
-    color:#8b5cf6;
-
-    transform:scale(1.12);
-
+.active-link svg {
+    color: #c4b5fd !important;
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.6));
 }
 
-/* ================= ACTIVE ================= */
-
-.active-link{
-
-background:
-
-linear-gradient(
-
-135deg,
-
-#7C3AED,
-
-#5B21B6
-
-);
-
-color:white!important;
-
-box-shadow:
-
-0 0 25px rgba(124,58,237,.45);
-
-animation:pulseGlow 2s infinite;
-
-}
-
-@keyframes pulseGlow{
-
-0%,100%{
-
-box-shadow:
-
-0 0 20px rgba(124,58,237,.45);
-
-}
-
-50%{
-
-box-shadow:
-
-0 0 35px rgba(124,58,237,.75);
-
-}
-
-}
-
-.active-link svg{
-
-    color:white;
-
-}
-
-/* ================= BOTTOM GLOW ================= */
-
-.sidebar::after{
-
-    content:"";
-
-    position:absolute;
-
-    bottom:-120px;
-
-    left:-60px;
-
-    width:260px;
-
-    height:260px;
-
-    background:#7C3AED;
-
-    opacity:.18;
-
-    filter:blur(90px);
-
-    border-radius:50%;
-
-    pointer-events:none;
-
-}
-
-/* ================= MOBILE ================= */
-
-@media(max-width:768px){
-
-.sidebar{
-
-display:none;
-
-}
-
-}
-
-.sidebar::before{
-
-content:"";
-
-position:absolute;
-
-top:0;
-
-left:-60%;
-
-width:60%;
-
-height:100%;
-
-background:
-
-linear-gradient(
-
-90deg,
-
-transparent,
-
-rgba(255,255,255,.05),
-
-transparent
-
-);
-
-animation:sidebarSweep 8s linear infinite;
-
-pointer-events:none;
-
-}
-
-@keyframes sidebarSweep{
-
-0%{
-
-left:-60%;
-
-}
-
-100%{
-
-left:160%;
-
-}
-
+.active-link::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 25%;
+    height: 50%;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: #a78bfa;
+    box-shadow: 0 0 10px #a78bfa;
 }

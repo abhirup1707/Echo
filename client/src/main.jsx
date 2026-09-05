@@ -8,6 +8,7 @@ import "./index.css";
 import ProfileProvider from "./context/ProfileContext";
 import MusicProvider from "./context/MusicContext";
 import SessionProvider from "./context/SessionContext";
+import VoiceProvider from "./context/VoiceContext";
 import { ScribbleProvider } from "./context/ScribbleContext";
 import { PlaylistProvider } from "./context/PlaylistContext";
 
@@ -21,6 +22,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
 <SessionProvider>
 
+<VoiceProvider>
+
 <ScribbleProvider>
 
 <PlaylistProvider>
@@ -30,6 +33,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 </PlaylistProvider>
 
 </ScribbleProvider>
+
+</VoiceProvider>
 
 </SessionProvider>
 

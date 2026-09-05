@@ -42,6 +42,21 @@ export default function SnakeLadder() {
             <div className="scribble-no-room">
                 <h1>🐍 Snake & Ladder</h1>
                 <p>Join an Echo Session first.</p>
+                <button
+                    style={{
+                        marginTop: "20px",
+                        padding: "10px 22px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontWeight: "700",
+                        cursor: "pointer"
+                    }}
+                    onClick={() => navigate("/games")}
+                >
+                    ⬅ Back to Games
+                </button>
             </div>
         );
     }
@@ -50,6 +65,24 @@ export default function SnakeLadder() {
         return (
             <div className="scribble-no-room">
                 <h1>🐍 Joining Snake & Ladder...</h1>
+                <button
+                    style={{
+                        marginTop: "20px",
+                        padding: "10px 22px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontWeight: "700",
+                        cursor: "pointer"
+                    }}
+                    onClick={() => {
+                        socket.emit("sl-leave", { roomCode });
+                        navigate("/games");
+                    }}
+                >
+                    ⬅ Back to Games
+                </button>
             </div>
         );
     }

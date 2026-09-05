@@ -508,3 +508,186 @@
         font-size: 13px;
     }
 }
+
+/* =========================================
+   VOICE CALL CONTROLS & MEMBER STATUS STYLES
+   ========================================= */
+
+.room-voice-controls-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 18px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+}
+
+.room-voice-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #c4b5fd;
+    user-select: none;
+}
+
+.voice-status-indicator-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #6b7280;
+    transition: all 0.3s;
+}
+
+.voice-status-indicator-dot.active {
+    background: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+}
+
+.voice-status-indicator-dot.connecting {
+    background: #eab308;
+    box-shadow: 0 0 10px #eab308;
+    animation: statusPulse 1.2s infinite;
+}
+
+.room-voice-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.room-voice-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.room-voice-toggle-btn:hover {
+    transform: translateY(-2px);
+}
+
+.room-voice-toggle-btn.mic-on {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.15));
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    color: #4ade80;
+}
+
+.room-voice-toggle-btn.mic-on:hover {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.35), rgba(22, 163, 74, 0.25));
+    box-shadow: 0 6px 18px rgba(34, 197, 94, 0.25);
+}
+
+.room-voice-toggle-btn.mic-off {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.15));
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #f87171;
+}
+
+.room-voice-toggle-btn.mic-off:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(220, 38, 38, 0.25));
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
+}
+
+.room-voice-toggle-btn.speaker-on {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(91, 33, 182, 0.2));
+    border: 1px solid rgba(124, 58, 237, 0.5);
+    color: #c4b5fd;
+}
+
+.room-voice-toggle-btn.speaker-on:hover {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(91, 33, 182, 0.3));
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.3);
+}
+
+.room-voice-toggle-btn.speaker-off {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.15));
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #f87171;
+}
+
+.room-voice-toggle-btn.speaker-off:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(220, 38, 38, 0.25));
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
+}
+
+.room-voice-error-text {
+    font-size: 11px;
+    color: #fca5a5;
+}
+
+.member-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.member-voice-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.member-mic,
+.member-speaker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.member-mic.on {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.member-mic.off {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.member-speaker.off {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 768px) {
+    .room-voice-controls-wrapper {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .room-voice-actions {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .room-voice-toggle-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+

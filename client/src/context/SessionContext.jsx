@@ -7,7 +7,14 @@ export const SessionContext = createContext();
 
 export default function SessionProvider({ children }) {
 
-    const { playSong } = useContext(MusicContext);
+    const {
+        playSong,
+        pauseSong: localPause,
+        resumeSong: localResume,
+        stopSong: localStop,
+        setSongSyncCommand,
+        isPlaying
+    } = useContext(MusicContext);
 
 const {
 
@@ -23,6 +30,7 @@ const {
 
 const [currentVideo, setCurrentVideo] = useState(null);
 const [currentMovie,setCurrentMovie]=useState(null);
+const [videoSyncCommand, setVideoSyncCommand] = useState(null);
 
     const [username, setUsername] = useState("");
 
@@ -42,15 +50,59 @@ const [messages, setMessages] = useState([]);
 
         });
 
+        socket.on("song-paused", ({ time }) => {
+            console.log("Song paused at:", time);
+            localPause();
+            setSongSyncCommand({ type: "pause", time, id: Date.now() });
+        });
+
+        socket.on("song-resumed", ({ time }) => {
+            console.log("Song resumed at:", time);
+            localResume();
+            setSongSyncCommand({ type: "resume", time, id: Date.now() });
+        });
+
+        socket.on("song-stopped", () => {
+            console.log("Song stopped");
+            localStop();
+            setSongSyncCommand({ type: "stop", id: Date.now() });
+        });
+
+        socket.on("song-seeked", ({ time }) => {
+            console.log("Song seeked to:", time);
+            setSongSyncCommand({ type: "seek", time, id: Date.now() });
+        });
+
         socket.on("video-changed", (video) => {
+            console.log("Received video:", video.title);
+            setCurrentVideo(video);
+        });
 
-    console.log("Received video:", video.title);
+        socket.on("video-paused", ({ time }) => {
+            console.log("Video paused at:", time);
+            setVideoSyncCommand({ type: "pause", time, id: Date.now() });
+        });
 
-    setCurrentVideo(video);
+        socket.on("video-resumed", ({ time }) => {
+            console.log("Video resumed at:", time);
+            setVideoSyncCommand({ type: "resume", time, id: Date.now() });
+        });
 
-});
+        socket.on("video-seeked", ({ time }) => {
+            console.log("Video seeked to:", time);
+            setVideoSyncCommand({ type: "seek", time, id: Date.now() });
+        });
 
+        socket.on("video-stopped", () => {
+            console.log("Video stopped");
+            setCurrentVideo(null);
+            setVideoSyncCommand({ type: "stop", id: Date.now() });
+        });
 
+        socket.on("movie-stopped", () => {
+            console.log("Movie stopped");
+            setCurrentMovie(null);
+        });
 
         socket.on("members-updated", (members) => {
 
@@ -95,7 +147,16 @@ socket.on("movie-changed",(movie)=>{
         return () => {
 
             socket.off("song-changed");
-             socket.off("video-changed");
+            socket.off("song-paused");
+            socket.off("song-resumed");
+            socket.off("song-stopped");
+            socket.off("song-seeked");
+            socket.off("video-changed");
+            socket.off("video-paused");
+            socket.off("video-resumed");
+            socket.off("video-seeked");
+            socket.off("video-stopped");
+            socket.off("movie-stopped");
             socket.off("movie-changed");
             socket.off("members-updated");
             socket.off("queue-updated");
@@ -126,6 +187,37 @@ socket.on("movie-changed",(movie)=>{
 
         });
 
+    }
+
+    function pauseSong(time = 0) {
+        localPause();
+        setSongSyncCommand({ type: "pause", time, id: Date.now() });
+        if (roomCode !== "") {
+            socket.emit("pause-song", { roomCode, time });
+        }
+    }
+
+    function resumeSong(time = 0) {
+        localResume();
+        setSongSyncCommand({ type: "resume", time, id: Date.now() });
+        if (roomCode !== "") {
+            socket.emit("resume-song", { roomCode, time });
+        }
+    }
+
+    function stopSong() {
+        localStop();
+        setSongSyncCommand({ type: "stop", id: Date.now() });
+        if (roomCode !== "") {
+            socket.emit("stop-song", { roomCode });
+        }
+    }
+
+    function seekSong(time = 0) {
+        setSongSyncCommand({ type: "seek", time, id: Date.now() });
+        if (roomCode !== "") {
+            socket.emit("seek-song", { roomCode, time });
+        }
     }
 
 function addToQueue(song, username) {
@@ -202,24 +294,48 @@ function playNext() {
 }
 
 function sendVideo(video){
-
-
-    // Show instantly on your own screen
     setCurrentVideo(video);
-
-    // If alone, stop here
     if(roomCode==="") return;
-
-    // Otherwise notify everyone
     socket.emit("play-video",{
-
         roomCode,
-
         video
-
     });
+}
 
+function pauseVideo(time = 0) {
+    setVideoSyncCommand({ type: "pause", time, id: Date.now() });
+    if (roomCode !== "") {
+        socket.emit("pause-video", { roomCode, time });
+    }
+}
 
+function resumeVideo(time = 0) {
+    setVideoSyncCommand({ type: "resume", time, id: Date.now() });
+    if (roomCode !== "") {
+        socket.emit("resume-video", { roomCode, time });
+    }
+}
+
+function stopVideo() {
+    setCurrentVideo(null);
+    setVideoSyncCommand({ type: "stop", id: Date.now() });
+    if (roomCode !== "") {
+        socket.emit("stop-video", { roomCode });
+    }
+}
+
+function seekVideo(time = 0) {
+    setVideoSyncCommand({ type: "seek", time, id: Date.now() });
+    if (roomCode !== "") {
+        socket.emit("seek-video", { roomCode, time });
+    }
+}
+
+function stopMovie() {
+    setCurrentMovie(null);
+    if (roomCode !== "") {
+        socket.emit("stop-movie", { roomCode });
+    }
 }
 
     
@@ -229,21 +345,14 @@ function sendMessage(text) {
     if (!text.trim()) return;
 
     const message = {
-
         id: Date.now(),
-
         username: profile.username,
-
+        avatar: profile.avatar || "",
         message: text,
-
         time: new Date().toLocaleTimeString([], {
-
             hour: "2-digit",
-
             minute: "2-digit"
-
         })
-
     };
 
     // Solo Mode
@@ -320,10 +429,16 @@ setCurrentMovie,
     playNext,
 
     sendSong,
-
+    pauseSong,
+    resumeSong,
+    stopSong,
     sendVideo,
-
-    
+    pauseVideo,
+    resumeVideo,
+    stopVideo,
+    seekVideo,
+    videoSyncCommand,
+    stopMovie,
 
     messages,
 

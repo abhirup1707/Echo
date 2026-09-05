@@ -2,7 +2,7 @@ const generateCode = require("../utils/generateCode");
 
 const sessions = {};
 
-function createSession(hostSocketId, username, sessionName) {
+function createSession(hostSocketId, username, sessionName, avatar = "") {
 
     const code = generateCode();
 
@@ -14,23 +14,27 @@ function createSession(hostSocketId, username, sessionName) {
         members: [
             {
                 id: hostSocketId,
-                username
+                username,
+                avatar: avatar || ""
             }
         ],
 
         currentSong: null,
-currentMovie: null,
-currentVideo: null,
+        currentSong: null,
+        currentMovie: null,
+        currentVideo: null,
+        movieTime: 0,
+        moviePlaying: false,
+        movieUpdatedAt: null,
+        movieReadyMembers: [],
 
+        queue: [],
 
+        chat: [],
 
-queue: [],
+        playing: false,
 
-chat: [],
-
-playing: false,
-
-currentTime: 0,
+        currentTime: 0,
 
 createdAt: new Date()
     };

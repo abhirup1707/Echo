@@ -34,7 +34,9 @@ export default function ScribbleGame({
 
     roomCode,
 
-    scribbleRoom
+    scribbleRoom,
+
+    onLeave
 
 }) {
 
@@ -1265,6 +1267,28 @@ export default function ScribbleGame({
                     ⏱ {timeLeft}s
 
                 </div>
+
+                {onLeave && (
+                    <button
+                        className="scribble-leave-btn"
+                        onClick={onLeave}
+                        title="Leave Game and return to Games Menu"
+                        style={{
+                            padding: "8px 14px",
+                            background: "rgba(239, 68, 68, 0.2)",
+                            border: "1px solid rgba(239, 68, 68, 0.45)",
+                            borderRadius: "10px",
+                            color: "#fca5a5",
+                            fontWeight: "700",
+                            fontSize: "13px",
+                            cursor: "pointer",
+                            marginLeft: "12px",
+                            transition: "all 0.2s"
+                        }}
+                    >
+                        🚪 Exit
+                    </button>
+                )}
 
             </div>
 

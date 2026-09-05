@@ -42,6 +42,21 @@ export default function TicTacToe() {
             <div className="scribble-no-room" style={{ textAlign: "center" }}>
                 <h1 style={{ fontSize: 36, fontWeight: 800, background: "linear-gradient(135deg, #fff 0%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12 }}>⭕ Tic Tac Toe</h1>
                 <p style={{ color: "#888", fontSize: 15 }}>Join an Echo Session first.</p>
+                <button
+                    style={{
+                        marginTop: "20px",
+                        padding: "10px 22px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontWeight: "700",
+                        cursor: "pointer"
+                    }}
+                    onClick={() => navigate("/games")}
+                >
+                    ⬅ Back to Games
+                </button>
             </div>
         );
     }
@@ -50,6 +65,24 @@ export default function TicTacToe() {
         return (
             <div className="scribble-no-room" style={{ textAlign: "center" }}>
                 <h1 style={{ fontSize: 36, fontWeight: 800, background: "linear-gradient(135deg, #fff 0%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12 }}>⭕ Joining Tic Tac Toe...</h1>
+                <button
+                    style={{
+                        marginTop: "20px",
+                        padding: "10px 22px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontWeight: "700",
+                        cursor: "pointer"
+                    }}
+                    onClick={() => {
+                        socket.emit("ttt-leave", { roomCode });
+                        navigate("/games");
+                    }}
+                >
+                    ⬅ Back to Games
+                </button>
             </div>
         );
     }

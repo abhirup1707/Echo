@@ -96,17 +96,22 @@
 
 /* Username */
 
+.chat-user-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
 .chat-user{
 
-    display:block;
+    display:inline-block;
 
     color:#b794f4;
 
     font-size:12px;
 
     font-weight:700;
-
-    margin-bottom:2px;
 
 }
 

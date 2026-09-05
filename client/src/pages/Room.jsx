@@ -4,7 +4,10 @@ import "./Room.css";
 import { ProfileContext } from "../context/ProfileContext";
 import { MusicContext } from "../context/MusicContext";
 import { SessionContext } from "../context/SessionContext";
+import { VoiceContext } from "../context/VoiceContext";
 import ChatBox from "../components/chat/ChatBox";
+import UserAvatar from "../components/common/UserAvatar";
+import { FaMicrophone, FaMicrophoneSlash, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 
 
 function Room() {
@@ -45,6 +48,18 @@ const {
     setIsPlaying
 } = useContext(MusicContext);
 
+const {
+    isMicOn,
+    isSpeakerOn,
+    isInCall,
+    isConnecting,
+    voiceError,
+    peerStatuses,
+    toggleMic,
+    toggleSpeaker,
+    leaveVoiceCall
+} = useContext(VoiceContext);
+
   useEffect(() => {
 socket.on("session-created", (room) => {
 
@@ -81,11 +96,9 @@ socket.on("session-created", (room) => {
     }
 
 socket.emit("create-session", {
-
     username: profile.username,
-
+    avatar: profile.avatar || "",
     sessionName: "Echo Session"
-
 });
   }
 
@@ -98,6 +111,7 @@ socket.emit("create-session", {
     socket.emit("join-session", {
       roomCode,
       username: profile.username,
+      avatar: profile.avatar || "",
     });
 
 
@@ -109,6 +123,9 @@ setSessionUsername(username);
 sessionStorage.removeItem("echoRoomCode");
   }
 function leaveRoom() {
+
+    // Leave voice call
+    leaveVoiceCall();
 
     // Tell server we are leaving
     socket.emit("leave-session", {
@@ -257,6 +274,39 @@ alert("Invite copied!");
 
 </div>
 
+{sessionRoomCode && (
+    <div className="room-voice-controls-wrapper">
+        <div className="room-voice-status">
+            <span className={`voice-status-indicator-dot ${isInCall ? "active" : isConnecting ? "connecting" : ""}`} />
+            <span>{isInCall ? "Voice Connected" : isConnecting ? "Connecting Voice..." : "Voice Idle"}</span>
+        </div>
+
+        <div className="room-voice-actions">
+            <button
+                type="button"
+                className={`room-voice-toggle-btn ${isMicOn ? "mic-on" : "mic-off"}`}
+                onClick={toggleMic}
+                title={isMicOn ? "Turn Microphone Off (Mute)" : "Turn Microphone On (Unmute)"}
+            >
+                {isMicOn ? <FaMicrophone /> : <FaMicrophoneSlash />}
+                <span>{isMicOn ? "Mic On" : "Mic Off"}</span>
+            </button>
+
+            <button
+                type="button"
+                className={`room-voice-toggle-btn ${isSpeakerOn ? "speaker-on" : "speaker-off"}`}
+                onClick={toggleSpeaker}
+                title={isSpeakerOn ? "Turn Speaker Off (Deafen)" : "Turn Speaker On"}
+            >
+                {isSpeakerOn ? <FaVolumeUp /> : <FaVolumeMute />}
+                <span>{isSpeakerOn ? "Speaker On" : "Speaker Off"}</span>
+            </button>
+        </div>
+
+        {voiceError && <span className="room-voice-error-text">⚠️ {voiceError}</span>}
+    </div>
+)}
+
 <div>
 
     <button
@@ -303,21 +353,11 @@ Connected
     }}
 >
 
-    <div
-        style={{
-            width: "48px",
-            height: "48px",
-            borderRadius: "50%",
-            background: "#7c3aed",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            fontWeight: "bold",
-            fontSize: "20px"
-        }}
-    >
-        {profile.username.charAt(0).toUpperCase()}
-    </div>
+    <UserAvatar
+        avatar={profile.avatar}
+        username={profile.username}
+        size={48}
+    />
 
     <div>
 
@@ -454,17 +494,17 @@ Join Room
 
                     <div className="member-left">
 
-                        <div className="avatar">
-
-                            {member.username.charAt(0).toUpperCase()}
-
-                        </div>
+                        <UserAvatar
+                            avatar={member.avatar || (member.username === profile.username ? profile.avatar : "")}
+                            username={member.username}
+                            size={38}
+                        />
 
                         <div>
 
                             <strong>
 
-                                {member.username}
+                                {member.username} {member.username === profile.username ? " (You)" : ""}
 
                             </strong>
 
@@ -472,7 +512,30 @@ Join Room
 
                     </div>
 
-                    <div className="online"/>
+                    <div className="member-right">
+                        <div className="member-voice-status">
+                            {member.username === profile.username ? (
+                                isMicOn ? (
+                                    <span className="member-mic on" title="Your mic is ON"><FaMicrophone /></span>
+                                ) : (
+                                    <span className="member-mic off" title="Your mic is OFF"><FaMicrophoneSlash /></span>
+                                )
+                            ) : peerStatuses[member.id]?.isMuted ? (
+                                <span className="member-mic off" title={`${member.username}'s mic is OFF`}><FaMicrophoneSlash /></span>
+                            ) : (
+                                <span className="member-mic on" title={`${member.username}'s mic is ON`}><FaMicrophone /></span>
+                            )}
+
+                            {member.username === profile.username ? (
+                                !isSpeakerOn && (
+                                    <span className="member-speaker off" title="Your speaker is OFF (Deafened)"><FaVolumeMute /></span>
+                                )
+                            ) : peerStatuses[member.id]?.isDeafened ? (
+                                <span className="member-speaker off" title={`${member.username} has speaker OFF`}><FaVolumeMute /></span>
+                            ) : null}
+                        </div>
+                        <div className="online"/>
+                    </div>
 
                 </div>
 

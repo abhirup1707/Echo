@@ -1,22 +1,58 @@
+/* =========================================
+   PREMIUM HD MINI GAMES PAGE
+   ========================================= */
+
 .games-page {
-    padding: 35px;
+    width: 100%;
     color: white;
-    animation: fadeHome 0.4s ease;
+    animation: fadeGames 0.4s ease;
+}
+
+@keyframes fadeGames {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.games-header {
+    margin-bottom: 36px;
 }
 
 .games-page h1 {
-    margin-bottom: 40px;
     font-size: 38px;
     font-weight: 800;
-    background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #7C3AED 100%);
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffffff 30%, #c4b5fd 70%, #7C3AED 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.5px;
 }
 
+.games-subtitle {
+    color: #9ca3af;
+    font-size: 15px;
+    font-weight: 500;
+}
+
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 26px;
+}
+
+@media (max-width: 768px) {
+    .games-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .games-page h1 {
+        font-size: 26px;
+    }
 }

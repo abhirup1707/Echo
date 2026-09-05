@@ -11,6 +11,7 @@ import Room from "./pages/Room";
 import Profile from "./pages/Profile";
 import Videos from "./pages/Videos";
 import FloatingVideoPlayer from "./components/video/FloatingVideoPlayer";
+import VoiceBar from "./components/voice/VoiceBar";
 import Navbar from "./components/layout/Navbar";
 import Sidebar from "./components/layout/Sidebar";
 import BottomPlayer from "./components/player/BottomPlayer";
@@ -21,6 +22,9 @@ import Scribble from "./pages/games/Scribble";
 import Playlist from "./pages/Playlist";
 import TicTacToe from "./pages/games/TicTacToe";
 import SnakeLadder from "./pages/games/SnakeLadder";
+import Uno from "./pages/games/Uno";
+import Chess from "./pages/games/Chess";
+import Ludo from "./pages/games/Ludo";
 
 function App() {
   const { profile } = useContext(ProfileContext);
@@ -34,6 +38,8 @@ if (!profile.username) {
     <BrowserRouter>
 
       <Navbar />
+
+      <VoiceBar />
 
       <div className="app">
 
@@ -70,6 +76,12 @@ if (!profile.username) {
             <Route path="/games/tictactoe" element={<TicTacToe />} />
 
             <Route path="/games/snakeandladder" element={<SnakeLadder />} />
+
+            <Route path="/games/uno" element={<Uno />} />
+
+            <Route path="/games/chess" element={<Chess />} />
+
+            <Route path="/games/ludo" element={<Ludo />} />
 
             <Route path="/playlist/:id" element={<Playlist />} />
 

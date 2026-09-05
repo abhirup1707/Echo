@@ -4,29 +4,52 @@ import { SessionContext } from "../../context/SessionContext";
 import {
     FaListUl,
     FaMusic,
-    FaCompactDisc
+    FaPlay,
+    FaPause,
+    FaForward,
+    FaPowerOff,
+    FaVolumeUp,
+    FaVolumeMute
 } from "react-icons/fa";
 
 import "./BottomPlayer.css";
 
-function BottomPlayer() {
+function formatTime(seconds) {
+    if (!seconds || isNaN(seconds) || seconds < 0) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+}
 
-    const { currentSong } = useContext(MusicContext);
+function BottomPlayer() {
+    const {
+        currentSong,
+        isPlaying,
+        setIsPlaying,
+        currentTime,
+        setCurrentTime,
+        duration,
+        setDuration,
+        songSyncCommand
+    } = useContext(MusicContext);
 
     const {
-
         queue,
-
-        playNext
-
+        playNext,
+        pauseSong,
+        resumeSong,
+        stopSong,
+        seekSong
     } = useContext(SessionContext);
 
     const [showQueue, setShowQueue] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
 
     const playerContainerRef = useRef(null);
     const playerRef = useRef(null);
     const currentVideoIdRef = useRef(null);
     const apiReadyRef = useRef(false);
+    const isSeekingRef = useRef(false);
 
     const playNextRef = useRef(playNext);
     playNextRef.current = playNext;
@@ -51,7 +74,15 @@ function BottomPlayer() {
                 },
                 events: {
                     onStateChange: (event) => {
-                        if (event.data === 0) {
+                        if (event.data === 1) {
+                            // Playing
+                            setIsPlaying(true);
+                        } else if (event.data === 2) {
+                            // Paused
+                            setIsPlaying(false);
+                        } else if (event.data === 0) {
+                            // Ended
+                            setIsPlaying(false);
                             if (queueRef.current.length > 0) {
                                 playNextRef.current();
                             }
@@ -81,8 +112,17 @@ function BottomPlayer() {
         window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
     }, []);
 
+    // Load new song when currentSong changes
     useEffect(() => {
-        if (!currentSong) return;
+        if (!currentSong) {
+            if (playerRef.current && typeof playerRef.current.stopVideo === "function") {
+                try {
+                    playerRef.current.stopVideo();
+                } catch (e) {}
+            }
+            currentVideoIdRef.current = null;
+            return;
+        }
         if (!playerRef.current) return;
 
         const vid = currentSong.videoId;
@@ -93,91 +133,251 @@ function BottomPlayer() {
             for (let attempt = 0; attempt < 20; attempt++) {
                 try {
                     await playerRef.current.loadVideoById(vid);
+                    await playerRef.current.playVideo();
+                    setIsPlaying(true);
                     return;
                 } catch (e) {
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 400));
                 }
             }
         };
         loadVideo();
     }, [currentSong]);
 
+    // Handle remote or local synchronized commands
+    useEffect(() => {
+        if (!songSyncCommand || !playerRef.current) return;
+        try {
+            if (songSyncCommand.type === "pause") {
+                playerRef.current.pauseVideo();
+                if (typeof songSyncCommand.time === "number") {
+                    playerRef.current.seekTo(songSyncCommand.time, true);
+                    setCurrentTime(songSyncCommand.time);
+                }
+            } else if (songSyncCommand.type === "resume") {
+                if (typeof songSyncCommand.time === "number") {
+                    playerRef.current.seekTo(songSyncCommand.time, true);
+                    setCurrentTime(songSyncCommand.time);
+                }
+                playerRef.current.playVideo();
+            } else if (songSyncCommand.type === "stop") {
+                playerRef.current.stopVideo();
+                currentVideoIdRef.current = null;
+            } else if (songSyncCommand.type === "seek") {
+                if (typeof songSyncCommand.time === "number") {
+                    playerRef.current.seekTo(songSyncCommand.time, true);
+                    setCurrentTime(songSyncCommand.time);
+                }
+            }
+        } catch (e) {
+            console.warn("YouTube player command error:", e);
+        }
+    }, [songSyncCommand]);
+
+    // Track playback time
+    useEffect(() => {
+        if (!isPlaying || !currentSong) return;
+
+        const timer = setInterval(() => {
+            if (
+                playerRef.current &&
+                typeof playerRef.current.getCurrentTime === "function" &&
+                !isSeekingRef.current
+            ) {
+                try {
+                    const cur = playerRef.current.getCurrentTime() || 0;
+                    const dur = playerRef.current.getDuration() || 0;
+                    setCurrentTime(cur);
+                    if (dur > 0) setDuration(dur);
+                } catch (e) {}
+            }
+        }, 400);
+
+        return () => clearInterval(timer);
+    }, [isPlaying, currentSong]);
+
+    function handleTogglePlay() {
+        if (isPlaying) {
+            const cur =
+                playerRef.current && typeof playerRef.current.getCurrentTime === "function"
+                    ? playerRef.current.getCurrentTime()
+                    : currentTime;
+            if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
+                try {
+                    playerRef.current.pauseVideo();
+                } catch (e) {}
+            }
+            pauseSong(cur);
+        } else {
+            const cur =
+                playerRef.current && typeof playerRef.current.getCurrentTime === "function"
+                    ? playerRef.current.getCurrentTime()
+                    : currentTime;
+            if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+                try {
+                    playerRef.current.playVideo();
+                } catch (e) {}
+            }
+            resumeSong(cur);
+        }
+    }
+
+    function handleTurnOff() {
+        stopSong();
+        if (playerRef.current && typeof playerRef.current.stopVideo === "function") {
+            try {
+                playerRef.current.stopVideo();
+            } catch (e) {}
+        }
+        currentVideoIdRef.current = null;
+    }
+
+    function handleSeekChange(e) {
+        const val = parseFloat(e.target.value);
+        setCurrentTime(val);
+        isSeekingRef.current = true;
+    }
+
+    function handleSeekCommit(e) {
+        const val = parseFloat(e.target.value);
+        if (playerRef.current && typeof playerRef.current.seekTo === "function") {
+            try {
+                playerRef.current.seekTo(val, true);
+            } catch (err) {}
+        }
+        seekSong(val);
+        isSeekingRef.current = false;
+    }
+
+    function toggleMute() {
+        if (!playerRef.current) return;
+        try {
+            if (isMuted) {
+                playerRef.current.unMute();
+                setIsMuted(false);
+            } else {
+                playerRef.current.mute();
+                setIsMuted(true);
+            }
+        } catch (e) {}
+    }
+
+    const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+
     return (
-
         <>
-
             <div className="hidden-player">
-
                 <div ref={playerContainerRef} id="yt-player" />
-
             </div>
 
             {currentSong && (
-
                 <div className="bottom-player">
-
-                    <div className="player-left">
-
-                        <img
-
-                            src={currentSong.cover}
-
-                            className="cover"
-
-                            alt="cover"
-
+                    {/* Top edge progress bar */}
+                    <div className="player-progress-bar-wrap">
+                        <input
+                            type="range"
+                            className="player-progress-slider"
+                            min="0"
+                            max={duration || 100}
+                            value={currentTime}
+                            onChange={handleSeekChange}
+                            onMouseUp={handleSeekCommit}
+                            onTouchEnd={handleSeekCommit}
+                            style={{
+                                background: `linear-gradient(to right, #a855f7 0%, #7c3aed ${progressPercent}%, rgba(255,255,255,0.12) ${progressPercent}%, rgba(255,255,255,0.12) 100%)`
+                            }}
                         />
+                    </div>
 
-                        <div className="song-details">
-
-                            <h3 className="song-name">
-
-                                {currentSong.title}
-
-                            </h3>
-
-                            <p className="artist-name">
-
-                                {currentSong.artist}
-
-                            </p>
-
+                    <div className="player-content">
+                        <div className="player-left">
+                            <img
+                                src={currentSong.cover}
+                                className="cover"
+                                alt="cover"
+                            />
+                            <div className="song-details">
+                                <h3 className="song-name" title={currentSong.title}>
+                                    {currentSong.title}
+                                </h3>
+                                <p className="artist-name">
+                                    {currentSong.artist}
+                                </p>
+                            </div>
                         </div>
 
+                        {/* Center Controls */}
+                        <div className="player-center">
+                            <div className="player-controls-row">
+                                {/* Turn Off / Stop Button */}
+                                <button
+                                    className="player-control-btn stop-btn"
+                                    onClick={handleTurnOff}
+                                    title="Turn Off Music (Syncs with Room)"
+                                >
+                                    <FaPowerOff />
+                                    <span className="stop-btn-text">Turn Off</span>
+                                </button>
+
+                                {/* Play / Pause Button */}
+                                <button
+                                    className="player-control-btn play-pause-btn"
+                                    onClick={handleTogglePlay}
+                                    title={isPlaying ? "Pause (Syncs with Room)" : "Play (Syncs with Room)"}
+                                >
+                                    {isPlaying ? <FaPause /> : <FaPlay style={{ marginLeft: 2 }} />}
+                                </button>
+
+                                {/* Next Track Button */}
+                                <button
+                                    className="player-control-btn next-btn"
+                                    onClick={playNext}
+                                    disabled={queue.length === 0}
+                                    title={queue.length > 0 ? "Play Next in Queue" : "Queue is empty"}
+                                >
+                                    <FaForward />
+                                </button>
+                            </div>
+
+                            <div className="player-time-row">
+                                <span>{formatTime(currentTime)}</span>
+                                <span className="time-divider">/</span>
+                                <span>{formatTime(duration)}</span>
+                            </div>
+                        </div>
+
+                        {/* Right Section */}
+                        <div className="player-right">
+                            <button
+                                className="player-icon-btn mute-btn"
+                                onClick={toggleMute}
+                                title={isMuted ? "Unmute Audio" : "Mute Audio"}
+                            >
+                                {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+                            </button>
+
+                            <button
+                                className="queue-btn"
+                                onClick={() => setShowQueue(true)}
+                                title="View Queue"
+                            >
+                                <FaListUl />
+                                <span className="queue-btn-text">Queue</span>
+                                {queue.length > 0 && (
+                                    <span className="queue-badge">{queue.length}</span>
+                                )}
+                            </button>
+
+                            <button
+                                className="player-close-quick-btn"
+                                onClick={handleTurnOff}
+                                title="Turn Off Music"
+                            >
+                                ✕
+                            </button>
+                        </div>
                     </div>
-
-                    <div className="player-center">
-
-                        <FaCompactDisc className="disc"/>
-
-                        <span>
-
-                            Now Playing
-
-                        </span>
-
-                    </div>
-
-                    <div className="player-right">
-
-                        <button
-
-                            className="queue-btn"
-
-                            onClick={() => setShowQueue(true)}
-
-                        >
-
-                            <FaListUl/>
-
-                            Queue
-
-                        </button>
-
-                    </div>
-
                 </div>
-
             )}
 
             {

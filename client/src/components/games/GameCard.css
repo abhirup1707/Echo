@@ -1,94 +1,127 @@
+/* =========================================
+   PREMIUM HD GAME CARD
+   ========================================= */
+
 .game-card {
     position: relative;
-    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 28px;
-    border-radius: 20px;
+    background: linear-gradient(145deg, rgba(22, 22, 34, 0.75), rgba(14, 14, 22, 0.65));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 30px;
+    border-radius: 24px;
     cursor: pointer;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
+/* Glowing top edge indicator */
 .game-card::before {
     content: "";
     position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(124,58,237,0.3), transparent 60%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    opacity: 0.5;
+    transition: opacity 0.35s ease, height 0.35s ease;
+}
+
+/* Ambient glow on hover */
+.game-card::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 60%);
     opacity: 0;
-    transition: opacity 0.35s;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
 }
 
 .game-card:hover::before {
+    opacity: 1;
+    height: 4px;
+}
+
+.game-card:hover::after {
     opacity: 1;
 }
 
 .game-card:hover {
     transform: translateY(-8px);
-    box-shadow:
-        0 0 30px rgba(124,58,237,0.2),
-        0 20px 50px rgba(0,0,0,0.3);
-    border-color: rgba(124,58,237,0.2);
+    border-color: rgba(124, 58, 237, 0.45);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 35px rgba(124, 58, 237, 0.25);
 }
 
 .game-card h2 {
-    margin-bottom: 10px;
-    font-size: 20px;
-    font-weight: 700;
+    margin-bottom: 12px;
+    font-size: 22px;
+    font-weight: 800;
     letter-spacing: -0.3px;
+    color: #ffffff;
 }
 
 .game-card p {
-    color: #888;
+    color: #9ca3af;
     font-size: 14px;
-    min-height: 42px;
-    line-height: 1.5;
+    line-height: 1.6;
+    min-height: 44px;
+    font-weight: 500;
 }
 
 .game-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 22px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .game-footer span {
-    color: #777;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #a78bfa;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
+    background: rgba(124, 58, 237, 0.12);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(124, 58, 237, 0.25);
 }
 
 .game-footer button {
-    padding: 10px 22px;
+    padding: 10px 24px;
     border: none;
     border-radius: 12px;
-    background: linear-gradient(135deg, #7C3AED, #6D28D9);
+    background: linear-gradient(135deg, #7C3AED, #5B21B6);
     color: white;
     cursor: pointer;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.3px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 10px rgba(124,58,237,0.2);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
 }
 
 .game-footer button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124,58,237,0.35);
+    box-shadow: 0 6px 22px rgba(124, 58, 237, 0.55), 0 0 16px rgba(124, 58, 237, 0.3);
 }
 
 .game-footer button:disabled {
-    background: linear-gradient(135deg, #2a2a38, #222233);
-    color: #555;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #6b7280;
     cursor: not-allowed;
     box-shadow: none;
 }

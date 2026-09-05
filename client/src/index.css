@@ -1,269 +1,136 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+/* =========================================
+   ECHO PREMIUM HD - GLOBAL THEME & RESETS
+   ========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #7C3AED;
+    --primary-light: #A78BFA;
+    --primary-glow: rgba(124, 58, 237, 0.4);
+    --secondary: #06B6D4;
+    --accent: #EC4899;
+    --bg-dark: #07070b;
+    --card-bg: rgba(18, 18, 28, 0.75);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-border-hover: rgba(124, 58, 237, 0.35);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 html,
 body,
-#root{
-
-    width:100%;
-
-    min-height:100%;
-
+#root {
+    width: 100%;
+    min-height: 100%;
 }
 
-body{
-
-    margin:0;
-
-    font-family:inherit;
-
-    background:
-
-        radial-gradient(circle at top,#24103d 0%,#0b0b12 45%),
-
-        linear-gradient(180deg,#09090f,#050507);
-
-    color:white;
-
-    overflow-x:hidden;
-
+body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background: #07070b;
+    color: #f3f4f6;
+    overflow-x: hidden;
+    position: relative;
 }
 
-a{
-
-    color:white;
-
-    text-decoration:none;
-
+/* Ambient dynamic background lighting */
+body::before {
+    content: "";
+    position: fixed;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.16) 0%, rgba(124, 58, 237, 0) 70%);
+    filter: blur(100px);
+    top: -150px;
+    right: -100px;
+    animation: ambientGlow1 16s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: -1;
 }
 
-button{
-
-    cursor:pointer;
-
-    border:none;
-
-    transition:.25s;
-
+body::after {
+    content: "";
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.09) 0%, rgba(6, 182, 212, 0) 70%);
+    filter: blur(110px);
+    bottom: -150px;
+    left: 100px;
+    animation: ambientGlow2 18s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: -1;
 }
 
-button:hover{
-
-    transform:scale(1.05);
-
+@keyframes ambientGlow1 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-80px, 100px) scale(1.1); }
+    100% { transform: translate(40px, 60px) scale(0.95); }
 }
 
-input{
-
-    outline:none;
-
+@keyframes ambientGlow2 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(100px, -80px) scale(1.15); }
+    100% { transform: translate(-50px, -40px) scale(0.9); }
 }
 
-::-webkit-scrollbar{
-
-    width:7px;
-
+a {
+    color: inherit;
+    text-decoration: none;
 }
 
-::-webkit-scrollbar-thumb{
-
-    background:#6D28D9;
-
-    border-radius:20px;
-
+button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    font-family: inherit;
 }
 
-::-webkit-scrollbar-track{
-
-    background:transparent;
-
-}
-
-/* ===============================
-   Animated Glow Background
-================================ */
-
-body::before{
-
-    content:"";
-
-    position:fixed;
-
-    width:550px;
-
-    height:550px;
-
-    border-radius:50%;
-
-    background:rgba(124,58,237,.18);
-
-    filter:blur(140px);
-
-    top:-180px;
-
-    right:-180px;
-
-    animation:glowMove 12s ease-in-out infinite alternate;
-
-    pointer-events:none;
-
-    z-index:-1;
-
-}
-
-body::after{
-
-    content:"";
-
-    position:fixed;
-
-    width:450px;
-
-    height:450px;
-
-    border-radius:50%;
-
-    background:rgba(79,70,229,.12);
-
-    filter:blur(130px);
-
-    bottom:-160px;
-
-    left:-150px;
-
-    animation:glowMove2 14s ease-in-out infinite alternate;
-
-    pointer-events:none;
-
-    z-index:-1;
-
-}
-
-@keyframes glowMove{
-
-    from{
-
-        transform:translate(0,0);
-
-    }
-
-    to{
-
-        transform:translate(-70px,80px);
-
-    }
-
-}
-
-@keyframes glowMove2{
-
-    from{
-
-        transform:translate(0,0);
-
-    }
-
-    to{
-
-        transform:translate(80px,-60px);
-
-    }
-
+input {
+    outline: none;
+    font-family: inherit;
 }
 
 /* ===============================
-   Global Button Style
-================================ */
+   PREMIUM CUSTOM SCROLLBAR
+   ================================ */
 
-button{
-
-background:linear-gradient(135deg,#7C3AED,#5B21B6);
-
-border:none;
-
-color:white;
-
-cursor:pointer;
-
-transition:.3s;
-
-position:relative;
-
-overflow:hidden;
-
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-button:hover{
-
-transform:translateY(-2px);
-
-box-shadow:
-
-0 0 18px rgba(124,58,237,.45),
-
-0 10px 30px rgba(0,0,0,.35);
-
+::-webkit-scrollbar-track {
+    background: rgba(10, 10, 16, 0.6);
 }
 
-button:active{
-
-transform:scale(.96);
-
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7C3AED, #4F46E5);
+    border-radius: 12px;
+    border: 2px solid #07070b;
 }
 
-/* ===============================
-   Smooth Animation
-================================ */
-
-*{
-
-transition:
-
-background .25s,
-
-color .25s,
-
-box-shadow .25s,
-
-transform .25s,
-
-border-color .25s;
-
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #9D6CFF, #6366F1);
 }
 
-::-webkit-scrollbar{
-
-width:8px;
-
+::selection {
+    background: rgba(124, 58, 237, 0.6);
+    color: #ffffff;
 }
 
-::-webkit-scrollbar-track{
-
-background:#0e0e14;
-
-}
-
-::-webkit-scrollbar-thumb{
-
-background:#7C3AED;
-
-border-radius:20px;
-
-}
-
-::-webkit-scrollbar-thumb:hover{
-
-background:#9D6CFF;
-
-}
-
-::selection{
-
-background:#7C3AED;
-
-color:white;
-
+/* Global focus styling */
+:focus-visible {
+    outline: 2px solid rgba(124, 58, 237, 0.6);
+    outline-offset: 2px;
 }

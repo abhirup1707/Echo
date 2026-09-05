@@ -1,220 +1,114 @@
-:root{
-
-    --primary:#7C3AED;
-    --primary2:#A855F7;
-    --bg:#09090B;
-    --card:#15151F;
-    --border:rgba(255,255,255,.06);
-
+:root {
+    --primary: #7C3AED;
+    --primary-gradient: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+    --primary-glow: rgba(124, 58, 237, 0.4);
+    --secondary: #06B6D4;
+    --bg-main: #07070b;
+    --card-bg: rgba(16, 16, 26, 0.7);
+    --card-border: rgba(255, 255, 255, 0.07);
+    --card-border-glow: rgba(124, 58, 237, 0.35);
 }
 
-*{
-
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-
+html {
+    scroll-behavior: smooth;
 }
 
-html{
+/* ================= APP LAYOUT ================= */
 
-    scroll-behavior:smooth;
-
+.app {
+    display: flex;
+    min-height: calc(100vh - 74px);
+    position: relative;
 }
 
-body{
-
-    font-family:Inter,sans-serif;
-
-    background:
-    radial-gradient(circle at top,#3b076420,transparent 30%),
-    radial-gradient(circle at right,#7c3aed18,transparent 35%),
-    #09090B;
-
-    color:white;
-
-    overflow-x:hidden;
-
+.sidebar-container {
+    width: 270px;
+    flex-shrink: 0;
 }
 
-::-webkit-scrollbar{
-
-    width:10px;
-
+.main-content {
+    flex: 1;
+    min-height: calc(100vh - 74px);
+    padding: 34px 40px;
+    padding-bottom: 140px;
+    overflow-y: auto;
+    animation: fadeContent 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-::-webkit-scrollbar-track{
-
-    background:#0d0d13;
-
+@keyframes fadeContent {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
-::-webkit-scrollbar-thumb{
-
-    background:linear-gradient(#7c3aed,#4f46e5);
-
-    border-radius:50px;
-
+/* Premium Glassmorphic Cards */
+.glass {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-::-webkit-scrollbar-thumb:hover{
-
-    background:#8b5cf6;
-
+.glass:hover {
+    border-color: var(--card-border-glow);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(124, 58, 237, 0.15);
 }
 
-/* ================= APP ================= */
-
-.app{
-
-    display:flex;
-
-    min-height:calc(100vh - 72px);
-
+/* Standardized Premium Headings */
+h1 {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #ffffff 20%, #c4b5fd 70%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.sidebar-container{
-
-    width:270px;
-
-    flex-shrink:0;
-
+h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
 }
 
-.main-content{
-
-    flex:1;
-
-    min-height:100vh;
-
-    padding:34px;
-
-    padding-bottom:120px;
-
-    overflow-y:auto;
-
-    animation:fade .45s ease;
-
+input {
+    outline: none;
+    transition: all 0.25s ease;
 }
 
-@keyframes fade{
-
-from{
-
-opacity:0;
-
-transform:translateY(12px);
-
+input:focus {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
+    border-color: rgba(124, 58, 237, 0.6) !important;
 }
 
-to{
+/* ================= MOBILE RESPONSIVENESS ================= */
 
-opacity:1;
+@media (max-width: 768px) {
+    .app {
+        display: block;
+    }
 
-transform:none;
+    .sidebar-container {
+        display: none;
+    }
 
-}
+    .main-content {
+        min-height: 100vh;
+        padding: 16px 14px;
+        padding-bottom: 170px; /* Generous space to never clip above bottom player & nav */
+    }
 
-}
-
-/* cards */
-
-.glass{
-
-    background:rgba(255,255,255,.04);
-
-    backdrop-filter:blur(18px);
-
-    border:1px solid rgba(255,255,255,.05);
-
-    border-radius:22px;
-
-}
-
-/* buttons */
-
-button{
-
-    transition:.25s;
-
-}
-
-button:hover{
-
-    transform:translateY(-2px);
-
-}
-
-/* headings */
-
-h1{
-
-    font-size:42px;
-
-    font-weight:800;
-
-    letter-spacing:.5px;
-
-    margin-bottom:26px;
-
-}
-
-h2{
-
-    font-weight:700;
-
-}
-
-input{
-
-    outline:none;
-
-}
-
-input:focus{
-
-    box-shadow:
-
-    0 0 0 3px rgba(124,58,237,.25);
-
-}
-
-/* ================= MOBILE ================= */
-
-@media(max-width:768px){
-
-.app{
-
-display:block;
-
-}
-
-.sidebar-container{
-
-display:none;
-
-}
-
-.main-content{
-
-    height:100vh;
-
-    overflow-y:auto;
-
-    overflow-x:hidden;
-
-    padding:20px;
-
-    padding-bottom:90px;
-
-}
-
-h1{
-
-font-size:28px;
-
-margin-bottom:20px;
-
-}
-
+    h1 {
+        font-size: 26px;
+        margin-bottom: 18px;
+    }
 }

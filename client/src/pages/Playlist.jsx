@@ -6,6 +6,7 @@ import { ProfileContext } from "../context/ProfileContext";
 import { MusicContext } from "../context/MusicContext";
 import { searchSongs } from "../services/youtube";
 import SongCard from "../components/music/SongCard";
+import UserAvatar from "../components/common/UserAvatar";
 import socket from "../socket";
 import "./Playlist.css";
 
@@ -430,9 +431,11 @@ function Playlist() {
                         <div className="playlist-members-list">
                             {(playlist.members || []).map(member => (
                                 <div className="playlist-member-item" key={member.id}>
-                                    <div className="playlist-member-avatar">
-                                        {member.username?.charAt(0).toUpperCase()}
-                                    </div>
+                                    <UserAvatar
+                                        avatar={member.avatar || (member.username === profile.username ? profile.avatar : "")}
+                                        username={member.username}
+                                        size={36}
+                                    />
                                     <span>{member.username}</span>
                                     {member.id === socket.id && (
                                         <span className="playlist-member-you">You</span>

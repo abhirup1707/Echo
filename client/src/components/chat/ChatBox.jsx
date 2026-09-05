@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { SessionContext } from "../../context/SessionContext";
 import { ProfileContext } from "../../context/ProfileContext";
+import UserAvatar from "../common/UserAvatar";
 import "./ChatBox.css";
 
 function ChatBox() {
@@ -63,18 +64,19 @@ messages.map((msg) => {
             key={msg.id}
 
             className={`chat-message ${mine ? "mine" : "other"}`}
-
         >
-
-{!mine && (
-
-    <strong className="chat-user">
-
-        {msg.username}
-
-    </strong>
-
-)}
+            {!mine && (
+                <div className="chat-user-row">
+                    <UserAvatar
+                        avatar={msg.avatar}
+                        username={msg.username}
+                        size={20}
+                    />
+                    <strong className="chat-user">
+                        {msg.username}
+                    </strong>
+                </div>
+            )}
 
 <p className="chat-text">
 

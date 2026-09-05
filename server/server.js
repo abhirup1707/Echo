@@ -9,6 +9,9 @@ const registerSessionHandlers = require("./socket/sessionHandlers");
 const registerTicTacToeEvents = require("./games/tictactoe/TicTacToeEvents");
 const registerSnakeLadderEvents = require("./games/snakeandladder/SLEvents");
 const registerPlaylistHandlers = require("./socket/playlistHandlers");
+const registerUnoEvents = require("./games/uno/UnoEvents");
+const registerChessEvents = require("./games/chess/ChessEvents");
+const registerLudoEvents = require("./games/ludo/LudoEvents");
 
 const app = express();
 
@@ -51,6 +54,12 @@ io.on("connection", (socket) => {
 
     registerSnakeLadderEvents(io, socket);
 
+    registerUnoEvents(io, socket);
+
+    registerChessEvents(io, socket);
+
+    registerLudoEvents(io, socket);
+
 });
 
 const { getSession } = require("./rooms/SessionManager");
@@ -84,6 +93,11 @@ app.post(
                 title: req.file.originalname
 
             };
+
+            session.movieTime = 0;
+            session.moviePlaying = false;
+            session.movieUpdatedAt = Date.now();
+            session.movieReadyMembers = [];
 
             io.to(roomCode).emit(
 
