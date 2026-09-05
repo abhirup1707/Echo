@@ -1,6 +1,7 @@
-import { useContext, useState, useEffect, useRef } from "react";
+import { useContext, useState, useEffect, useRef, useCallback } from "react";
 import { MusicContext } from "../../context/MusicContext";
 import { SessionContext } from "../../context/SessionContext";
+import socket from "../../socket";
 import {
     FaListUl,
     FaMusic,
@@ -39,6 +40,8 @@ function BottomPlayer() {
     } = useContext(MusicContext);
 
     const {
+        roomCode,
+        members,
         queue,
         playNext,
         pauseSong,
@@ -55,6 +58,9 @@ function BottomPlayer() {
     const currentVideoIdRef = useRef(null);
     const apiReadyRef = useRef(false);
     const isSeekingRef = useRef(false);
+    const ignoreTimerUntilRef = useRef(0);
+    const pendingSeekTimeRef = useRef(null);
+    const pendingInitialSeekRef = useRef(null);
 
     const playNextRef = useRef(playNext);
     playNextRef.current = playNext;
@@ -80,10 +86,28 @@ function BottomPlayer() {
                 },
                 events: {
                     onStateChange: (event) => {
+                        try {
+                            const dur = event.target?.getDuration?.();
+                            if (dur && dur > 0) {
+                                setDuration(dur);
+                            }
+                        } catch (e) {}
+
                         if (event.data === 1) {
                             // Playing
                             setIsPlaying(true);
                             startBackgroundAudio();
+
+                            // If there is a pending initial seek (e.g. from joining an ongoing room), seek immediately
+                            if (pendingInitialSeekRef.current !== null && pendingInitialSeekRef.current > 0) {
+                                const target = pendingInitialSeekRef.current;
+                                pendingInitialSeekRef.current = null;
+                                try {
+                                    event.target.seekTo(target, true);
+                                    setCurrentTime(target);
+                                    ignoreTimerUntilRef.current = Date.now() + 800;
+                                } catch (e) {}
+                            }
                         } else if (event.data === 2) {
                             // Paused by user or background restriction
                             setIsPlaying(false);
@@ -143,11 +167,23 @@ function BottomPlayer() {
         currentVideoIdRef.current = vid;
 
         const loadVideo = async () => {
+            const startSec = pendingInitialSeekRef.current || (currentTime > 0 ? currentTime : 0);
             for (let attempt = 0; attempt < 20; attempt++) {
                 try {
-                    await playerRef.current.loadVideoById(vid);
+                    if (startSec > 0) {
+                        await playerRef.current.loadVideoById({
+                            videoId: vid,
+                            startSeconds: startSec
+                        });
+                    } else {
+                        await playerRef.current.loadVideoById(vid);
+                    }
                     await playerRef.current.playVideo();
                     setIsPlaying(true);
+                    try {
+                        const dur = playerRef.current.getDuration();
+                        if (dur > 0) setDuration(dur);
+                    } catch (e) {}
                     return;
                 } catch (e) {
                     await new Promise(r => setTimeout(r, 400));
@@ -166,12 +202,15 @@ function BottomPlayer() {
                 if (typeof songSyncCommand.time === "number") {
                     playerRef.current.seekTo(songSyncCommand.time, true);
                     setCurrentTime(songSyncCommand.time);
+                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
                 stopBackgroundAudio();
             } else if (songSyncCommand.type === "resume") {
                 if (typeof songSyncCommand.time === "number") {
+                    pendingInitialSeekRef.current = songSyncCommand.time;
                     playerRef.current.seekTo(songSyncCommand.time, true);
                     setCurrentTime(songSyncCommand.time);
+                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
                 playerRef.current.playVideo();
                 startBackgroundAudio();
@@ -183,6 +222,26 @@ function BottomPlayer() {
                 if (typeof songSyncCommand.time === "number") {
                     playerRef.current.seekTo(songSyncCommand.time, true);
                     setCurrentTime(songSyncCommand.time);
+                    ignoreTimerUntilRef.current = Date.now() + 800;
+                }
+            } else if (songSyncCommand.type === "heartbeat") {
+                if (
+                    typeof songSyncCommand.time === "number" &&
+                    !isSeekingRef.current &&
+                    Date.now() > ignoreTimerUntilRef.current
+                ) {
+                    const localTime =
+                        typeof playerRef.current.getCurrentTime === "function"
+                            ? playerRef.current.getCurrentTime()
+                            : currentTime;
+                    const diff = Math.abs(localTime - songSyncCommand.time);
+                    // If out of sync by more than 2.5s, smoothly auto-align
+                    if (diff > 2.5) {
+                        console.log(`[Echo Music Sync] Drift of ${diff.toFixed(2)}s detected, auto-aligning to:`, songSyncCommand.time);
+                        playerRef.current.seekTo(songSyncCommand.time, true);
+                        setCurrentTime(songSyncCommand.time);
+                        ignoreTimerUntilRef.current = Date.now() + 800;
+                    }
                 }
             }
         } catch (e) {
@@ -280,19 +339,45 @@ function BottomPlayer() {
             if (
                 playerRef.current &&
                 typeof playerRef.current.getCurrentTime === "function" &&
-                !isSeekingRef.current
+                !isSeekingRef.current &&
+                Date.now() > ignoreTimerUntilRef.current
             ) {
                 try {
                     const cur = playerRef.current.getCurrentTime() || 0;
                     const dur = playerRef.current.getDuration() || 0;
                     setCurrentTime(cur);
-                    if (dur > 0) setDuration(dur);
+                    if (dur > 0 && dur !== duration) setDuration(dur);
                 } catch (e) {}
             }
         }, 400);
 
         return () => clearInterval(timer);
-    }, [isPlaying, currentSong]);
+    }, [isPlaying, currentSong, duration]);
+
+    // Periodic heartbeat to keep room playback synced and correct any drift (>2.5s)
+    useEffect(() => {
+        if (!roomCode || !isPlaying || !currentSong) return;
+
+        const interval = setInterval(() => {
+            const isLeader =
+                !members ||
+                members.length === 0 ||
+                members[0]?.id === socket.id ||
+                (members[0]?.username && members[0]?.username === localStorage.getItem("echo_username"));
+
+            if (isLeader && !isSeekingRef.current && Date.now() > ignoreTimerUntilRef.current) {
+                const cur =
+                    playerRef.current && typeof playerRef.current.getCurrentTime === "function"
+                        ? playerRef.current.getCurrentTime()
+                        : currentTime;
+                if (cur > 0) {
+                    socket.emit("heartbeat-song", { roomCode, time: cur });
+                }
+            }
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [roomCode, isPlaying, currentSong, members, currentTime]);
 
     function handleTogglePlay() {
         if (isPlaying) {
@@ -333,22 +418,67 @@ function BottomPlayer() {
         currentVideoIdRef.current = null;
     }
 
-    function handleSeekChange(e) {
-        const val = parseFloat(e.target.value);
-        setCurrentTime(val);
+    function handleSeekStart() {
         isSeekingRef.current = true;
     }
 
-    function handleSeekCommit(e) {
+    function handleSeekChange(e) {
         const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+            isSeekingRef.current = true;
+            pendingSeekTimeRef.current = val;
+            setCurrentTime(val);
+        }
+    }
+
+    const handleSeekCommit = useCallback((e) => {
+        if (!isSeekingRef.current && pendingSeekTimeRef.current === null) return;
+
+        let targetTime = pendingSeekTimeRef.current;
+        if (targetTime === null && e && e.target && e.target.value !== undefined) {
+            targetTime = parseFloat(e.target.value);
+        }
+        if (targetTime === null || isNaN(targetTime)) {
+            targetTime = currentTime;
+        }
+
+        const maxDuration = duration > 0 ? duration : (playerRef.current?.getDuration?.() || 0);
+        if (maxDuration > 0) {
+            targetTime = Math.max(0, Math.min(targetTime, maxDuration));
+        }
+
         if (playerRef.current && typeof playerRef.current.seekTo === "function") {
             try {
-                playerRef.current.seekTo(val, true);
-            } catch (err) {}
+                playerRef.current.seekTo(targetTime, true);
+            } catch (err) {
+                console.warn("seekTo error:", err);
+            }
         }
-        seekSong(val);
+
+        setCurrentTime(targetTime);
+        if (typeof seekSong === "function") {
+            seekSong(targetTime);
+        }
+
+        ignoreTimerUntilRef.current = Date.now() + 800;
         isSeekingRef.current = false;
-    }
+        pendingSeekTimeRef.current = null;
+    }, [duration, currentTime, seekSong]);
+
+    // Commit seek even if mouse/finger is released outside the slider bounds
+    useEffect(() => {
+        function handleGlobalPointerUp(e) {
+            if (isSeekingRef.current) {
+                handleSeekCommit(e);
+            }
+        }
+        window.addEventListener("pointerup", handleGlobalPointerUp);
+        window.addEventListener("touchend", handleGlobalPointerUp);
+        return () => {
+            window.removeEventListener("pointerup", handleGlobalPointerUp);
+            window.removeEventListener("touchend", handleGlobalPointerUp);
+        };
+    }, [handleSeekCommit]);
 
     function toggleMute() {
         if (!playerRef.current) return;
@@ -379,9 +509,15 @@ function BottomPlayer() {
                             type="range"
                             className="player-progress-slider"
                             min="0"
-                            max={duration || 100}
+                            max={duration > 0 ? duration : 100}
+                            step="any"
                             value={currentTime}
+                            disabled={!currentSong || duration === 0}
+                            onPointerDown={handleSeekStart}
+                            onTouchStart={handleSeekStart}
+                            onMouseDown={handleSeekStart}
                             onChange={handleSeekChange}
+                            onPointerUp={handleSeekCommit}
                             onMouseUp={handleSeekCommit}
                             onTouchEnd={handleSeekCommit}
                             style={{

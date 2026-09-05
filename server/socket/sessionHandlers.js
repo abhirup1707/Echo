@@ -91,15 +91,15 @@ if (session.currentVideo) {
 
 
 if (session.currentSong) {
-    let currentTime = session.songTime || 0;
+    let currentTime = Number(session.songTime) || 0;
     if (session.playing && session.songUpdatedAt) {
-        currentTime += (Date.now() - session.songUpdatedAt) / 1000;
+        currentTime += Math.max(0, (Date.now() - session.songUpdatedAt) / 1000);
     }
     socket.emit("song-changed", session.currentSong);
     if (session.playing) {
-        socket.emit("song-resumed", { time: currentTime });
+        socket.emit("song-resumed", { time: Math.max(0, currentTime) });
     } else {
-        socket.emit("song-paused", { time: currentTime });
+        socket.emit("song-paused", { time: Math.max(0, currentTime) });
     }
 }
 
@@ -514,29 +514,37 @@ if (session.members.length === 0) {
         const session = getSession(roomCode);
         if (session) {
             session.playing = false;
-            session.songTime = time || 0;
+            session.songTime = Number(time) || 0;
             session.songUpdatedAt = Date.now();
         }
-        io.to(roomCode).emit("song-paused", { time: time || 0 });
+        socket.to(roomCode).emit("song-paused", { time: Number(time) || 0 });
     });
 
     socket.on("resume-song", ({ roomCode, time }) => {
         const session = getSession(roomCode);
         if (session) {
             session.playing = true;
-            session.songTime = time || 0;
+            session.songTime = Number(time) || 0;
             session.songUpdatedAt = Date.now();
         }
-        io.to(roomCode).emit("song-resumed", { time: time || 0 });
+        socket.to(roomCode).emit("song-resumed", { time: Number(time) || 0 });
     });
 
     socket.on("seek-song", ({ roomCode, time }) => {
         const session = getSession(roomCode);
         if (session) {
-            session.songTime = time || 0;
+            session.songTime = Number(time) || 0;
             session.songUpdatedAt = Date.now();
         }
-        io.to(roomCode).emit("song-seeked", { time: time || 0 });
+        socket.to(roomCode).emit("song-seeked", { time: Number(time) || 0 });
+    });
+
+    socket.on("heartbeat-song", ({ roomCode, time }) => {
+        const session = getSession(roomCode);
+        if (!session) return;
+        session.songTime = Number(time) || 0;
+        session.songUpdatedAt = Date.now();
+        socket.to(roomCode).emit("sync-song-heartbeat", { time: Number(time) || 0 });
     });
 
     socket.on("stop-song", ({ roomCode }) => {

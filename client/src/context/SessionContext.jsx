@@ -78,6 +78,10 @@ const prevMembersCountRef = useRef(null);
             setSongSyncCommand({ type: "seek", time, id: Date.now() });
         });
 
+        socket.on("sync-song-heartbeat", ({ time }) => {
+            setSongSyncCommand({ type: "heartbeat", time, id: Date.now() });
+        });
+
         socket.on("video-changed", (video) => {
             console.log("Received video:", video.title);
             setCurrentVideo(video);
@@ -166,6 +170,7 @@ socket.on("movie-changed",(movie)=>{
             socket.off("song-resumed");
             socket.off("song-stopped");
             socket.off("song-seeked");
+            socket.off("sync-song-heartbeat");
             socket.off("video-changed");
             socket.off("video-paused");
             socket.off("video-resumed");
@@ -514,6 +519,7 @@ setCurrentMovie,
     pauseSong,
     resumeSong,
     stopSong,
+    seekSong,
     sendVideo,
     pauseVideo,
     resumeVideo,

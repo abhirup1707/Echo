@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { SessionContext } from "../../context/SessionContext";
 import {
@@ -36,6 +36,8 @@ function FloatingVideoPlayer() {
     const playerContainerRef = useRef(null);
     const playerRef = useRef(null);
     const isSeekingRef = useRef(false);
+    const ignoreTimerUntilRef = useRef(0);
+    const pendingSeekTimeRef = useRef(null);
 
     const [isPlaying, setIsPlaying] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
@@ -132,12 +134,14 @@ function FloatingVideoPlayer() {
                 if (typeof videoSyncCommand.time === "number") {
                     playerRef.current.seekTo(videoSyncCommand.time, true);
                     setCurrentTime(videoSyncCommand.time);
+                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
                 setIsPlaying(false);
             } else if (videoSyncCommand.type === "resume") {
                 if (typeof videoSyncCommand.time === "number") {
                     playerRef.current.seekTo(videoSyncCommand.time, true);
                     setCurrentTime(videoSyncCommand.time);
+                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
                 playerRef.current.playVideo();
                 setIsPlaying(true);
@@ -148,6 +152,7 @@ function FloatingVideoPlayer() {
                 if (typeof videoSyncCommand.time === "number") {
                     playerRef.current.seekTo(videoSyncCommand.time, true);
                     setCurrentTime(videoSyncCommand.time);
+                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
             }
         } catch (e) {
@@ -163,19 +168,20 @@ function FloatingVideoPlayer() {
             if (
                 playerRef.current &&
                 typeof playerRef.current.getCurrentTime === "function" &&
-                !isSeekingRef.current
+                !isSeekingRef.current &&
+                Date.now() > ignoreTimerUntilRef.current
             ) {
                 try {
                     const cur = playerRef.current.getCurrentTime() || 0;
                     const dur = playerRef.current.getDuration() || 0;
                     setCurrentTime(cur);
-                    if (dur > 0) setDuration(dur);
+                    if (dur > 0 && dur !== duration) setDuration(dur);
                 } catch (e) {}
             }
         }, 400);
 
         return () => clearInterval(timer);
-    }, [isPlaying, currentVideo]);
+    }, [isPlaying, currentVideo, duration]);
 
     function handleTogglePlay() {
         if (isPlaying) {
@@ -214,22 +220,62 @@ function FloatingVideoPlayer() {
         stopVideo();
     }
 
-    function handleSeekChange(e) {
-        const val = parseFloat(e.target.value);
-        setCurrentTime(val);
+    function handleSeekStart() {
         isSeekingRef.current = true;
     }
 
-    function handleSeekCommit(e) {
+    function handleSeekChange(e) {
         const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+            isSeekingRef.current = true;
+            pendingSeekTimeRef.current = val;
+            setCurrentTime(val);
+        }
+    }
+
+    const handleSeekCommit = useCallback((e) => {
+        if (!isSeekingRef.current && pendingSeekTimeRef.current === null) return;
+
+        let targetTime = pendingSeekTimeRef.current;
+        if (targetTime === null && e && e.target && e.target.value !== undefined) {
+            targetTime = parseFloat(e.target.value);
+        }
+        if (targetTime === null || isNaN(targetTime)) {
+            targetTime = currentTime;
+        }
+
+        const maxDuration = duration > 0 ? duration : (playerRef.current?.getDuration?.() || 0);
+        if (maxDuration > 0) {
+            targetTime = Math.max(0, Math.min(targetTime, maxDuration));
+        }
+
         if (playerRef.current && typeof playerRef.current.seekTo === "function") {
             try {
-                playerRef.current.seekTo(val, true);
-            } catch (e) {}
+                playerRef.current.seekTo(targetTime, true);
+            } catch (err) {}
         }
-        seekVideo(val);
+        setCurrentTime(targetTime);
+        if (typeof seekVideo === "function") {
+            seekVideo(targetTime);
+        }
+        ignoreTimerUntilRef.current = Date.now() + 800;
         isSeekingRef.current = false;
-    }
+        pendingSeekTimeRef.current = null;
+    }, [duration, currentTime, seekVideo]);
+
+    useEffect(() => {
+        function handleGlobalPointerUp(e) {
+            if (isSeekingRef.current) {
+                handleSeekCommit(e);
+            }
+        }
+        window.addEventListener("pointerup", handleGlobalPointerUp);
+        window.addEventListener("touchend", handleGlobalPointerUp);
+        return () => {
+            window.removeEventListener("pointerup", handleGlobalPointerUp);
+            window.removeEventListener("touchend", handleGlobalPointerUp);
+        };
+    }, [handleSeekCommit]);
 
     function toggleMute() {
         if (!playerRef.current) return;
@@ -296,10 +342,15 @@ function FloatingVideoPlayer() {
                         type="range"
                         className="video-progress-slider"
                         min="0"
-                        max={duration || 100}
-                        step="0.2"
+                        max={duration > 0 ? duration : 100}
+                        step="any"
                         value={currentTime}
+                        disabled={!currentVideo || duration === 0}
+                        onPointerDown={handleSeekStart}
+                        onTouchStart={handleSeekStart}
+                        onMouseDown={handleSeekStart}
                         onChange={handleSeekChange}
+                        onPointerUp={handleSeekCommit}
                         onMouseUp={handleSeekCommit}
                         onTouchEnd={handleSeekCommit}
                         style={{
