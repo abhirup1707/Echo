@@ -444,6 +444,50 @@
         0 0 20px rgba(124,58,237,0.1);
 }
 
+.invite-btn.qr-btn {
+    background: linear-gradient(135deg, #7C3AED, #6366F1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.invite-btn.copy-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.invite-btn.copy-btn.copied {
+    background: #10B981;
+    border-color: #10B981;
+}
+
+.copy-room-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: rgba(124, 58, 237, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    color: #c4b5fd;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 10px;
+}
+
+.copy-room-btn:hover {
+    background: rgba(124, 58, 237, 0.35);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
 @media (max-width:768px) {
     .room-page {
         padding: 10px;

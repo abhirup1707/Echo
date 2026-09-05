@@ -42,11 +42,20 @@ function registerSessionHandlers(io, socket) {
             return;
         }
 
-        session.members.push({
-            id: socket.id,
-            username,
-            avatar: avatar || ""
-        });
+        const existingIdx = session.members.findIndex(m => m.id === socket.id || m.username === username);
+        if (existingIdx !== -1) {
+            session.members[existingIdx] = {
+                id: socket.id,
+                username,
+                avatar: avatar || session.members[existingIdx].avatar || ""
+            };
+        } else {
+            session.members.push({
+                id: socket.id,
+                username,
+                avatar: avatar || ""
+            });
+        }
 
         socket.join(roomCode);
 

@@ -76,6 +76,35 @@
     margin-bottom: 14px;
 }
 
+.welcome-invite-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #34d399;
+    margin-bottom: 14px;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+}
+
+.welcome-invite-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: invitePulse 1.2s infinite ease-in-out;
+}
+
+@keyframes invitePulse {
+    0%, 100% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.3); opacity: 1; }
+}
+
 .welcome-title {
     font-size: 38px;
     font-weight: 900;

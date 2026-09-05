@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useMemo } from "react";
 import { ProfileContext } from "../context/ProfileContext";
 import UserAvatar from "../components/common/UserAvatar";
 import AvatarModal from "../components/profile/AvatarModal";
@@ -10,8 +10,26 @@ function Welcome() {
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const { profile, setProfile } = useContext(ProfileContext);
 
+    // Detect if user opened an invite link (/join/:roomCode)
+    const inviteRoomCode = useMemo(() => {
+        const path = window.location.pathname;
+        const match = path.match(/\/join\/([a-zA-Z0-9_-]+)/i);
+        if (match && match[1]) return match[1].toUpperCase();
+
+        const params = new URLSearchParams(window.location.search);
+        const queryCode = params.get("join") || params.get("room") || params.get("code");
+        if (queryCode) return queryCode.toUpperCase();
+
+        return (sessionStorage.getItem("echo_auto_join_room") || "").toUpperCase();
+    }, []);
+
     function continueApp() {
         if (!name.trim()) return;
+
+        if (inviteRoomCode) {
+            sessionStorage.setItem("echo_auto_join_room", inviteRoomCode);
+            sessionStorage.setItem("echoRoomCode", inviteRoomCode);
+        }
 
         setProfile({
             ...profile,
@@ -32,13 +50,25 @@ function Welcome() {
             <div className="welcome-glow-2" />
 
             <div className="welcome-card">
-                <div className="welcome-logo-badge">
-                    <span>🎧</span> Echo Music & Watch Party
-                </div>
+                {inviteRoomCode ? (
+                    <div className="welcome-invite-badge">
+                        <span className="welcome-invite-dot" />
+                        <span>Invited to Room <strong>#{inviteRoomCode}</strong></span>
+                    </div>
+                ) : (
+                    <div className="welcome-logo-badge">
+                        <span>🎧</span> Echo Music & Watch Party
+                    </div>
+                )}
 
-                <h1 className="welcome-title">Welcome</h1>
+                <h1 className="welcome-title">
+                    {inviteRoomCode ? "Join Session" : "Welcome"}
+                </h1>
                 <p className="welcome-subtitle">
-                    Listen to music, watch videos, and play games together with friends in real-time.
+                    {inviteRoomCode
+                        ? `Enter your name below to join Room #${inviteRoomCode} and hang out with your friends!`
+                        : "Listen to music, watch videos, and play games together with friends in real-time."
+                    }
                 </p>
 
                 {/* Avatar Preview & Selection */}
@@ -79,7 +109,7 @@ function Welcome() {
                     disabled={!name.trim()}
                     onClick={continueApp}
                 >
-                    🚀 Enter Echo
+                    {inviteRoomCode ? `🚀 Join Room #${inviteRoomCode}` : "🚀 Enter Echo"}
                 </button>
             </div>
 

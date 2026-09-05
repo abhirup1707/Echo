@@ -7,17 +7,32 @@ import { SessionContext } from "../context/SessionContext";
 import { VoiceContext } from "../context/VoiceContext";
 import ChatBox from "../components/chat/ChatBox";
 import UserAvatar from "../components/common/UserAvatar";
-import { FaMicrophone, FaMicrophoneSlash, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
+import ShareModal from "../components/common/ShareModal";
+import { 
+  FaMicrophone, 
+  FaMicrophoneSlash, 
+  FaVolumeUp, 
+  FaVolumeMute, 
+  FaQrcode, 
+  FaShareAlt, 
+  FaCheck, 
+  FaCopy 
+} from "react-icons/fa";
 
 
 function Room() {
   const { profile } = useContext(ProfileContext);
   const [username] = useState(profile.username);
-const [roomCode, setRoomCode] = useState(
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
+  const [isJoiningPending, setIsJoiningPending] = useState(() => {
+    return Boolean(sessionStorage.getItem("echo_auto_join_room"));
+  });
 
+  const [roomCode, setRoomCode] = useState(
+    sessionStorage.getItem("echo_auto_join_room") ||
     sessionStorage.getItem("echoRoomCode") || ""
-
-);
+  );
  
   
 const {
@@ -58,26 +73,52 @@ useEffect(() => {
     }
 }, [markChatRead]);
 
+  // Seamless auto-join for users arriving via an invite link
+  useEffect(() => {
+    const autoCode = (
+      sessionStorage.getItem("echo_auto_join_room") ||
+      sessionStorage.getItem("echoRoomCode") ||
+      ""
+    ).trim().toUpperCase();
+
+    if (autoCode && profile?.username && sessionRoomCode !== autoCode) {
+      console.log("⚡ Auto-joining room from invite link:", autoCode);
+      sessionStorage.removeItem("echo_auto_join_room");
+      sessionStorage.removeItem("echoRoomCode");
+      setIsJoiningPending(false);
+
+      socket.emit("join-session", {
+        roomCode: autoCode,
+        username: profile.username,
+        avatar: profile.avatar || ""
+      });
+
+      setSessionRoomCode(autoCode);
+      setSessionUsername(profile.username);
+      setRoomCode(autoCode);
+    } else if (sessionRoomCode) {
+      setIsJoiningPending(false);
+    }
+  }, [profile?.username, sessionRoomCode, setSessionRoomCode, setSessionUsername]);
+
   useEffect(() => {
 socket.on("session-created", (room) => {
-
-    
-
     setSessionRoomCode(room.code);
-
     setSessionUsername(username);
-
     setMembers(room.members);
-
+    setIsJoiningPending(false);
 });
- 
 
     socket.on("members-updated", (members) => {
       setMembers(members);
     });
 
     socket.on("room-not-found", () => {
-      alert("Room not found");
+      alert("Room not found or session has ended.");
+      setIsJoiningPending(false);
+      setSessionRoomCode("");
+      sessionStorage.removeItem("echo_auto_join_room");
+      sessionStorage.removeItem("echoRoomCode");
     });
 
     return () => {
@@ -139,6 +180,9 @@ function leaveRoom() {
     setSessionUsername("");
     setMembers([]);
     setQueue([]);
+    setIsJoiningPending(false);
+    sessionStorage.removeItem("echo_auto_join_room");
+    sessionStorage.removeItem("echoRoomCode");
 
 }
 return (
@@ -163,15 +207,10 @@ Room Code
 
 <button
 className="copy-room-btn"
-onClick={() => {
-
-navigator.clipboard.writeText(sessionRoomCode);
-
-alert("Room code copied!");
-
-}}
+onClick={() => setShowShareModal(true)}
+title="Share Room & QR Code"
 >
-📋
+<FaShareAlt /> Share
 </button>
 
 
@@ -203,63 +242,25 @@ value={`${window.location.origin}/join/${sessionRoomCode}`}
 <div className="invite-buttons">
 
 <button
-
-className="invite-btn"
-
-onClick={() => {
-
-navigator.clipboard.writeText(
-
-`${window.location.origin}/join/${sessionRoomCode}`
-
-);
-
-
-
-}}
-
+type="button"
+className="invite-btn qr-btn"
+onClick={() => setShowShareModal(true)}
+title="Show QR Code & Social Share Options"
 >
-
-📋 Copy Invite
-
+<FaQrcode /> QR & Share
 </button>
 
 <button
-
-className="invite-btn"
-
-onClick={async()=>{
-
-const link=
-
-`${window.location.origin}/join/${sessionRoomCode}`;
-
-if(navigator.share){
-
-await navigator.share({
-
-title:"Join my Echo Session",
-
-text:"Join my Echo room!",
-
-url:link
-
-});
-
-}else{
-
-navigator.clipboard.writeText(link);
-
-alert("Invite copied!");
-
-}
-
+type="button"
+className={`invite-btn copy-btn ${copiedInvite ? "copied" : ""}`}
+onClick={() => {
+navigator.clipboard.writeText(`${window.location.origin}/join/${sessionRoomCode}`);
+setCopiedInvite(true);
+setTimeout(() => setCopiedInvite(false), 2200);
 }}
-
 >
-
-📤 Share
-
+{copiedInvite ? <FaCheck /> : <FaCopy />}
+<span>{copiedInvite ? "Copied!" : "Copy Link"}</span>
 </button>
 
 </div>
@@ -332,7 +333,23 @@ Connected
 </div>
 
 {!sessionRoomCode ? (
-
+    isJoiningPending ? (
+        <div className="room-card" style={{ textAlign: "center", padding: "48px 24px" }}>
+            <div
+                style={{
+                    width: "44px",
+                    height: "44px",
+                    margin: "0 auto 16px auto",
+                    border: "3px solid rgba(124, 58, 237, 0.25)",
+                    borderTopColor: "#7c3aed",
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite"
+                }}
+            />
+            <h2>Entering Room #{roomCode}...</h2>
+            <p style={{ color: "#9ca3af", marginTop: "8px" }}>Connecting you to the session</p>
+        </div>
+    ) : (
 <div className="room-card">
 
 <h2>Join Session</h2>
@@ -464,6 +481,7 @@ Join Room
 </button>
 
 </div>
+)
 
 ) : (
 
@@ -719,6 +737,13 @@ Join Room
 
 </>
 
+)}
+
+{showShareModal && sessionRoomCode && (
+  <ShareModal
+    roomCode={sessionRoomCode}
+    onClose={() => setShowShareModal(false)}
+  />
 )}
 
 </div>
