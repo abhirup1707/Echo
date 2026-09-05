@@ -372,7 +372,7 @@ function BottomPlayer() {
             </div>
 
             {currentSong && (
-                <div className="bottom-player">
+                <div className={`bottom-player ${isPlaying ? "is-playing" : "is-paused"}`}>
                     {/* Top edge progress bar */}
                     <div className="player-progress-bar-wrap">
                         <input
@@ -392,15 +392,32 @@ function BottomPlayer() {
 
                     <div className="player-content">
                         <div className="player-left">
-                            <img
-                                src={currentSong.cover}
-                                className="cover"
-                                alt="cover"
-                            />
+                            <div className={`ambient-album-glow-wrap ${isPlaying ? "playing" : "paused"}`}>
+                                <div 
+                                    className="ambient-album-glow" 
+                                    style={{ backgroundImage: `url(${currentSong.cover})` }} 
+                                />
+                                <img
+                                    src={currentSong.cover}
+                                    className="cover"
+                                    alt="cover"
+                                />
+                            </div>
                             <div className="song-details">
-                                <h3 className="song-name" title={currentSong.title}>
-                                    {currentSong.title}
-                                </h3>
+                                <div className="song-title-row">
+                                    <h3 className="song-name" title={currentSong.title}>
+                                        {currentSong.title}
+                                    </h3>
+                                    <div 
+                                        className={`music-wave-visualizer ${isPlaying ? "playing" : "paused"}`} 
+                                        title={isPlaying ? "Live Audio" : "Paused"}
+                                    >
+                                        <span className="wave-bar bar-1" />
+                                        <span className="wave-bar bar-2" />
+                                        <span className="wave-bar bar-3" />
+                                        <span className="wave-bar bar-4" />
+                                    </div>
+                                </div>
                                 <p className="artist-name">
                                     {currentSong.artist}
                                 </p>

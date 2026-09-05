@@ -588,32 +588,39 @@ Join Room
 
             (
 
-                <div className="playing-card">
-
-                    <img
-
-                        src={currentSong.cover}
-
-                        className="playing-cover"
-
-                    />
+                <div className={`playing-card ${isPlaying ? "is-playing" : "is-paused"}`}>
+                    <div className={`ambient-album-glow-wrap room-size ${isPlaying ? "playing" : "paused"}`}>
+                        <div
+                            className="ambient-album-glow"
+                            style={{ backgroundImage: `url(${currentSong.cover})` }}
+                        />
+                        <img
+                            src={currentSong.cover}
+                            className="playing-cover"
+                            alt={currentSong.title}
+                        />
+                    </div>
 
                     <div className="playing-info">
+                        <div className="room-playing-status-pill">
+                            <span className={`playing-dot ${isPlaying ? "live" : "paused"}`} />
+                            <span className="playing-status-text">{isPlaying ? "Live Audio" : "Paused"}</span>
+                            <div className={`music-wave-visualizer ${isPlaying ? "playing" : "paused"}`}>
+                                <span className="wave-bar bar-1" />
+                                <span className="wave-bar bar-2" />
+                                <span className="wave-bar bar-3" />
+                                <span className="wave-bar bar-4" />
+                            </div>
+                        </div>
 
                         <h3>
-
                             {currentSong.title}
-
                         </h3>
 
                         <p>
-
                             {currentSong.artist}
-
                         </p>
-
                     </div>
-
                 </div>
 
             )
