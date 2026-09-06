@@ -163,6 +163,19 @@ socket.on("movie-changed",(movie)=>{
             setRoomCode("");
         });
 
+        socket.on("kicked-from-room", ({ roomCode: kickedCode, reason }) => {
+            console.warn("Kicked from room:", kickedCode, reason);
+            localStop();
+            localStorage.removeItem("echo_active_room_code");
+            sessionStorage.removeItem("echo_auto_join_room");
+            sessionStorage.removeItem("echoRoomCode");
+            setRoomCode("");
+            setMembers([]);
+            setQueue([]);
+            alert(reason || `You were removed from room ${kickedCode} by the host.`);
+            window.location.href = "/room";
+        });
+
         return () => {
 
             socket.off("song-changed");
@@ -183,6 +196,7 @@ socket.on("movie-changed",(movie)=>{
             socket.off("chat-message");
             socket.off("chat-history");
             socket.off("room-not-found");
+            socket.off("kicked-from-room");
 
         };
 
@@ -483,6 +497,19 @@ function recordSession(room) {
 
 }
 
+    function kickMember(targetSocketId, targetUsername) {
+        if (!roomCode) return;
+        socket.emit("kick-member", {
+            roomCode,
+            targetSocketId,
+            targetUsername
+        });
+    }
+
+    const isHost = Boolean(
+        members.find(m => (m.id === socket?.id || m.username === profile?.username) && m.isHost)
+    );
+
     return (
 
 <SessionContext.Provider
@@ -499,6 +526,9 @@ value={{
     members,
 
     setMembers,
+
+    isHost,
+    kickMember,
 
     queue,
 

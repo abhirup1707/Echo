@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 import Room from "./pages/Room";
 import Profile from "./pages/Profile";
 import Videos from "./pages/Videos";
+import WatchParty from "./pages/WatchParty";
 import FloatingVideoPlayer from "./components/video/FloatingVideoPlayer";
 import VoiceBar from "./components/voice/VoiceBar";
 import Navbar from "./components/layout/Navbar";
@@ -53,6 +54,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/videos" element={<Videos />} />
+                <Route path="/stream" element={<WatchParty />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/room" element={<Room />} />
                 <Route path="/join/:roomCode" element={<JoinRoom />} />

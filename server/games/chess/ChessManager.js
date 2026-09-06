@@ -32,6 +32,7 @@ function createRoom(roomCode) {
         roomCode,
         board: createInitialBoard(),
         players: [], // [ { id, username, color: 'w'|'b' } ]
+        spectators: [],
         turn: "w",
         castling: {
             w: { k: true, q: true },
@@ -446,11 +447,52 @@ function makeChessMove(room, playerId, fromIdx, toIdx, promotion = "q") {
     return { success: true };
 }
 
+function resetChessGame(room) {
+    if (!room) return;
+    if (room.autoResetTimer) {
+        clearTimeout(room.autoResetTimer);
+        room.autoResetTimer = null;
+    }
+    // If waiting spectators exist, rotate them in if players.length < 2
+    if (room.spectators && room.spectators.length > 0) {
+        while (room.players.length < 2 && room.spectators.length > 0) {
+            const nextS = room.spectators.shift();
+            if (!room.players.some(p => p.id === nextS.id)) {
+                const color = room.players.length === 0 ? "w" : "b";
+                room.players.push({
+                    id: nextS.id,
+                    username: nextS.username,
+                    color
+                });
+            }
+        }
+    }
+    // Swap colors for existing players if 2
+    if (room.players.length === 2) {
+        room.players[0].color = room.players[0].color === "w" ? "b" : "w";
+        room.players[1].color = room.players[1].color === "w" ? "b" : "w";
+    }
+    room.board = createInitialBoard();
+    room.turn = "w";
+    room.castling = {
+        w: { k: true, q: true },
+        b: { k: true, q: true }
+    };
+    room.enPassant = null;
+    room.halfMoves = 0;
+    room.status = room.players.length === 2 ? "playing" : "waiting";
+    room.winner = null;
+    room.inCheck = null;
+    room.captured = { w: [], b: [] };
+    room.moveHistory = [];
+}
+
 function getPublicChessRoom(room) {
     return {
         roomCode: room.roomCode,
         board: room.board,
         players: room.players,
+        spectators: (room.spectators || []).map(s => ({ id: s.id, username: s.username })),
         turn: room.turn,
         status: room.status,
         winner: room.winner,
@@ -467,5 +509,6 @@ module.exports = {
     deleteRoom,
     getLegalMoves,
     makeChessMove,
-    getPublicChessRoom
+    getPublicChessRoom,
+    resetChessGame
 };

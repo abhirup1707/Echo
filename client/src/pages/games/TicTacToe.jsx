@@ -35,8 +35,8 @@ export default function TicTacToe() {
     useEffect(() => {
         if (!roomCode) return;
         sessionStorage.setItem("echo_active_game", "/games/tictactoe");
-        socket.emit("ttt-join", { roomCode, username: profile.username });
-    }, [roomCode]);
+        socket.emit("ttt-join", { roomCode, username: profile?.username || "Player" });
+    }, [roomCode, profile?.username]);
 
     const handleLeave = () => {
         sessionStorage.removeItem("echo_active_game");
@@ -94,7 +94,8 @@ export default function TicTacToe() {
         );
     }
 
-    if (tttRoom.status === "waiting" && tttRoom.players.length < 2) {
+    const players = tttRoom.players || [];
+    if (tttRoom.status === "waiting" && players.length < 2) {
         return (
             <div className="scribble-page">
                 <div style={{
@@ -108,9 +109,9 @@ export default function TicTacToe() {
                 </div>
 
                 <div className="scribble-card" style={{ maxWidth: 400 }}>
-                    <h2>Players ({tttRoom.players.length}/2)</h2>
+                    <h2>Players ({players.length}/2)</h2>
                     <div className="player-list">
-                        {tttRoom.players.map(p => (
+                        {players.map(p => (
                             <div className="scribble-player" key={p.id}>
                                 <div className="avatar">{p.symbol}</div>
                                 <span>{p.username}</span>
@@ -121,6 +122,21 @@ export default function TicTacToe() {
                     <p style={{ color: "#777", marginTop: 16 }}>
                         Waiting for opponent to join...
                     </p>
+
+                    {tttRoom.spectators && tttRoom.spectators.length > 0 && (
+                        <div style={{ marginTop: 16, padding: "10px 12px", background: "rgba(168, 85, 247, 0.1)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: 12 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#d8b4fe", marginBottom: 4 }}>
+                                👀 Waiting / Spectators ({tttRoom.spectators.length}):
+                            </div>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                {tttRoom.spectators.map(s => (
+                                    <span key={s.id} style={{ fontSize: 11, padding: "3px 8px", background: "rgba(255,255,255,0.06)", borderRadius: 8, color: "#f1f5f9" }}>
+                                        {s.username} {s.id === socket.id ? "(You)" : ""}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

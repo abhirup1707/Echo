@@ -10,12 +10,14 @@ function createSession(hostSocketId, username, sessionName, avatar = "") {
         code,
         name: sessionName,
         host: hostSocketId,
+        hostUsername: username,
 
         members: [
             {
                 id: hostSocketId,
                 username,
-                avatar: avatar || ""
+                avatar: avatar || "",
+                isHost: true
             }
         ],
 
@@ -50,9 +52,24 @@ function deleteSession(code) {
     delete sessions[code];
 }
 
+function getPublicMembers(session) {
+    if (!session || !session.members) return [];
+    return session.members.map(m => ({
+        id: m.id,
+        username: m.username,
+        avatar: m.avatar || "",
+        isHost: Boolean(
+            m.isHost ||
+            m.id === session.host ||
+            (session.hostUsername && m.username === session.hostUsername)
+        )
+    }));
+}
+
 module.exports = {
     sessions,
     createSession,
     getSession,
-    deleteSession
+    deleteSession,
+    getPublicMembers
 };

@@ -114,7 +114,8 @@ export default function Ludo() {
         );
     }
 
-    const isHost = ludoRoom.players[0]?.id === socket.id;
+    const players = ludoRoom.players || [];
+    const isHost = players[0]?.id === socket.id;
 
     if (ludoRoom.status === "waiting") {
         return (
@@ -150,9 +151,9 @@ export default function Ludo() {
                 <div className="scribble-card" style={{ background: "rgba(15, 23, 42, 0.65)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: 20, padding: "28px", backdropFilter: "blur(20px)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                         <h2 style={{ fontSize: 20, margin: 0, color: "#f8fafc" }}>
-                            Players ({ludoRoom.players.length} / 4)
+                            Players ({players.length} / 4)
                         </h2>
-                        {ludoRoom.players.length < 2 && (
+                        {players.length < 2 && (
                             <span style={{ fontSize: 13, color: "#f59e0b", background: "rgba(245, 158, 11, 0.1)", padding: "4px 12px", borderRadius: 20, border: "1px solid rgba(245, 158, 11, 0.2)" }}>
                                 Needs at least 2 players
                             </span>
@@ -161,7 +162,7 @@ export default function Ludo() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 28 }}>
                         {[0, 1, 2, 3].map(slotIdx => {
-                            const p = ludoRoom.players[slotIdx];
+                            const p = players[slotIdx];
                             const colorName = LUDO_COLORS[slotIdx];
                             const colorHex = { red: "#ef4444", green: "#10b981", yellow: "#f59e0b", blue: "#3b82f6" }[colorName];
 
@@ -242,7 +243,7 @@ export default function Ludo() {
                     {isHost ? (
                         <div style={{ textAlign: "center" }}>
                             <button
-                                disabled={ludoRoom.players.length < 2}
+                                disabled={players.length < 2}
                                 onClick={handleStart}
                                 style={{
                                     padding: "14px 38px",
@@ -251,20 +252,35 @@ export default function Ludo() {
                                     borderRadius: 14,
                                     border: "none",
                                     color: "white",
-                                    background: ludoRoom.players.length >= 2
+                                    background: players.length >= 2
                                         ? "linear-gradient(135deg, #10b981 0%, #3b82f6 100%)"
                                         : "rgba(255, 255, 255, 0.1)",
-                                    cursor: ludoRoom.players.length >= 2 ? "pointer" : "not-allowed",
-                                    boxShadow: ludoRoom.players.length >= 2 ? "0 8px 24px rgba(16, 185, 129, 0.35)" : "none",
+                                    cursor: players.length >= 2 ? "pointer" : "not-allowed",
+                                    boxShadow: players.length >= 2 ? "0 8px 24px rgba(16, 185, 129, 0.35)" : "none",
                                     transition: "all 0.2s ease"
                                 }}
                             >
-                                🚀 Start Ludo Game ({ludoRoom.players.length} Players)
+                                🚀 Start Ludo Game ({players.length} Players)
                             </button>
                         </div>
                     ) : (
                         <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 14, padding: "12px" }}>
                             ⏳ Waiting for host to start the game...
+                        </div>
+                    )}
+
+                    {ludoRoom.spectators && ludoRoom.spectators.length > 0 && (
+                        <div style={{ marginTop: 18, padding: "12px 16px", background: "rgba(168, 85, 247, 0.1)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: 14 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#d8b4fe", marginBottom: 6 }}>
+                                👀 Waiting / Spectators ({ludoRoom.spectators.length}):
+                            </div>
+                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                {ludoRoom.spectators.map(s => (
+                                    <span key={s.id} style={{ fontSize: 12, padding: "4px 10px", background: "rgba(255,255,255,0.06)", borderRadius: 10, color: "#f1f5f9" }}>
+                                        {s.username} {s.id === socket.id ? "(You)" : ""}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

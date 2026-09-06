@@ -11,6 +11,7 @@ function createRoom(roomCode) {
         roomCode,
         board: Array(9).fill(null),
         players: [],
+        spectators: [],
         currentTurn: "X",
         status: "waiting",
         winner: null,
@@ -47,6 +48,7 @@ function getPublicRoom(room) {
         roomCode: room.roomCode,
         board: room.board,
         players: room.players,
+        spectators: (room.spectators || []).map(s => ({ id: s.id, username: s.username })),
         currentTurn: room.currentTurn,
         status: room.status,
         winner: room.winner,
@@ -55,11 +57,34 @@ function getPublicRoom(room) {
     };
 }
 
+function resetTTTRoom(room) {
+    if (!room) return;
+    if (room.spectators && room.spectators.length > 0) {
+        while (room.players.length < 2 && room.spectators.length > 0) {
+            const nextS = room.spectators.shift();
+            if (!room.players.some(p => p.id === nextS.id)) {
+                const symbol = room.players.length === 0 ? "X" : "O";
+                room.players.push({
+                    id: nextS.id,
+                    username: nextS.username,
+                    symbol
+                });
+            }
+        }
+    }
+    room.board = Array(9).fill(null);
+    room.currentTurn = "X";
+    room.winner = null;
+    room.winLine = null;
+    room.status = room.players.length === 2 ? "playing" : "waiting";
+}
+
 module.exports = {
     rooms,
     createRoom,
     getRoom,
     deleteRoom,
     checkWinner,
-    getPublicRoom
+    getPublicRoom,
+    resetTTTRoom
 };

@@ -5,8 +5,21 @@ const {
     getLegalMoves,
     makeChessMove,
     getPublicChessRoom,
+    resetChessGame,
     rooms
 } = require("./ChessManager");
+const { notifyGameActivity } = require("../GameStatusTracker");
+
+function scheduleChessAutoReset(io, room) {
+    if (!room) return;
+    if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
+    room.autoResetTimer = setTimeout(() => {
+        if (room.status === "checkmate" || room.status === "stalemate" || room.status === "resigned") {
+            resetChessGame(room);
+            io.to(`chess-${room.roomCode}`).emit("chess-room", getPublicChessRoom(room));
+        }
+    }, 7000);
+}
 
 function registerChessEvents(io, socket) {
     // JOIN CHESS
@@ -17,11 +30,21 @@ function registerChessEvents(io, socket) {
         }
 
         const existingPlayer = room.players.find(p => p.id === socket.id);
+        const existingSpectator = room.spectators?.find(s => s.id === socket.id);
+
         if (!existingPlayer) {
-            if (room.players.length >= 2) {
-                // Spectator
+            if (room.players.length >= 2 || room.status === "playing") {
+                // Enter Spectate / Waiting Mode
+                if (!room.spectators) room.spectators = [];
+                if (!existingSpectator) {
+                    room.spectators.push({
+                        id: socket.id,
+                        username: username || "Spectator"
+                    });
+                }
                 socket.join(`chess-${roomCode}`);
-                socket.emit("chess-room", getPublicChessRoom(room));
+                io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
+                notifyGameActivity(io, roomCode);
                 return;
             }
             const color = room.players.length === 0 ? "w" : "b";
@@ -39,6 +62,7 @@ function registerChessEvents(io, socket) {
         }
 
         io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
+        notifyGameActivity(io, roomCode);
     });
 
     // GET LEGAL MOVES FOR PIECE
@@ -63,6 +87,9 @@ function registerChessEvents(io, socket) {
         const result = makeChessMove(room, socket.id, from, to, promotion);
         if (result.success) {
             io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
+            if (room.status === "checkmate" || room.status === "stalemate") {
+                scheduleChessAutoReset(io, room);
+            }
         } else {
             socket.emit("chess-error", { message: result.message });
         }
@@ -79,6 +106,7 @@ function registerChessEvents(io, socket) {
         room.status = "resigned";
         room.winner = player.color === "w" ? "b" : "w";
         io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
+        scheduleChessAutoReset(io, room);
     });
 
     // START CHESS
@@ -95,38 +123,22 @@ function registerChessEvents(io, socket) {
     socket.on("chess-play-again", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
-
-        const { createRoom: resetRoom } = require("./ChessManager");
-        const players = room.players;
-        // Swap colors for rematch
-        if (players.length === 2) {
-            players[0].color = players[0].color === "w" ? "b" : "w";
-            players[1].color = players[1].color === "w" ? "b" : "w";
-        }
-
-        const newRoom = resetRoom(roomCode);
-        newRoom.players = players;
-        newRoom.status = "waiting";
-
-        io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(newRoom));
+        resetChessGame(room);
+        io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
     });
 
     socket.on("chess-restart", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
+        resetChessGame(room);
+        io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
+    });
 
-        const { createRoom: resetRoom } = require("./ChessManager");
-        const players = room.players;
-        if (players.length === 2) {
-            players[0].color = players[0].color === "w" ? "b" : "w";
-            players[1].color = players[1].color === "w" ? "b" : "w";
-        }
-
-        const newRoom = resetRoom(roomCode);
-        newRoom.players = players;
-        newRoom.status = "waiting";
-
-        io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(newRoom));
+    socket.on("chess-reset", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+        resetChessGame(room);
+        io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
     });
 
     // LEAVE CHESS
@@ -135,37 +147,51 @@ function registerChessEvents(io, socket) {
         if (!room) return;
 
         room.players = room.players.filter(p => p.id !== socket.id);
+        if (room.spectators) {
+            room.spectators = room.spectators.filter(s => s.id !== socket.id);
+        }
         socket.leave(`chess-${roomCode}`);
 
-        if (room.players.length === 0) {
+        if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
+            if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
             deleteRoom(roomCode);
+            notifyGameActivity(io, roomCode);
             return;
         }
 
-        if (room.status === "playing") {
-            room.status = "waiting";
+        if (room.players.length < 2) {
+            resetChessGame(room);
         }
 
         io.to(`chess-${roomCode}`).emit("chess-room", getPublicChessRoom(room));
+        notifyGameActivity(io, roomCode);
     });
 
     // DISCONNECT
     socket.on("disconnect", () => {
         Object.values(rooms).forEach(room => {
             const wasPlayer = room.players.some(p => p.id === socket.id);
-            if (!wasPlayer) return;
+            const wasSpectator = room.spectators && room.spectators.some(s => s.id === socket.id);
+            if (!wasPlayer && !wasSpectator) return;
 
             room.players = room.players.filter(p => p.id !== socket.id);
-            if (room.players.length === 0) {
+            if (room.spectators) {
+                room.spectators = room.spectators.filter(s => s.id !== socket.id);
+            }
+
+            if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
+                if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
                 deleteRoom(room.roomCode);
+                notifyGameActivity(io, room.roomCode);
                 return;
             }
 
-            if (room.status === "playing") {
-                room.status = "waiting";
+            if (room.players.length < 2) {
+                resetChessGame(room);
             }
 
             io.to(`chess-${room.roomCode}`).emit("chess-room", getPublicChessRoom(room));
+            notifyGameActivity(io, room.roomCode);
         });
     });
 }

@@ -85,6 +85,30 @@
     box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
 }
 
+.nav-stream-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.16), rgba(220, 38, 38, 0.08));
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+.nav-stream-pill:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.28), rgba(220, 38, 38, 0.18));
+    border-color: rgba(248, 113, 113, 0.7);
+    box-shadow: 0 4px 22px rgba(239, 68, 68, 0.45);
+}
+
 .nav-room-dot {
     width: 8px;
     height: 8px;

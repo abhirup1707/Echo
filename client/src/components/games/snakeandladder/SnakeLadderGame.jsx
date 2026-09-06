@@ -2,6 +2,7 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import socket from "../../../socket";
 import { ProfileContext } from "../../../context/ProfileContext";
+import SpectatorBanner from "../SpectatorBanner";
 import "./SnakeLadderGame.css";
 
 function getCellCenter(num) {
@@ -17,8 +18,10 @@ function getCellCenter(num) {
 export default function SnakeLadderGame({ roomCode, slRoom }) {
 
     const navigate = useNavigate();
-    const myIndex = slRoom.players.findIndex(p => p.id === socket.id);
-    const isMyTurn = slRoom.status === "playing" && slRoom.currentTurn === myIndex;
+    const players = slRoom.players || [];
+    const isSpectator = !players.some(p => p.id === socket.id) || slRoom.spectators?.some(s => s.id === socket.id);
+    const myIndex = players.findIndex(p => p.id === socket.id);
+    const isMyTurn = !isSpectator && slRoom.status === "playing" && slRoom.currentTurn === myIndex;
     const isFinished = slRoom.status === "finished";
 
     const [rolling, setRolling] = useState(false);
@@ -87,7 +90,7 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
     }
 
     function handleRoll() {
-        if (rolling) return;
+        if (rolling || isSpectator || !isMyTurn) return;
         socket.emit("sl-roll", { roomCode });
     }
 
@@ -104,7 +107,7 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
     }
 
     const playerPositions = {};
-    slRoom.players.forEach(p => {
+    players.forEach(p => {
         const pos = getPlayerPosition(p);
         if (pos <= 0) return;
         if (!playerPositions[pos]) playerPositions[pos] = [];
@@ -113,6 +116,14 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
 
     return (
         <div className="sl-page">
+            {isSpectator && (
+                <SpectatorBanner
+                    gameTitle="Snake & Ladder"
+                    isFinished={isFinished}
+                    onExit={handleLeave}
+                />
+            )}
+
             <div className="sl-header">
                 <h1>🐍 {slRoom.mapName || "Snake & Ladder"}</h1>
                 <button onClick={handleLeave}>⬅ Back</button>
@@ -124,7 +135,7 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
 
 
 
-                    {slRoom.players.map((p, idx) => {
+                    {players.map((p, idx) => {
                         const pos = getPlayerPosition(p);
                         const glowStyle = {
                             background: p.color,
@@ -137,28 +148,30 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
                                     key={p.id}
                                     className="sl-token"
                                     style={{ ...glowStyle, left: `${startC.x - 2}%`, top: `${startC.y - 5}%` }}
-                                    title={p.username}
+                                    title={`${p.username} (Start)`}
                                 >
                                     {p.username.charAt(0).toUpperCase()}
+                                    <span className="sl-token-floating-name">{p.username}</span>
                                 </div>
                             );
                         }
                         const c = getCellCenter(pos);
                         const tokensHere = (playerPositions[pos] || []).filter(tp => tp.id !== p.id);
                         const offset = tokensHere.findIndex(tp => tp.id === p.id);
-                        const isMyTurn = idx === slRoom.currentTurn;
+                        const isThisTurn = idx === slRoom.currentTurn;
                         return (
                             <div
                                 key={p.id}
-                                className={`sl-token${isMyTurn ? " sl-token-active" : ""}`}
+                                className={`sl-token${isThisTurn ? " sl-token-active" : ""}`}
                                 style={{
                                     ...glowStyle,
                                     left: `${c.x - 2 + (offset >= 0 ? (offset + 1) * 1.5 : 0)}%`,
                                     top: `${c.y - 5}%`,
                                 }}
-                                title={`${p.username} (${pos})`}
+                                title={`${p.username} (Square ${pos})`}
                             >
                                 {p.username.charAt(0).toUpperCase()}
+                                <span className="sl-token-floating-name">{p.username}</span>
                             </div>
                         );
                     })}
@@ -166,17 +179,39 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
 
                 <div className="sl-sidebar">
                     <div className="sl-players-list">
-                        <h3>Players</h3>
-                        {slRoom.players.map((p, i) => (
-                            <div
-                                key={p.id}
-                                className={`sl-player-row ${i === slRoom.currentTurn && !isFinished ? "active-turn" : ""}`}
-                            >
-                                <div className="sl-player-color" style={{ background: p.color }} />
-                                <span className="sl-player-name">{p.username}</span>
-                                {i === slRoom.currentTurn && !isFinished && <span className="sl-turn-badge">🎲</span>}
+                        <h3>Players ({slRoom.players.length}/6)</h3>
+                        {slRoom.players.map((p, i) => {
+                            const pos = getPlayerPosition(p);
+                            const isTheirTurn = i === slRoom.currentTurn && !isFinished;
+                            return (
+                                <div
+                                    key={p.id}
+                                    className={`sl-player-row ${isTheirTurn ? "active-turn" : ""}`}
+                                >
+                                    <div className="sl-player-color" style={{ background: p.color }} />
+                                    <span className="sl-player-name">{p.username}</span>
+                                    <span style={{ marginLeft: "auto", fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>
+                                        Sq {pos > 0 ? pos : "Start"}
+                                    </span>
+                                    {isTheirTurn && <span className="sl-turn-badge">🎲</span>}
+                                </div>
+                            );
+                        })}
+
+                        {slRoom.spectators && slRoom.spectators.length > 0 && (
+                            <div style={{ marginTop: 12, padding: "8px 10px", background: "rgba(168,85,247,0.1)", borderRadius: 10, border: "1px solid rgba(168,85,247,0.2)" }}>
+                                <div style={{ fontSize: 11, color: "#d8b4fe", fontWeight: 700, marginBottom: 4 }}>
+                                    👀 Spectators ({slRoom.spectators.length})
+                                </div>
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    {slRoom.spectators.map(s => (
+                                        <span key={s.id} style={{ fontSize: 11, padding: "2px 8px", background: "rgba(255,255,255,0.06)", borderRadius: 8, color: "#f1f5f9" }}>
+                                            {s.username} {s.id === socket.id ? "(You)" : ""}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        ))}
+                        )}
                     </div>
 
                     <div className="sl-dice-area">
@@ -199,13 +234,19 @@ export default function SnakeLadderGame({ roomCode, slRoom }) {
                                         <div className="sl-dice-empty">?</div>
                                     )}
                                 </div>
-                                <button
-                                    className="sl-roll-btn"
-                                    disabled={!isMyTurn || rolling}
-                                    onClick={handleRoll}
-                                >
-                                    {rolling ? "Rolling..." : isMyTurn ? "🎲 Roll" : "Waiting..."}
-                                </button>
+                                {!isSpectator ? (
+                                    <button
+                                        className="sl-roll-btn"
+                                        disabled={!isMyTurn || rolling}
+                                        onClick={handleRoll}
+                                    >
+                                        {rolling ? "Rolling..." : isMyTurn ? "🎲 Roll" : "Waiting..."}
+                                    </button>
+                                ) : (
+                                    <div style={{ color: "#c084fc", fontSize: 13, marginTop: 8, textAlign: "center", fontWeight: 700 }}>
+                                        🎲 {slRoom.players[slRoom.currentTurn]?.username || "Player"}'s Turn to Roll
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>

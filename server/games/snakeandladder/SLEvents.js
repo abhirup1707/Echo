@@ -6,10 +6,23 @@ const {
     deleteRoom,
     rollDice,
     getEffect,
-    getPublicRoom
+    getPublicRoom,
+    resetSLGame
 } = require("./SLManager");
+const { notifyGameActivity } = require("../GameStatusTracker");
 
 let rollIdCounter = 0;
+
+function scheduleSLAutoReset(io, room) {
+    if (!room) return;
+    if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
+    room.autoResetTimer = setTimeout(() => {
+        if (room.status === "finished") {
+            resetSLGame(room);
+            io.to(`sl-${room.roomCode}`).emit("sl-room", getPublicRoom(room));
+        }
+    }, 7000);
+}
 
 function registerSnakeLadderEvents(io, socket) {
 
@@ -19,9 +32,21 @@ function registerSnakeLadderEvents(io, socket) {
         if (!room) room = createRoom(roomCode);
 
         const alreadyPlayer = room.players.some(p => p.id === socket.id);
+        const alreadySpectator = room.spectators?.some(s => s.id === socket.id);
+
         if (!alreadyPlayer) {
-            if (room.players.length >= 6) {
-                socket.emit("sl-full");
+            if (room.players.length >= 6 || room.status === "playing") {
+                // Enter Spectate / Waiting Mode
+                if (!room.spectators) room.spectators = [];
+                if (!alreadySpectator) {
+                    room.spectators.push({
+                        id: socket.id,
+                        username: username || "Spectator"
+                    });
+                }
+                socket.join(`sl-${roomCode}`);
+                io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
+                notifyGameActivity(io, roomCode);
                 return;
             }
             room.players.push({
@@ -34,6 +59,7 @@ function registerSnakeLadderEvents(io, socket) {
 
         socket.join(`sl-${roomCode}`);
         io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
+        notifyGameActivity(io, roomCode);
 
     });
 
@@ -98,6 +124,7 @@ function registerSnakeLadderEvents(io, socket) {
             };
             room.gameCount++;
             io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
+            scheduleSLAutoReset(io, room);
             return;
         }
 
@@ -119,6 +146,7 @@ function registerSnakeLadderEvents(io, socket) {
             };
             room.gameCount++;
             io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
+            scheduleSLAutoReset(io, room);
             return;
         }
 
@@ -142,16 +170,25 @@ function registerSnakeLadderEvents(io, socket) {
 
         const room = getRoom(roomCode);
         if (!room) return;
-        if (room.status !== "finished") return;
+        resetSLGame(room);
+        io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
 
-        room.mapIndex = 0;
-        room.status = "playing";
-        room.currentTurn = 0;
-        room.dice = null;
-        room.lastMove = null;
-        room.winner = null;
-        room.players.forEach(p => { p.position = 0; });
+    });
 
+    socket.on("sl-restart", ({ roomCode }) => {
+
+        const room = getRoom(roomCode);
+        if (!room) return;
+        resetSLGame(room);
+        io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
+
+    });
+
+    socket.on("sl-reset", ({ roomCode }) => {
+
+        const room = getRoom(roomCode);
+        if (!room) return;
+        resetSLGame(room);
         io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
 
     });
@@ -163,19 +200,27 @@ function registerSnakeLadderEvents(io, socket) {
         if (!room) return;
 
         room.players = room.players.filter(p => p.id !== socket.id);
+        if (room.spectators) {
+            room.spectators = room.spectators.filter(s => s.id !== socket.id);
+        }
 
         socket.leave(`sl-${roomCode}`);
 
-        if (room.players.length === 0) {
+        if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
+            if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
             deleteRoom(roomCode);
+            notifyGameActivity(io, roomCode);
             return;
         }
 
-        if (room.currentTurn >= room.players.length) {
+        if (room.players.length < 2) {
+            resetSLGame(room);
+        } else if (room.currentTurn >= room.players.length) {
             room.currentTurn = 0;
         }
 
         io.to(`sl-${roomCode}`).emit("sl-room", getPublicRoom(room));
+        notifyGameActivity(io, roomCode);
 
     });
 
@@ -185,20 +230,29 @@ function registerSnakeLadderEvents(io, socket) {
         Object.values(rooms).forEach(room => {
 
             const wasPlayer = room.players.some(p => p.id === socket.id);
-            if (!wasPlayer) return;
+            const wasSpectator = room.spectators && room.spectators.some(s => s.id === socket.id);
+            if (!wasPlayer && !wasSpectator) return;
 
             room.players = room.players.filter(p => p.id !== socket.id);
+            if (room.spectators) {
+                room.spectators = room.spectators.filter(s => s.id !== socket.id);
+            }
 
-            if (room.players.length === 0) {
+            if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
+                if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
                 deleteRoom(room.roomCode);
+                notifyGameActivity(io, room.roomCode);
                 return;
             }
 
-            if (room.currentTurn >= room.players.length) {
+            if (room.players.length < 2) {
+                resetSLGame(room);
+            } else if (room.currentTurn >= room.players.length) {
                 room.currentTurn = 0;
             }
 
             io.to(`sl-${room.roomCode}`).emit("sl-room", getPublicRoom(room));
+            notifyGameActivity(io, room.roomCode);
 
         });
 

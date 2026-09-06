@@ -494,3 +494,52 @@
     width: 90%;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
 }
+
+/* Base Corner Player Tags */
+.ludo-base-player-tag {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 10;
+    max-width: 85%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ludo-base.red .ludo-base-player-tag {
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: rgba(239, 68, 68, 0.6);
+}
+
+.ludo-base.green .ludo-base-player-tag {
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: rgba(16, 185, 129, 0.6);
+}
+
+.ludo-base.yellow .ludo-base-player-tag {
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: rgba(245, 158, 11, 0.6);
+}
+
+.ludo-base.blue .ludo-base-player-tag {
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-color: rgba(59, 130, 246, 0.6);
+}
+

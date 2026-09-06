@@ -100,6 +100,7 @@ export default function Scribble() {
         );
     }
 
+    const players = scribbleRoom.players || [];
     const isHost = scribbleRoom.host === socket.id;
 
     return (
@@ -134,9 +135,9 @@ export default function Scribble() {
             <div className="scribble-layout">
                 {/* PLAYERS */}
                 <div className="scribble-card">
-                    <h2>Players ({scribbleRoom.players.length})</h2>
+                    <h2>Players ({players.length})</h2>
                     <div className="player-list">
-                        {scribbleRoom.players.map(player => (
+                        {players.map(player => (
                             <div className="scribble-player" key={player.id}>
                                 <div className="avatar">
                                     {player.username.charAt(0).toUpperCase()}

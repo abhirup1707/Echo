@@ -7,8 +7,10 @@ const {
     moveToken,
     advanceTurn,
     getPublicLudoRoom,
+    resetLudoGame,
     rooms
 } = require("./LudoManager");
+const { notifyGameActivity } = require("../GameStatusTracker");
 
 function registerLudoEvents(io, socket) {
     // JOIN LUDO
@@ -20,12 +22,18 @@ function registerLudoEvents(io, socket) {
 
         const existing = room.players.find(p => p.id === socket.id);
         if (!existing) {
-            if (room.players.length >= 4) {
-                socket.emit("ludo-full");
-                return;
-            }
-            if (room.status === "playing") {
-                socket.emit("ludo-in-progress");
+            if (room.players.length >= 4 || room.status === "playing") {
+                // Enter Spectate / Waiting Mode
+                if (!room.spectators) room.spectators = [];
+                if (!room.spectators.find(s => s.id === socket.id)) {
+                    room.spectators.push({
+                        id: socket.id,
+                        username: username || "Spectator"
+                    });
+                }
+                socket.join(`ludo-${roomCode}`);
+                io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+                notifyGameActivity(io, roomCode);
                 return;
             }
             room.players.push({
@@ -37,6 +45,7 @@ function registerLudoEvents(io, socket) {
 
         socket.join(`ludo-${roomCode}`);
         io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+        notifyGameActivity(io, roomCode);
     });
 
     // START LUDO
@@ -84,6 +93,15 @@ function registerLudoEvents(io, socket) {
         const result = moveToken(room, socket.id, tokenId);
         if (result.success) {
             io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+            if (result.finished || room.status === "finished") {
+                if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
+                room.autoResetTimer = setTimeout(() => {
+                    if (room.status === "finished") {
+                        resetLudoGame(room);
+                        io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+                    }
+                }, 7000);
+            }
         } else {
             socket.emit("ludo-error", { message: result.message });
         }
@@ -93,31 +111,22 @@ function registerLudoEvents(io, socket) {
     socket.on("ludo-play-again", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
-
-        room.status = "waiting";
-        room.winner = null;
-        room.diceValue = null;
-        room.diceRolled = false;
-        room.lastAction = `${room.players.find(p => p.id === socket.id)?.username || "Player"} requested rematch! Waiting for host to start.`;
-        room.players.forEach(p => {
-            p.tokens = [];
-        });
-
+        resetLudoGame(room);
         io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
     });
 
     socket.on("ludo-restart", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
+        resetLudoGame(room);
+        io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+    });
 
-        room.status = "waiting";
-        room.winner = null;
-        room.diceValue = null;
-        room.diceRolled = false;
-        room.players.forEach(p => {
-            p.tokens = [];
-        });
-
+    // RESET LUDO (Play Again / Back to Lobby)
+    socket.on("ludo-reset", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+        resetLudoGame(room);
         io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
     });
 
@@ -127,39 +136,49 @@ function registerLudoEvents(io, socket) {
         if (!room) return;
 
         room.players = room.players.filter(p => p.id !== socket.id);
+        if (room.spectators) {
+            room.spectators = room.spectators.filter(s => s.id !== socket.id);
+        }
         socket.leave(`ludo-${roomCode}`);
 
-        if (room.players.length === 0) {
+        if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
             deleteRoom(roomCode);
+            notifyGameActivity(io, roomCode);
             return;
         }
 
         if (room.status === "playing" && room.players.length < 2) {
-            room.status = "waiting";
-            room.lastAction = "Player left. Waiting for players...";
+            resetLudoGame(room);
         }
 
         io.to(`ludo-${roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+        notifyGameActivity(io, roomCode);
     });
 
     // DISCONNECT
     socket.on("disconnect", () => {
         Object.values(rooms).forEach(room => {
             const wasPlayer = room.players.some(p => p.id === socket.id);
-            if (!wasPlayer) return;
+            const wasSpectator = room.spectators && room.spectators.some(s => s.id === socket.id);
+            if (!wasPlayer && !wasSpectator) return;
 
             room.players = room.players.filter(p => p.id !== socket.id);
-            if (room.players.length === 0) {
+            if (room.spectators) {
+                room.spectators = room.spectators.filter(s => s.id !== socket.id);
+            }
+
+            if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
                 deleteRoom(room.roomCode);
+                notifyGameActivity(io, room.roomCode);
                 return;
             }
 
             if (room.status === "playing" && room.players.length < 2) {
-                room.status = "waiting";
-                room.lastAction = "Player disconnected.";
+                resetLudoGame(room);
             }
 
             io.to(`ludo-${room.roomCode}`).emit("ludo-room", getPublicLudoRoom(room));
+            notifyGameActivity(io, room.roomCode);
         });
     });
 }

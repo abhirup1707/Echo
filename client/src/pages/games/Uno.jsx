@@ -107,7 +107,8 @@ export default function Uno() {
         );
     }
 
-    const isHost = unoRoom.players[0]?.id === socket.id;
+    const players = unoRoom.players || [];
+    const isHost = players[0]?.id === socket.id;
 
     if (unoRoom.status === "waiting") {
         return (
@@ -143,9 +144,9 @@ export default function Uno() {
                 <div className="scribble-card" style={{ background: "rgba(15, 23, 42, 0.65)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: 20, padding: "28px", backdropFilter: "blur(20px)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                         <h2 style={{ fontSize: 20, margin: 0, color: "#f8fafc" }}>
-                            Players ({unoRoom.players.length} / 15)
+                            Players ({players.length} / 15)
                         </h2>
-                        {unoRoom.players.length < 2 && (
+                        {players.length < 2 && (
                             <span style={{ fontSize: 13, color: "#f59e0b", background: "rgba(245, 158, 11, 0.1)", padding: "4px 12px", borderRadius: 20, border: "1px solid rgba(245, 158, 11, 0.2)" }}>
                                 Needs at least 2 players
                             </span>
@@ -158,7 +159,7 @@ export default function Uno() {
                         gap: 12,
                         marginBottom: 28
                     }}>
-                        {unoRoom.players.map((p, index) => {
+                        {players.map((p, index) => {
                             const isMe = p.id === socket.id;
                             const isCurrentHost = index === 0;
                             return (
@@ -204,7 +205,7 @@ export default function Uno() {
                     {isHost ? (
                         <div style={{ textAlign: "center" }}>
                             <button
-                                disabled={unoRoom.players.length < 2}
+                                disabled={players.length < 2}
                                 onClick={handleStart}
                                 style={{
                                     padding: "14px 38px",
@@ -213,20 +214,35 @@ export default function Uno() {
                                     borderRadius: 14,
                                     border: "none",
                                     color: "white",
-                                    background: unoRoom.players.length >= 2
+                                    background: players.length >= 2
                                         ? "linear-gradient(135deg, #ef4444 0%, #eab308 50%, #3b82f6 100%)"
                                         : "rgba(255, 255, 255, 0.1)",
-                                    cursor: unoRoom.players.length >= 2 ? "pointer" : "not-allowed",
-                                    boxShadow: unoRoom.players.length >= 2 ? "0 8px 24px rgba(239, 68, 68, 0.3)" : "none",
+                                    cursor: players.length >= 2 ? "pointer" : "not-allowed",
+                                    boxShadow: players.length >= 2 ? "0 8px 24px rgba(239, 68, 68, 0.3)" : "none",
                                     transition: "all 0.2s ease"
                                 }}
                             >
-                                🚀 Start UNO Game ({unoRoom.players.length} Players)
+                                🚀 Start UNO Game ({players.length} Players)
                             </button>
                         </div>
                     ) : (
                         <div style={{ textAlign: "center", color: "#94a3b8", fontSize: 14, padding: "12px" }}>
                             ⏳ Waiting for host to start the game...
+                        </div>
+                    )}
+
+                    {unoRoom.spectators && unoRoom.spectators.length > 0 && (
+                        <div style={{ marginTop: 18, padding: "12px 16px", background: "rgba(168, 85, 247, 0.1)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: 14 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#d8b4fe", marginBottom: 6 }}>
+                                👀 Waiting / Spectators ({unoRoom.spectators.length}):
+                            </div>
+                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                {unoRoom.spectators.map(s => (
+                                    <span key={s.id} style={{ fontSize: 12, padding: "4px 10px", background: "rgba(255,255,255,0.06)", borderRadius: 10, color: "#f1f5f9" }}>
+                                        {s.username} {s.id === socket.id ? "(You)" : ""}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

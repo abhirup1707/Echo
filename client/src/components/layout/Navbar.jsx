@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProfileContext } from "../../context/ProfileContext";
 import { SessionContext } from "../../context/SessionContext";
+import { StreamContext } from "../../context/StreamContext";
 import UserAvatar from "../common/UserAvatar";
 import "./Navbar.css";
 
@@ -9,6 +10,7 @@ function Navbar() {
   const navigate = useNavigate();
   const { profile } = useContext(ProfileContext);
   const { roomCode, hasUnreadChat } = useContext(SessionContext);
+  const { activeStream } = useContext(StreamContext);
   const initial = profile.username ? profile.username.charAt(0).toUpperCase() : "?";
 
   return (
@@ -22,6 +24,17 @@ function Navbar() {
       </div>
 
       <div className="nav-right">
+        {roomCode && activeStream && (
+          <div
+            className="nav-stream-pill"
+            onClick={() => navigate("/stream")}
+            title="Live Watch Party in progress! Click to watch"
+          >
+            <span className="live-pulsing-dot" />
+            <span>LIVE Stream</span>
+          </div>
+        )}
+
         {roomCode && (
           <div
             className="nav-room-pill"

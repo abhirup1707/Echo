@@ -3,8 +3,10 @@ const {
     getRoom,
     deleteRoom,
     checkWinner,
-    getPublicRoom
+    getPublicRoom,
+    resetTTTRoom
 } = require("./TicTacToeManager");
+const { notifyGameActivity } = require("../GameStatusTracker");
 
 function registerTicTacToeEvents(io, socket) {
 
@@ -25,8 +27,18 @@ function registerTicTacToeEvents(io, socket) {
         );
 
         if (!alreadyPlayer) {
-            if (room.players.length >= 2) {
-                socket.emit("ttt-full");
+            if (room.players.length >= 2 || room.status === "playing") {
+                // Enter Spectate / Waiting Mode
+                if (!room.spectators) room.spectators = [];
+                if (!room.spectators.find(s => s.id === socket.id)) {
+                    room.spectators.push({
+                        id: socket.id,
+                        username: username || "Spectator"
+                    });
+                }
+                socket.join(`ttt-${roomCode}`);
+                io.to(`ttt-${roomCode}`).emit("ttt-room", getPublicRoom(room));
+                notifyGameActivity(io, roomCode);
                 return;
             }
             const symbol = room.players.length === 0 ? "X" : "O";
@@ -47,6 +59,7 @@ function registerTicTacToeEvents(io, socket) {
         }
 
         io.to(`ttt-${roomCode}`).emit("ttt-room", publicRoom);
+        notifyGameActivity(io, roomCode);
 
     });
 
@@ -78,6 +91,14 @@ function registerTicTacToeEvents(io, socket) {
             if (result.winner !== "draw") {
                 room.scores[result.winner]++;
             }
+
+            if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
+            room.autoResetTimer = setTimeout(() => {
+                if (room.status === "finished") {
+                    resetTTTRoom(room);
+                    io.to(`ttt-${roomCode}`).emit("ttt-room", getPublicRoom(room));
+                }
+            }, 6000);
         } else {
             room.currentTurn = room.currentTurn === "X" ? "O" : "X";
         }
@@ -99,29 +120,17 @@ function registerTicTacToeEvents(io, socket) {
         handleTttRestart(roomCode);
     });
 
+    socket.on("ttt-reset", ({ roomCode }) => {
+        handleTttRestart(roomCode);
+    });
+
     function handleTttRestart(roomCode) {
 
         const room = getRoom(roomCode);
         if (!room) return;
+        if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
 
-        const player = room.players.find(p => p.id === socket.id);
-        if (!player) return;
-
-        if (room.winner && room.winner !== "draw" && room.players.length === 2) {
-            const winnerPlayer = room.players.find(p => p.symbol === room.winner);
-            const loserPlayer = room.players.find(p => p.symbol !== room.winner);
-            if (winnerPlayer && loserPlayer) {
-                winnerPlayer.symbol = "X";
-                loserPlayer.symbol = "O";
-            }
-        }
-
-        room.board = Array(9).fill(null);
-        room.currentTurn = "X";
-        room.status = "playing";
-        room.winner = null;
-        room.winLine = null;
-
+        resetTTTRoom(room);
         io.to(`ttt-${roomCode}`).emit("ttt-room", getPublicRoom(room));
 
     }
@@ -137,21 +146,21 @@ function registerTicTacToeEvents(io, socket) {
         if (!room) return;
 
         room.players = room.players.filter(p => p.id !== socket.id);
+        if (room.spectators) {
+            room.spectators = room.spectators.filter(s => s.id !== socket.id);
+        }
 
         socket.leave(`ttt-${roomCode}`);
 
-        if (room.players.length === 0) {
+        if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
             deleteRoom(roomCode);
+            notifyGameActivity(io, roomCode);
             return;
         }
 
-        room.board = Array(9).fill(null);
-        room.currentTurn = "X";
-        room.status = "waiting";
-        room.winner = null;
-        room.winLine = null;
-
+        resetTTTRoom(room);
         io.to(`ttt-${roomCode}`).emit("ttt-room", getPublicRoom(room));
+        notifyGameActivity(io, roomCode);
 
     });
 
@@ -165,22 +174,23 @@ function registerTicTacToeEvents(io, socket) {
         Object.values(getAllRooms()).forEach(room => {
 
             const wasPlayer = room.players.some(p => p.id === socket.id);
-            if (!wasPlayer) return;
+            const wasSpectator = room.spectators && room.spectators.some(s => s.id === socket.id);
+            if (!wasPlayer && !wasSpectator) return;
 
             room.players = room.players.filter(p => p.id !== socket.id);
+            if (room.spectators) {
+                room.spectators = room.spectators.filter(s => s.id !== socket.id);
+            }
 
-            if (room.players.length === 0) {
+            if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
                 deleteRoom(room.roomCode);
+                notifyGameActivity(io, room.roomCode);
                 return;
             }
 
-            room.board = Array(9).fill(null);
-            room.currentTurn = "X";
-            room.status = "waiting";
-            room.winner = null;
-            room.winLine = null;
-
+            resetTTTRoom(room);
             io.to(`ttt-${room.roomCode}`).emit("ttt-room", getPublicRoom(room));
+            notifyGameActivity(io, room.roomCode);
 
         });
 

@@ -5,17 +5,20 @@ import {
     FaHome,
     FaSearch,
     FaVideo,
+    FaTv,
     FaUsers,
     FaUserCircle,
-    FaCog
+    FaCog,
+    FaGamepad
 } from "react-icons/fa";
-import { FaGamepad } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { SessionContext } from "../../context/SessionContext";
+import { StreamContext } from "../../context/StreamContext";
 
 function Sidebar() {
     const location = useLocation();
     const { hasUnreadChat } = useContext(SessionContext);
+    const { activeStream } = useContext(StreamContext);
     const activeGamePath = sessionStorage.getItem("echo_active_game") || "/games";
 
     const menu = [
@@ -33,6 +36,12 @@ function Sidebar() {
             name: "Videos",
             path: "/videos",
             icon: <FaVideo />
+        },
+        {
+            name: "Watch Party",
+            path: "/stream",
+            icon: <FaTv />,
+            hasDot: Boolean(activeStream)
         },
         {
             name: "Session",

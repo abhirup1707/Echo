@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import socket from "../../../socket";
 import { chessSounds } from "../../../utils/gameSounds";
+import SpectatorBanner from "../SpectatorBanner";
 import "./ChessGame.css";
 
 const SOLID_PIECES = {
@@ -16,8 +17,10 @@ const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 export default function ChessGame({ roomCode, chessRoom, onLeave }) {
     const myId = socket.id;
-    const me = chessRoom.players.find(p => p.id === myId);
-    const opponent = chessRoom.players.find(p => p.id !== myId);
+    const players = chessRoom.players || [];
+    const isSpectator = !players.some(p => p.id === myId) || chessRoom.spectators?.some(s => s.id === myId);
+    const me = players.find(p => p.id === myId);
+    const opponent = isSpectator ? players[1] : players.find(p => p.id !== myId);
 
     const myColor = me?.color || "w";
     const [flipped, setFlipped] = useState(myColor === "b");
@@ -25,7 +28,7 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
     const [legalMoves, setLegalMoves] = useState([]);
     const [pendingPromotion, setPendingPromotion] = useState(null);
 
-    const isMyTurn = chessRoom.turn === myColor;
+    const isMyTurn = !isSpectator && chessRoom.turn === myColor;
     const isPlaying = chessRoom.status === "playing";
     const lastMove = chessRoom.lastMove;
     const isGameOver = ["checkmate", "stalemate", "resigned"].includes(chessRoom.status);
@@ -81,7 +84,7 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
     }, [chessRoom.turn, chessRoom.board]);
 
     function handleSquareClick(idx) {
-        if (!isPlaying) return;
+        if (!isPlaying || isSpectator) return;
 
         const piece = chessRoom.board[idx];
 
@@ -119,21 +122,20 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
                 setLegalMoves([]);
                 socket.emit("chess-get-moves", { roomCode, from: idx });
             }
-            return;
+        } else {
+            // Clicked empty square or opponent piece when no valid move
+            setSelectedSquare(null);
+            setLegalMoves([]);
         }
-
-        // 3. Clicked somewhere else
-        setSelectedSquare(null);
-        setLegalMoves([]);
     }
 
-    function handlePromotionSelect(chosenPiece) {
+    function handlePromotionSelect(pieceType) {
         if (!pendingPromotion) return;
         socket.emit("chess-move", {
             roomCode,
             from: pendingPromotion.from,
             to: pendingPromotion.to,
-            promotion: chosenPiece
+            promotion: pieceType
         });
         setPendingPromotion(null);
         setSelectedSquare(null);
@@ -141,7 +143,8 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
     }
 
     function handleResign() {
-        if (window.confirm("Are you sure you want to resign the match?")) {
+        if (!isPlaying || isSpectator) return;
+        if (window.confirm("Are you sure you want to resign this chess match?")) {
             socket.emit("chess-resign", { roomCode });
         }
     }
@@ -154,14 +157,22 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
     const rows = flipped ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
     const cols = flipped ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
 
-    const whitePlayer = chessRoom.players.find(p => p.color === "w");
-    const blackPlayer = chessRoom.players.find(p => p.color === "b");
+    const whitePlayer = players.find(p => p.color === "w");
+    const blackPlayer = players.find(p => p.color === "b");
 
     const topPlayer = flipped ? whitePlayer : blackPlayer;
     const bottomPlayer = flipped ? blackPlayer : whitePlayer;
 
     return (
         <div className="chess-container">
+            {isSpectator && (
+                <SpectatorBanner
+                    gameTitle="Chess"
+                    isFinished={isGameOver}
+                    onExit={onLeave}
+                />
+            )}
+
             {/* Header */}
             <div className="chess-header">
                 <div className="chess-header-left">
@@ -182,7 +193,7 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
                     >
                         🔄 Flip Board
                     </button>
-                    {isPlaying && (
+                    {isPlaying && !isSpectator && (
                         <button
                             className="chess-resign-btn"
                             onClick={handleResign}
@@ -298,17 +309,25 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
 
                     <div className="chess-status-badge">
                         <span className="chess-status-label">Turn</span>
-                        <span className="chess-status-value" style={{ color: chessRoom.turn === myColor ? "#22c55e" : "#f1f5f9" }}>
-                            {chessRoom.turn === myColor
-                                ? "Your Turn (" + (myColor === "w" ? "White" : "Black") + ")"
-                                : (opponent?.username || "Opponent") + "'s Turn"}
-                        </span>
+                        {isSpectator ? (
+                            <span className="chess-status-value" style={{ color: "#38bdf8" }}>
+                                {chessRoom.turn === "w" ? `⚪ ${whitePlayer?.username || "White"}'s Turn` : `⚫ ${blackPlayer?.username || "Black"}'s Turn`}
+                            </span>
+                        ) : (
+                            <span className="chess-status-value" style={{ color: chessRoom.turn === myColor ? "#22c55e" : "#f1f5f9" }}>
+                                {chessRoom.turn === myColor
+                                    ? "Your Turn (" + (myColor === "w" ? "White" : "Black") + ")"
+                                    : (opponent?.username || "Opponent") + "'s Turn"}
+                            </span>
+                        )}
                     </div>
 
                     <div className="chess-status-badge">
-                        <span className="chess-status-label">Your Playing Color</span>
-                        <span className="chess-status-value">
-                            {myColor === "w" ? "⚪ White (Moves First)" : "⚫ Black"}
+                        <span className="chess-status-label">{isSpectator ? "Your Role" : "Your Playing Color"}</span>
+                        <span className="chess-status-value" style={{ color: isSpectator ? "#c084fc" : undefined }}>
+                            {isSpectator
+                                ? "👀 Spectating Live Match"
+                                : myColor === "w" ? "⚪ White (Moves First)" : "⚫ Black"}
                         </span>
                     </div>
 
@@ -320,6 +339,21 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
                                 {lastMove.captured ? ` (Captured ${lastMove.captured.toUpperCase()})` : ""}
                                 {lastMove.promotion ? ` =${lastMove.promotion.toUpperCase()}` : ""}
                             </span>
+                        </div>
+                    )}
+
+                    {chessRoom.spectators && chessRoom.spectators.length > 0 && (
+                        <div style={{ padding: "8px 12px", background: "rgba(168,85,247,0.1)", borderRadius: 10, border: "1px solid rgba(168,85,247,0.2)" }}>
+                            <div style={{ fontSize: 11, color: "#d8b4fe", fontWeight: 700, marginBottom: 4 }}>
+                                👀 Spectators ({chessRoom.spectators.length})
+                            </div>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                {chessRoom.spectators.map(s => (
+                                    <span key={s.id} style={{ fontSize: 11, padding: "2px 8px", background: "rgba(255,255,255,0.06)", borderRadius: 8, color: "#f1f5f9" }}>
+                                        {s.username} {s.id === myId ? "(You)" : ""}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
 
@@ -372,7 +406,7 @@ export default function ChessGame({ roomCode, chessRoom, onLeave }) {
                         <p>
                             {chessRoom.winner === "draw"
                                 ? "The match ended in a draw."
-                                : `${chessRoom.winner === "w" ? "White" : "Black"} (${chessRoom.players.find(p => p.color === chessRoom.winner)?.username || "Player"}) won the match!`}
+                                : `${chessRoom.winner === "w" ? "White" : "Black"} (${players.find(p => p.color === chessRoom.winner)?.username || "Player"}) won the match!`}
                         </p>
                         <div className="chess-gameover-actions">
                             <button className="chess-restart-btn" onClick={handleRematch}>

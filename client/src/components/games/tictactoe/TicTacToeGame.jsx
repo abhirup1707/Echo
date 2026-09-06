@@ -4,6 +4,7 @@ import socket from "../../../socket";
 import { SessionContext } from "../../../context/SessionContext";
 import { ProfileContext } from "../../../context/ProfileContext";
 import { tttSounds } from "../../../utils/gameSounds";
+import SpectatorBanner from "../SpectatorBanner";
 import "./TicTacToeGame.css";
 
 const WIN_LINES = [
@@ -16,9 +17,11 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
 
     const navigate = useNavigate();
     const { profile } = useContext(ProfileContext);
-    const myPlayer = tttRoom.players.find(p => p.id === socket.id);
+    const players = tttRoom.players || [];
+    const myPlayer = players.find(p => p.id === socket.id);
+    const isSpectator = !myPlayer || tttRoom.spectators?.some(s => s.id === socket.id);
     const mySymbol = myPlayer ? myPlayer.symbol : null;
-    const isMyTurn = tttRoom.status === "playing" && tttRoom.currentTurn === mySymbol;
+    const isMyTurn = !isSpectator && tttRoom.status === "playing" && tttRoom.currentTurn === mySymbol;
     const isFinished = tttRoom.status === "finished";
     const playedFinishedSoundRef = useRef(false);
 
@@ -36,7 +39,7 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
     }, [isFinished, tttRoom.winner, mySymbol]);
 
     function handleMove(index) {
-        if (!isMyTurn) return;
+        if (isSpectator || !isMyTurn) return;
         if (tttRoom.board[index] !== null) return;
         tttSounds.place();
         socket.emit("ttt-move", { roomCode, index });
@@ -55,10 +58,18 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
     function getStatusText() {
         if (isFinished) {
             if (tttRoom.winner === "draw") return "It's a Draw!";
+            if (isSpectator) {
+                const winP = players.find(p => p.symbol === tttRoom.winner);
+                return `${winP?.username || tttRoom.winner} Wins!`;
+            }
             if (tttRoom.winner === mySymbol) return "You Win!";
             return "You Lose!";
         }
-        if (tttRoom.players.length < 2) return "Waiting for opponent...";
+        if (players.length < 2) return "Waiting for opponent...";
+        if (isSpectator) {
+            const currentP = players.find(p => p.symbol === tttRoom.currentTurn);
+            return `${currentP?.username || tttRoom.currentTurn}'s Turn`;
+        }
         if (isMyTurn) return "Your Turn";
         return "Opponent's Turn";
     }
@@ -70,14 +81,23 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
         if (isFinished && tttRoom.winLine && tttRoom.winLine.includes(index)) {
             cls += " win";
         }
-        if (isMyTurn && !value && !isFinished) cls += " clickable";
+        if (!isSpectator && isMyTurn && !value && !isFinished) cls += " clickable";
         return cls;
     }
 
-    const opponent = tttRoom.players.find(p => p.id !== socket.id);
+    const playerX = players.find(p => p.symbol === "X");
+    const playerO = players.find(p => p.symbol === "O");
 
     return (
         <div className="ttt-page">
+            {isSpectator && (
+                <SpectatorBanner
+                    gameTitle="Tic Tac Toe"
+                    isFinished={isFinished}
+                    onExit={handleLeave}
+                />
+            )}
+
             <div className="ttt-header">
                 <h1>⭕ Tic Tac Toe</h1>
                 <button onClick={handleLeave}>⬅ Back</button>
@@ -87,13 +107,13 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
                 <div className="ttt-players-bar">
                     <div className={`ttt-player-info ${tttRoom.currentTurn === "X" && !isFinished ? "active" : ""}`}>
                         <span className="ttt-symbol x">X</span>
-                        <span>{myPlayer ? "You" : "Waiting..."}</span>
+                        <span>{playerX ? (playerX.id === socket.id ? "You" : playerX.username) : "Waiting..."}</span>
                         <span className="ttt-score">{tttRoom.scores.X}</span>
                     </div>
                     <div className="ttt-vs">VS</div>
                     <div className={`ttt-player-info ${tttRoom.currentTurn === "O" && !isFinished ? "active" : ""}`}>
                         <span className="ttt-symbol o">O</span>
-                        <span>{opponent ? opponent.username : "Waiting..."}</span>
+                        <span>{playerO ? (playerO.id === socket.id ? "You" : playerO.username) : "Waiting..."}</span>
                         <span className="ttt-score">{tttRoom.scores.O}</span>
                     </div>
                 </div>
@@ -118,6 +138,12 @@ export default function TicTacToeGame({ roomCode, tttRoom }) {
                     <button className="ttt-restart-btn" onClick={handleRestart}>
                         🔄 Play Again
                     </button>
+                )}
+
+                {tttRoom.spectators && tttRoom.spectators.length > 0 && (
+                    <div style={{ marginTop: 20, textAlign: "center", fontSize: 12, color: "#a855f7" }}>
+                        👀 Spectating: {tttRoom.spectators.map(s => `${s.username}${s.id === socket.id ? " (You)" : ""}`).join(", ")}
+                    </div>
                 )}
             </div>
         </div>

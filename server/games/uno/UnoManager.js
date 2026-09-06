@@ -79,6 +79,7 @@ function createRoom(roomCode) {
     rooms[roomCode] = {
         roomCode,
         players: [],
+        spectators: [],
         deck: [],
         discardPile: [],
         currentTurnIndex: 0,
@@ -364,8 +365,42 @@ function getPublicUnoRoom(room, forPlayerId = null) {
             hasCalledUno: p.hasCalledUno,
             isHost: room.players[0] && room.players[0].id === p.id,
             hand: p.id === forPlayerId ? p.hand : []
+        })),
+        spectators: (room.spectators || []).map(s => ({
+            id: s.id,
+            username: s.username
         }))
     };
+}
+
+function resetUnoGame(room) {
+    if (!room) return;
+    if (room.spectators && room.spectators.length > 0) {
+        while (room.players.length < 15 && room.spectators.length > 0) {
+            const nextP = room.spectators.shift();
+            if (!room.players.some(p => p.id === nextP.id)) {
+                room.players.push({
+                    id: nextP.id,
+                    username: nextP.username,
+                    hand: [],
+                    hasCalledUno: false
+                });
+            }
+        }
+    }
+    room.status = "waiting";
+    room.winner = null;
+    room.deck = [];
+    room.discardPile = [];
+    room.currentTurnIndex = 0;
+    room.direction = 1;
+    room.activeColor = null;
+    room.pendingWild = null;
+    room.lastAction = "Waiting for players to start game";
+    room.players.forEach(p => {
+        p.hand = [];
+        p.hasCalledUno = false;
+    });
 }
 
 module.exports = {
@@ -377,5 +412,6 @@ module.exports = {
     playCard,
     playerDrawCard,
     playerCallUno,
-    getPublicUnoRoom
+    getPublicUnoRoom,
+    resetUnoGame
 };

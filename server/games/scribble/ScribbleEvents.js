@@ -2,12 +2,9 @@ const {
     createScribbleRoom,
     getScribbleRoom
 } = require("./ScribbleManager");
-
+const { notifyGameActivity } = require("../GameStatusTracker");
 const words = require("./Words");
 
-
-// =========================================================
-// DEBUG: CHECK HOW MANY WORDS ARE ACTUALLY LOADED
 // =========================================================
 
 console.log(
@@ -183,6 +180,8 @@ function emitScribbleStatus(io, room) {
             playerCount: room.players.length
         }
     );
+
+    notifyGameActivity(io, room.roomCode);
 
 }
 

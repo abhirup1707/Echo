@@ -7,14 +7,25 @@ const {
     playerDrawCard,
     playerCallUno,
     getPublicUnoRoom,
+    resetUnoGame,
     rooms
 } = require("./UnoManager");
+const { notifyGameActivity } = require("../GameStatusTracker");
 
 function broadcastUnoRoom(io, room) {
     if (!room) return;
     room.players.forEach(p => {
         io.to(p.id).emit("uno-room", getPublicUnoRoom(room, p.id));
     });
+    if (room.spectators) {
+        room.spectators.forEach(s => {
+            io.to(s.id).emit("uno-room", {
+                ...getPublicUnoRoom(room, null),
+                isSpectator: true,
+                isWaiting: true
+            });
+        });
+    }
 }
 
 function registerUnoEvents(io, socket) {
@@ -27,12 +38,18 @@ function registerUnoEvents(io, socket) {
 
         const existingPlayer = room.players.find(p => p.id === socket.id);
         if (!existingPlayer) {
-            if (room.players.length >= 15) {
-                socket.emit("uno-full");
-                return;
-            }
-            if (room.status === "playing") {
-                socket.emit("uno-in-progress");
+            if (room.players.length >= 15 || room.status === "playing") {
+                // Enter Spectate / Waiting Mode
+                if (!room.spectators) room.spectators = [];
+                if (!room.spectators.find(s => s.id === socket.id)) {
+                    room.spectators.push({
+                        id: socket.id,
+                        username: username || "Spectator"
+                    });
+                }
+                socket.join(`uno-${roomCode}`);
+                broadcastUnoRoom(io, room);
+                notifyGameActivity(io, roomCode);
                 return;
             }
             room.players.push({
@@ -45,6 +62,7 @@ function registerUnoEvents(io, socket) {
 
         socket.join(`uno-${roomCode}`);
         broadcastUnoRoom(io, room);
+        notifyGameActivity(io, roomCode);
     });
 
     // START GAME
@@ -68,6 +86,15 @@ function registerUnoEvents(io, socket) {
         const result = playCard(room, socket.id, cardId, chosenColor, targetPlayerId);
         if (result.success) {
             broadcastUnoRoom(io, room);
+            if (room.status === "finished") {
+                if (room.autoResetTimer) clearTimeout(room.autoResetTimer);
+                room.autoResetTimer = setTimeout(() => {
+                    if (room.status === "finished") {
+                        resetUnoGame(room);
+                        broadcastUnoRoom(io, room);
+                    }
+                }, 7000);
+            }
         } else {
             socket.emit("uno-error", { message: result.message });
         }
@@ -99,34 +126,22 @@ function registerUnoEvents(io, socket) {
     socket.on("uno-play-again", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
-
-        // Reset to lobby so all players who want to play again enter the Start Game page
-        room.status = "waiting";
-        room.winner = null;
-        room.deck = [];
-        room.discardPile = [];
-        room.lastAction = `${room.players.find(p => p.id === socket.id)?.username || "Player"} requested rematch! Waiting for host to start.`;
-        room.players.forEach(p => {
-            p.hand = [];
-            p.hasCalledUno = false;
-        });
-
+        resetUnoGame(room);
         broadcastUnoRoom(io, room);
     });
 
     socket.on("uno-restart", ({ roomCode }) => {
         const room = getRoom(roomCode);
         if (!room) return;
+        resetUnoGame(room);
+        broadcastUnoRoom(io, room);
+    });
 
-        room.status = "waiting";
-        room.winner = null;
-        room.deck = [];
-        room.discardPile = [];
-        room.players.forEach(p => {
-            p.hand = [];
-            p.hasCalledUno = false;
-        });
-
+    // RESET UNO (Play Again / Return to Lobby)
+    socket.on("uno-reset", ({ roomCode }) => {
+        const room = getRoom(roomCode);
+        if (!room) return;
+        resetUnoGame(room);
         broadcastUnoRoom(io, room);
     });
 
@@ -136,39 +151,49 @@ function registerUnoEvents(io, socket) {
         if (!room) return;
 
         room.players = room.players.filter(p => p.id !== socket.id);
+        if (room.spectators) {
+            room.spectators = room.spectators.filter(s => s.id !== socket.id);
+        }
         socket.leave(`uno-${roomCode}`);
 
-        if (room.players.length === 0) {
+        if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
             deleteRoom(roomCode);
+            notifyGameActivity(io, roomCode);
             return;
         }
 
         if (room.status === "playing" && room.players.length < 2) {
-            room.status = "waiting";
-            room.lastAction = "Not enough players to continue game.";
+            resetUnoGame(room);
         }
 
         broadcastUnoRoom(io, room);
+        notifyGameActivity(io, roomCode);
     });
 
     // DISCONNECT
     socket.on("disconnect", () => {
         Object.values(rooms).forEach(room => {
             const wasPlayer = room.players.some(p => p.id === socket.id);
-            if (!wasPlayer) return;
+            const wasSpectator = room.spectators && room.spectators.some(s => s.id === socket.id);
+            if (!wasPlayer && !wasSpectator) return;
 
             room.players = room.players.filter(p => p.id !== socket.id);
-            if (room.players.length === 0) {
+            if (room.spectators) {
+                room.spectators = room.spectators.filter(s => s.id !== socket.id);
+            }
+
+            if (room.players.length === 0 && (!room.spectators || room.spectators.length === 0)) {
                 deleteRoom(room.roomCode);
+                notifyGameActivity(io, room.roomCode);
                 return;
             }
 
             if (room.status === "playing" && room.players.length < 2) {
-                room.status = "waiting";
-                room.lastAction = "Player left, awaiting more players.";
+                resetUnoGame(room);
             }
 
             broadcastUnoRoom(io, room);
+            notifyGameActivity(io, room.roomCode);
         });
     });
 }

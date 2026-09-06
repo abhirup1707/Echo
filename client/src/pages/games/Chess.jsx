@@ -104,7 +104,8 @@ export default function Chess() {
     }
 
     if (chessRoom.status === "waiting") {
-        const isHost = chessRoom.players[0]?.id === socket.id;
+        const players = chessRoom.players || [];
+        const isHost = players[0]?.id === socket.id;
 
         return (
             <div className="scribble-page" style={{ maxWidth: 640, margin: "0 auto", padding: "30px 20px" }}>
@@ -138,11 +139,11 @@ export default function Chess() {
 
                 <div className="scribble-card" style={{ background: "rgba(15, 23, 42, 0.65)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: 20, padding: "28px", backdropFilter: "blur(20px)" }}>
                     <h2 style={{ fontSize: 20, margin: "0 0 20px 0", color: "#f8fafc" }}>
-                        Players ({chessRoom.players.length} / 2)
+                        Players ({players.length} / 2)
                     </h2>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 }}>
-                        {chessRoom.players.map(p => (
+                        {players.map(p => (
                             <div
                                 key={p.id}
                                 style={{
@@ -183,7 +184,7 @@ export default function Chess() {
                             </div>
                         ))}
 
-                        {chessRoom.players.length === 1 && (
+                        {players.length === 1 && (
                             <div
                                 style={{
                                     display: "flex",
@@ -213,7 +214,7 @@ export default function Chess() {
                         )}
                     </div>
 
-                    {chessRoom.players.length >= 2 ? (
+                    {players.length >= 2 ? (
                         isHost ? (
                             <div style={{ textAlign: "center", marginTop: 24 }}>
                                 <button
@@ -240,6 +241,21 @@ export default function Chess() {
                             </div>
                         )
                     ) : null}
+
+                    {chessRoom.spectators && chessRoom.spectators.length > 0 && (
+                        <div style={{ marginTop: 20, padding: "12px 16px", background: "rgba(168, 85, 247, 0.1)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: 14 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#d8b4fe", marginBottom: 6 }}>
+                                👀 Waiting / Spectators ({chessRoom.spectators.length}):
+                            </div>
+                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                {chessRoom.spectators.map(s => (
+                                    <span key={s.id} style={{ fontSize: 12, padding: "4px 10px", background: "rgba(255,255,255,0.06)", borderRadius: 10, color: "#f1f5f9" }}>
+                                        {s.username} {s.id === socket.id ? "(You)" : ""}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         );

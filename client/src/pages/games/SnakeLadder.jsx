@@ -35,8 +35,8 @@ export default function SnakeLadder() {
     useEffect(() => {
         if (!roomCode) return;
         sessionStorage.setItem("echo_active_game", "/games/snakeandladder");
-        socket.emit("sl-join", { roomCode, username: profile.username });
-    }, [roomCode]);
+        socket.emit("sl-join", { roomCode, username: profile?.username || "Player" });
+    }, [roomCode, profile?.username]);
 
     const handleLeave = () => {
         sessionStorage.removeItem("echo_active_game");
@@ -95,7 +95,8 @@ export default function SnakeLadder() {
     }
 
     if (slRoom.status === "waiting") {
-        const isHost = slRoom.players.length > 0 && slRoom.players[0].id === socket.id;
+        const players = slRoom.players || [];
+        const isHost = players.length > 0 && players[0].id === socket.id;
         return (
             <div className="scribble-page">
                 <div style={{
@@ -110,9 +111,9 @@ export default function SnakeLadder() {
 
                 <div className="scribble-layout">
                     <div className="scribble-card">
-                        <h2>Players ({slRoom.players.length}/6)</h2>
+                        <h2>Players ({players.length}/6)</h2>
                         <div className="player-list">
-                            {slRoom.players.map((p, i) => (
+                            {players.map((p, i) => (
                                 <div className="scribble-player" key={p.id}>
                                     <div className="avatar" style={{ background: p.color, color: "#fff" }}>
                                         {i + 1}
@@ -122,6 +123,21 @@ export default function SnakeLadder() {
                                 </div>
                             ))}
                         </div>
+
+                        {slRoom.spectators && slRoom.spectators.length > 0 && (
+                            <div style={{ marginTop: 18, padding: "12px 14px", background: "rgba(168, 85, 247, 0.1)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: 12 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: "#d8b4fe", marginBottom: 6 }}>
+                                    👀 Waiting / Spectators ({slRoom.spectators.length}):
+                                </div>
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    {slRoom.spectators.map(s => (
+                                        <span key={s.id} style={{ fontSize: 11, padding: "3px 8px", background: "rgba(255,255,255,0.06)", borderRadius: 8, color: "#f1f5f9" }}>
+                                            {s.username} {s.id === socket.id ? "(You)" : ""}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="settings-card">
@@ -129,7 +145,7 @@ export default function SnakeLadder() {
                         <div className="waiting-settings">
                             <div>
                                 Players
-                                <strong>{slRoom.players.length} / 6</strong>
+                                <strong>{players.length} / 6</strong>
                             </div>
                             <div>
                                 Map
@@ -143,8 +159,8 @@ export default function SnakeLadder() {
                         {isHost ? (
                             <button
                                 className="start-btn"
-                                disabled={slRoom.players.length < 2}
-                                style={{ marginTop: 16, background: slRoom.players.length < 2 ? "#555" : "#16a34a" }}
+                                disabled={players.length < 2}
+                                style={{ marginTop: 16, background: players.length < 2 ? "#555" : "#16a34a" }}
                                 onClick={() => socket.emit("sl-start", { roomCode })}
                             >
                                 ▶ Start Game

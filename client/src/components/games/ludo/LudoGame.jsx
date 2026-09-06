@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import socket from "../../../socket";
 import { ludoSounds } from "../../../utils/gameSounds";
+import SpectatorBanner from "../SpectatorBanner";
 import "./LudoGame.css";
 
 const START_INDEX = {
@@ -56,9 +57,15 @@ const DICE_PIPS = {
 
 export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
     const myId = socket.id;
-    const isMyTurn = ludoRoom.currentTurn === myId;
+    const isSpectator = ludoRoom.spectators?.some(s => s.id === myId) || !ludoRoom.players?.some(p => p.id === myId);
+    const isMyTurn = !isSpectator && ludoRoom.currentTurn === myId;
     const canRoll = isMyTurn && !ludoRoom.diceRolled && ludoRoom.status === "playing";
     const legalMoves = ludoRoom.legalMoves || [];
+
+    const redPlayer = ludoRoom.players?.find(p => p.color === "red");
+    const greenPlayer = ludoRoom.players?.find(p => p.color === "green");
+    const yellowPlayer = ludoRoom.players?.find(p => p.color === "yellow");
+    const bluePlayer = ludoRoom.players?.find(p => p.color === "blue");
 
     // Always keep a visible dice value (default 1 with large red pip, or last rolled value)
     const [displayDiceValue, setDisplayDiceValue] = useState(ludoRoom.diceValue || 1);
@@ -216,6 +223,14 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
 
     return (
         <div className="ludo-container">
+            {isSpectator && (
+                <SpectatorBanner
+                    gameTitle="Ludo"
+                    isFinished={ludoRoom.status === "finished"}
+                    onExit={onLeave}
+                />
+            )}
+
             {/* Header */}
             <div className="ludo-header">
                 <button className="ludo-back-btn" onClick={onLeave}>
@@ -239,12 +254,14 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
                     <div className="ludo-board">
                         {/* Red Yard Base (Top-Left 6x6) */}
                         <div className="ludo-base red">
+                            <div className="ludo-base-player-tag">
+                                🔴 {redPlayer ? redPlayer.username : "Empty"}
+                            </div>
                             <div className="ludo-base-inner">
                                 {[0, 1, 2, 3].map(tid => {
-                                    const redPlayer = ludoRoom.players.find(p => p.color === "red");
                                     const token = redPlayer?.tokens?.find(t => t.id === tid);
                                     const inYard = token?.step === -1;
-                                    const clickable = inYard && isMyTurn && redPlayer.id === myId && legalMoves.includes(tid);
+                                    const clickable = inYard && isMyTurn && redPlayer?.id === myId && legalMoves.includes(tid);
 
                                     return (
                                         <div key={tid} className="ludo-base-slot">
@@ -252,7 +269,7 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
                                                 <div
                                                     className={`ludo-token token-red ${clickable ? "clickable" : ""}`}
                                                     onClick={() => clickable && handleTokenClick(token, redPlayer)}
-                                                    title={`Red Token ${tid + 1}`}
+                                                    title={`${redPlayer?.username || "Red"}'s Token ${tid + 1}`}
                                                 >
                                                     {tid + 1}
                                                 </div>
@@ -265,12 +282,14 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
 
                         {/* Green Yard Base (Top-Right 6x6) */}
                         <div className="ludo-base green">
+                            <div className="ludo-base-player-tag">
+                                🟢 {greenPlayer ? greenPlayer.username : "Empty"}
+                            </div>
                             <div className="ludo-base-inner">
                                 {[0, 1, 2, 3].map(tid => {
-                                    const greenPlayer = ludoRoom.players.find(p => p.color === "green");
                                     const token = greenPlayer?.tokens?.find(t => t.id === tid);
                                     const inYard = token?.step === -1;
-                                    const clickable = inYard && isMyTurn && greenPlayer.id === myId && legalMoves.includes(tid);
+                                    const clickable = inYard && isMyTurn && greenPlayer?.id === myId && legalMoves.includes(tid);
 
                                     return (
                                         <div key={tid} className="ludo-base-slot">
@@ -278,7 +297,7 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
                                                 <div
                                                     className={`ludo-token token-green ${clickable ? "clickable" : ""}`}
                                                     onClick={() => clickable && handleTokenClick(token, greenPlayer)}
-                                                    title={`Green Token ${tid + 1}`}
+                                                    title={`${greenPlayer?.username || "Green"}'s Token ${tid + 1}`}
                                                 >
                                                     {tid + 1}
                                                 </div>
@@ -291,12 +310,14 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
 
                         {/* Yellow Yard Base (Bottom-Right 6x6) */}
                         <div className="ludo-base yellow">
+                            <div className="ludo-base-player-tag">
+                                🟡 {yellowPlayer ? yellowPlayer.username : "Empty"}
+                            </div>
                             <div className="ludo-base-inner">
                                 {[0, 1, 2, 3].map(tid => {
-                                    const yellowPlayer = ludoRoom.players.find(p => p.color === "yellow");
                                     const token = yellowPlayer?.tokens?.find(t => t.id === tid);
                                     const inYard = token?.step === -1;
-                                    const clickable = inYard && isMyTurn && yellowPlayer.id === myId && legalMoves.includes(tid);
+                                    const clickable = inYard && isMyTurn && yellowPlayer?.id === myId && legalMoves.includes(tid);
 
                                     return (
                                         <div key={tid} className="ludo-base-slot">
@@ -304,7 +325,7 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
                                                 <div
                                                     className={`ludo-token token-yellow ${clickable ? "clickable" : ""}`}
                                                     onClick={() => clickable && handleTokenClick(token, yellowPlayer)}
-                                                    title={`Yellow Token ${tid + 1}`}
+                                                    title={`${yellowPlayer?.username || "Yellow"}'s Token ${tid + 1}`}
                                                 >
                                                     {tid + 1}
                                                 </div>
@@ -317,12 +338,14 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
 
                         {/* Blue Yard Base (Bottom-Left 6x6) */}
                         <div className="ludo-base blue">
+                            <div className="ludo-base-player-tag">
+                                🔵 {bluePlayer ? bluePlayer.username : "Empty"}
+                            </div>
                             <div className="ludo-base-inner">
                                 {[0, 1, 2, 3].map(tid => {
-                                    const bluePlayer = ludoRoom.players.find(p => p.color === "blue");
                                     const token = bluePlayer?.tokens?.find(t => t.id === tid);
                                     const inYard = token?.step === -1;
-                                    const clickable = inYard && isMyTurn && bluePlayer.id === myId && legalMoves.includes(tid);
+                                    const clickable = inYard && isMyTurn && bluePlayer?.id === myId && legalMoves.includes(tid);
 
                                     return (
                                         <div key={tid} className="ludo-base-slot">
@@ -330,7 +353,7 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
                                                 <div
                                                     className={`ludo-token token-blue ${clickable ? "clickable" : ""}`}
                                                     onClick={() => clickable && handleTokenClick(token, bluePlayer)}
-                                                    title={`Blue Token ${tid + 1}`}
+                                                    title={`${bluePlayer?.username || "Blue"}'s Token ${tid + 1}`}
                                                 >
                                                     {tid + 1}
                                                 </div>
@@ -422,7 +445,15 @@ export default function LudoGame({ roomCode, ludoRoom, onLeave }) {
                             disabled={!canRoll || isRolling}
                             onClick={handleRoll}
                         >
-                            {isRolling ? "🎲 ROLLING..." : canRoll ? "🎲 ROLL DICE" : isMyTurn ? "👉 Move a Glowing Token" : "Waiting for Opponent..."}
+                            {isRolling
+                                ? "🎲 ROLLING..."
+                                : canRoll
+                                ? "🎲 ROLL DICE"
+                                : isMyTurn
+                                ? "👉 Move a Glowing Token"
+                                : isSpectator
+                                ? `🎲 ${ludoRoom.currentTurnUsername || "Player"}'s Turn to Roll`
+                                : `Waiting for ${ludoRoom.currentTurnUsername || "Opponent"}...`}
                         </button>
                     </div>
 

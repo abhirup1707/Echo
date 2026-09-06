@@ -11,6 +11,7 @@ import SessionProvider from "./context/SessionContext";
 import VoiceProvider from "./context/VoiceContext";
 import { ScribbleProvider } from "./context/ScribbleContext";
 import { PlaylistProvider } from "./context/PlaylistContext";
+import StreamProvider from "./context/StreamContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -24,6 +25,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
 <VoiceProvider>
 
+<StreamProvider>
+
 <ScribbleProvider>
 
 <PlaylistProvider>
@@ -33,6 +36,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 </PlaylistProvider>
 
 </ScribbleProvider>
+
+</StreamProvider>
 
 </VoiceProvider>
 

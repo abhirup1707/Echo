@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import socket from "../../../socket";
 import { unoSounds } from "../../../utils/gameSounds";
+import SpectatorBanner from "../SpectatorBanner";
 import "./UnoGame.css";
 
 const COLOR_MAP = {
@@ -33,14 +34,16 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
     }, [unoRoom.status]);
 
     const myId = socket.id;
-    const me = unoRoom.players.find(p => p.id === myId);
+    const players = unoRoom.players || [];
+    const isSpectator = unoRoom.isSpectator || !players.some(p => p.id === myId);
+    const me = players.find(p => p.id === myId);
     const myHand = me?.hand || [];
-    const isMyTurn = unoRoom.currentTurn === myId && animationPhase === "ready";
-    const isHost = unoRoom.players[0] && unoRoom.players[0].id === myId;
+    const isMyTurn = !isSpectator && unoRoom.currentTurn === myId && animationPhase === "ready";
+    const isHost = players[0] && players[0].id === myId;
     const topCard = unoRoom.topCard;
     const activeColor = unoRoom.activeColor || topCard?.color || "red";
 
-    const opponents = unoRoom.players.filter(p => p.id !== myId);
+    const opponents = players.filter(p => p.id !== myId);
 
     // Initial game start shuffle & 1-by-1 dealing animation
     useEffect(() => {
@@ -53,7 +56,7 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
             const shuffleTimer = setTimeout(() => {
                 // Trigger 1-by-1 Dealing
                 setAnimationPhase("dealing");
-                const totalCardsToDeal = unoRoom.players.length * 7;
+                const totalCardsToDeal = players.length * 7;
                 let currentDeal = 0;
 
                 const dealInterval = setInterval(() => {
@@ -72,7 +75,7 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
 
             return () => clearTimeout(shuffleTimer);
         }
-    }, [unoRoom.gameId, unoRoom.status, unoRoom.players.length]);
+    }, [unoRoom.gameId, unoRoom.status, players.length]);
 
     // Reshuffle animation when draw deck is exhausted and discard pile is reshuffled
     useEffect(() => {
@@ -148,12 +151,20 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
         socket.emit("uno-play-again", { roomCode });
     }
 
-    const totalToDeal = unoRoom.players.length * 7;
-    const dealingActivePlayerIndex = animationPhase === "dealing" ? (dealtCount % unoRoom.players.length) : -1;
-    const dealingActivePlayer = unoRoom.players[dealingActivePlayerIndex];
+    const totalToDeal = players.length * 7;
+    const dealingActivePlayerIndex = animationPhase === "dealing" ? (dealtCount % (players.length || 1)) : -1;
+    const dealingActivePlayer = players[dealingActivePlayerIndex];
 
     return (
         <div className="uno-game-container">
+            {isSpectator && (
+                <SpectatorBanner
+                    gameTitle="UNO"
+                    isFinished={unoRoom.status === "finished"}
+                    onExit={onLeave}
+                />
+            )}
+
             {/* ── TOP BAR ── */}
             <div className="uno-header">
                 <div className="uno-header-left">
@@ -189,11 +200,13 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
                     </div>
                 </div>
 
-                <div className="uno-header-right">
-                    <button className="uno-call-btn" onClick={handleCallUno} title="Call UNO when on 1 card!">
-                        🔥 Call UNO!
-                    </button>
-                </div>
+                {!isSpectator && (
+                    <div className="uno-header-right">
+                        <button className="uno-call-btn" onClick={handleCallUno} title="Call UNO when on 1 card!">
+                            🔥 Call UNO!
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* ── ACTION NOTIFICATION ── */}
@@ -237,9 +250,9 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
             <div className="uno-table">
                 {/* Draw Pile */}
                 <div
-                    className={`uno-draw-pile ${isMyTurn ? "clickable" : ""} ${isReshuffling ? "shuffling-deck" : ""}`}
-                    onClick={handleDraw}
-                    title={isMyTurn ? "Click to draw card" : "Wait for your turn"}
+                    className={`uno-draw-pile ${!isSpectator && isMyTurn ? "clickable" : ""} ${isReshuffling ? "shuffling-deck" : ""}`}
+                    onClick={() => !isSpectator && isMyTurn && handleDraw()}
+                    title={!isSpectator && isMyTurn ? "Click to draw card" : isSpectator ? "Spectating" : "Wait for your turn"}
                 >
                     <div className="uno-card-back">
                         <span>UNO</span>
@@ -275,39 +288,99 @@ export default function UnoGame({ roomCode, unoRoom, onLeave }) {
             </div>
 
             {/* ── MY HAND (BOTTOM) ── */}
-            <div className="uno-my-hand-section">
-                <div className="uno-hand-header">
-                    <span>
-                        Your Hand ({myHand.length} cards)
-                        {animationPhase === "dealing" && dealingActivePlayer?.id === myId && " • Receiving cards..."}
-                    </span>
-                    {isMyTurn && <span className="uno-hint-text">Choose a card or click the draw pile</span>}
-                </div>
+            {isSpectator ? (
+                <div style={{
+                    margin: "24px auto 0",
+                    padding: "20px 24px",
+                    maxWidth: 640,
+                    width: "100%",
+                    background: "rgba(15, 23, 42, 0.85)",
+                    borderRadius: 18,
+                    border: "1px solid rgba(168, 85, 247, 0.35)",
+                    backdropFilter: "blur(16px)",
+                    boxShadow: "0 12px 32px rgba(0, 0, 0, 0.5)"
+                }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 16 }}>👀</span>
+                            <strong style={{ fontSize: 14, color: "#e9d5ff" }}>Live Match Roster ({players.length} Players)</strong>
+                        </div>
+                        <span style={{ fontSize: 12, color: "#34d399", background: "rgba(52, 211, 153, 0.1)", padding: "3px 10px", borderRadius: 12, border: "1px solid rgba(52, 211, 153, 0.2)", fontWeight: 700 }}>
+                            Turn: {unoRoom.currentTurnUsername || "Waiting"}
+                        </span>
+                    </div>
 
-                <div className="uno-cards-fan">
-                    {myHand.map(card => {
-                        const playable = isCardPlayable(card);
-                        return (
-                            <div
-                                key={card.id}
-                                className={`uno-card-item card-${card.color} card-${card.type} ${playable ? "playable" : "dimmed"}`}
-                                style={{ "--card-color": COLOR_MAP[card.color] || "#111" }}
-                                onClick={() => handleCardClick(card)}
-                            >
-                                <div className="uno-card-inner">
-                                    <span className="uno-card-corner top-left">{formatCardCorner(card)}</span>
-
-                                    <div className="uno-card-center-oval">
-                                        {renderCardCenter(card)}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 8, marginBottom: 14 }}>
+                        {players.map(p => {
+                            const isTheirTurn = unoRoom.currentTurn === p.id;
+                            return (
+                                <div
+                                    key={p.id}
+                                    style={{
+                                        padding: "8px 10px",
+                                        borderRadius: 10,
+                                        background: isTheirTurn ? "rgba(168, 85, 247, 0.25)" : "rgba(255, 255, 255, 0.04)",
+                                        border: isTheirTurn ? "1px solid rgba(168, 85, 247, 0.6)" : "1px solid rgba(255, 255, 255, 0.08)",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 2
+                                    }}
+                                >
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                            {p.username}
+                                        </span>
+                                        {p.isHost && <span style={{ fontSize: 10 }}>👑</span>}
                                     </div>
-
-                                    <span className="uno-card-corner bottom-right">{formatCardCorner(card)}</span>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: "#94a3b8" }}>
+                                        <span>🎴 {p.cardCount} cards</span>
+                                        {p.cardCount === 1 && <span style={{ color: "#ef4444", fontWeight: 800 }}>UNO!</span>}
+                                        {isTheirTurn && <span style={{ color: "#38bdf8", fontWeight: 700 }}>Active</span>}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
+
+                    <div style={{ textAlign: "center", fontSize: 12, color: "#94a3b8" }}>
+                        ⏳ You will automatically enter the Start Game page as soon as this match finishes!
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div className="uno-my-hand-section">
+                    <div className="uno-hand-header">
+                        <span>
+                            Your Hand ({myHand.length} cards)
+                            {animationPhase === "dealing" && dealingActivePlayer?.id === myId && " • Receiving cards..."}
+                        </span>
+                        {isMyTurn && <span className="uno-hint-text">Choose a card or click the draw pile</span>}
+                    </div>
+
+                    <div className="uno-cards-fan">
+                        {myHand.map(card => {
+                            const playable = isCardPlayable(card);
+                            return (
+                                <div
+                                    key={card.id}
+                                    className={`uno-card-item card-${card.color} card-${card.type} ${playable ? "playable" : "dimmed"}`}
+                                    style={{ "--card-color": COLOR_MAP[card.color] || "#111" }}
+                                    onClick={() => handleCardClick(card)}
+                                >
+                                    <div className="uno-card-inner">
+                                        <span className="uno-card-corner top-left">{formatCardCorner(card)}</span>
+
+                                        <div className="uno-card-center-oval">
+                                            {renderCardCenter(card)}
+                                        </div>
+
+                                        <span className="uno-card-corner bottom-right">{formatCardCorner(card)}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* ── INITIAL SHUFFLE ANIMATION OVERLAY ── */}
             {animationPhase === "shuffling" && (

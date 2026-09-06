@@ -2,8 +2,13 @@ const {
     sessions,
     createSession,
     getSession,
-    deleteSession
+    deleteSession,
+    getPublicMembers
 } = require("../rooms/SessionManager");
+const {
+    getPublicMembersWithGames,
+    getMinigamesStatus
+} = require("../games/GameStatusTracker");
 const fs = require("fs");
 const path = require("path");
 
@@ -22,11 +27,14 @@ function registerSessionHandlers(io, socket) {
 
         socket.join(session.code);
 
-        socket.emit("session-created", session);
+        socket.emit("session-created", {
+            ...session,
+            members: getPublicMembersWithGames(session)
+        });
 
         io.to(session.code).emit(
             "members-updated",
-            session.members
+            getPublicMembersWithGames(session)
         );
 
         console.log("Created:", session.code);
@@ -42,18 +50,31 @@ function registerSessionHandlers(io, socket) {
             return;
         }
 
+        const isHost = Boolean(
+            session.host === socket.id ||
+            session.hostUsername === username ||
+            session.members.length === 0
+        );
+
+        if (session.members.length === 0 || !session.host) {
+            session.host = socket.id;
+            session.hostUsername = username;
+        }
+
         const existingIdx = session.members.findIndex(m => m.id === socket.id || m.username === username);
         if (existingIdx !== -1) {
             session.members[existingIdx] = {
                 id: socket.id,
                 username,
-                avatar: avatar || session.members[existingIdx].avatar || ""
+                avatar: avatar || session.members[existingIdx].avatar || "",
+                isHost: isHost || session.members[existingIdx].isHost
             };
         } else {
             session.members.push({
                 id: socket.id,
                 username,
-                avatar: avatar || ""
+                avatar: avatar || "",
+                isHost
             });
         }
 
@@ -61,7 +82,7 @@ function registerSessionHandlers(io, socket) {
 
         io.to(roomCode).emit(
             "members-updated",
-            session.members
+            getPublicMembersWithGames(session)
         );
 socket.emit(
     "queue-updated",
@@ -128,11 +149,16 @@ if (session.currentMovie) {
         console.log(username, "joined", roomCode);
 
         socket.to(roomCode).emit("peer-joined", {
+            socketId: socket.id
+        });
 
-    socketId: socket.id
+        socket.emit("minigames-status", getMinigamesStatus(roomCode));
 
-});
+    });
 
+    socket.on("get-minigames-status", ({ roomCode }) => {
+        if (!roomCode) return;
+        socket.emit("minigames-status", getMinigamesStatus(roomCode));
     });
 
     socket.on("play-song", ({ roomCode, song }) => {
@@ -331,6 +357,164 @@ socket.on("voice-leave", ({ roomCode }) => {
     });
 });
 
+// ==========================================
+// SCREEN SHARE & WATCH PARTY SIGNALING (WebRTC)
+// ==========================================
+
+socket.on("stream-start", ({ roomCode, streamTitle, hasAudio, username }) => {
+    const session = getSession(roomCode);
+    if (!session) return;
+
+    session.activeStream = {
+        streamerId: socket.id,
+        streamerUsername: username || "Host",
+        streamTitle: streamTitle || "Live Watch Party",
+        hasAudio: Boolean(hasAudio),
+        startedAt: Date.now()
+    };
+
+    io.to(roomCode).emit("stream-started", session.activeStream);
+    console.log(`[Stream] Started in ${roomCode} by ${socket.id} (${username})`);
+});
+
+socket.on("stream-stop", ({ roomCode }) => {
+    const session = getSession(roomCode);
+    if (!session) return;
+
+    if (session.activeStream && session.activeStream.streamerId === socket.id) {
+        session.activeStream = null;
+        io.to(roomCode).emit("stream-stopped");
+        console.log(`[Stream] Stopped in ${roomCode} by streamer`);
+    }
+});
+
+socket.on("stream-get-status", ({ roomCode }, callback) => {
+    const session = getSession(roomCode);
+    const activeStream = session ? session.activeStream || null : null;
+    if (typeof callback === "function") {
+        callback({ activeStream });
+    } else {
+        socket.emit("stream-status-response", { activeStream });
+    }
+});
+
+socket.on("stream-join-viewer", ({ roomCode, username }) => {
+    const session = getSession(roomCode);
+    if (!session || !session.activeStream) return;
+
+    io.to(session.activeStream.streamerId).emit("stream-viewer-joined", {
+        viewerId: socket.id,
+        username: username || "Guest"
+    });
+});
+
+socket.on("stream-leave-viewer", ({ roomCode }) => {
+    const session = getSession(roomCode);
+    if (!session || !session.activeStream) return;
+
+    io.to(session.activeStream.streamerId).emit("stream-viewer-left", {
+        viewerId: socket.id
+    });
+});
+
+socket.on("stream-offer", ({ targetId, offer }) => {
+    io.to(targetId).emit("stream-offer", {
+        from: socket.id,
+        offer
+    });
+});
+
+socket.on("stream-answer", ({ targetId, answer }) => {
+    io.to(targetId).emit("stream-answer", {
+        from: socket.id,
+        answer
+    });
+});
+
+socket.on("stream-ice-candidate", ({ targetId, candidate }) => {
+    io.to(targetId).emit("stream-ice-candidate", {
+        from: socket.id,
+        candidate
+    });
+});
+
+// ==========================================
+// HOST KICK MEMBER
+// ==========================================
+
+socket.on("kick-member", ({ roomCode, targetSocketId, targetUsername }) => {
+    const session = getSession(roomCode);
+    if (!session) return;
+
+    // Verify caller is host
+    const isHost = Boolean(
+        session.host === socket.id ||
+        (session.hostUsername && socket.username === session.hostUsername) ||
+        (session.members[0] && session.members[0].id === socket.id)
+    );
+
+    if (!isHost) {
+        socket.emit("kick-error", { message: "Only the room host can kick members." });
+        return;
+    }
+
+    // Cannot kick yourself
+    if (socket.id === targetSocketId || (targetUsername && socket.username === targetUsername)) {
+        return;
+    }
+
+    const targetMember = session.members.find(
+        m => m.id === targetSocketId || (targetUsername && m.username === targetUsername)
+    );
+
+    if (!targetMember) return;
+
+    // Remove from session members
+    session.members = session.members.filter(
+        m => m.id !== targetMember.id && m.username !== targetMember.username
+    );
+
+    // Notify the kicked target user
+    io.to(targetMember.id).emit("kicked-from-room", {
+        roomCode,
+        reason: "You were removed from the room by the host."
+    });
+
+    // Make target leave socket room
+    const targetSocket = io.sockets.sockets.get(targetMember.id);
+    if (targetSocket) {
+        targetSocket.leave(roomCode);
+    }
+
+    // Voice call cleanup for kicked user
+    socket.to(roomCode).emit("voice-peer-left", {
+        socketId: targetMember.id
+    });
+
+    // Stream cleanup if kicked user was the streamer
+    if (session.activeStream && session.activeStream.streamerId === targetMember.id) {
+        session.activeStream = null;
+        io.to(roomCode).emit("stream-stopped");
+    }
+
+    // Broadcast updated public members list
+    io.to(roomCode).emit("members-updated", getPublicMembersWithGames(session));
+
+    // Post system announcement in room chat
+    const kickNotice = {
+        id: Date.now(),
+        sender: "System",
+        text: `👢 ${targetMember.username} was kicked from the room by the host.`,
+        isSystem: true,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    if (!session.messages) session.messages = [];
+    session.messages.push(kickNotice);
+    io.to(roomCode).emit("chat-message", kickNotice);
+
+    console.log(`[Kick] ${targetMember.username} kicked from ${roomCode} by host (${socket.id})`);
+});
+
 
 socket.on("send-message", ({ roomCode, message }) => {
 
@@ -451,9 +635,32 @@ socket.on("leave-session", ({ roomCode }) => {
         socketId: socket.id
     });
 
+    // Stream cleanup on session leave
+    if (session.activeStream) {
+        if (session.activeStream.streamerId === socket.id) {
+            session.activeStream = null;
+            socket.to(roomCode).emit("stream-stopped");
+        } else {
+            io.to(session.activeStream.streamerId).emit("stream-viewer-left", {
+                viewerId: socket.id
+            });
+        }
+    }
+
+    // Host migration on leave
+    if (session.host === socket.id || (session.hostUsername && socket.username === session.hostUsername)) {
+        if (session.members.length > 0) {
+            session.host = session.members[0].id;
+            session.hostUsername = session.members[0].username;
+        } else {
+            session.host = null;
+            session.hostUsername = null;
+        }
+    }
+
     io.to(roomCode).emit(
         "members-updated",
-        session.members
+        getPublicMembersWithGames(session)
     );
 
     io.to(roomCode).emit(
@@ -686,9 +893,32 @@ socket.on("movie-download-start", ({ roomCode }) => {
                 socketId: socket.id
             });
 
+            // Stream cleanup on disconnect
+            if (session.activeStream) {
+                if (session.activeStream.streamerId === socket.id) {
+                    session.activeStream = null;
+                    socket.to(code).emit("stream-stopped");
+                } else {
+                    io.to(session.activeStream.streamerId).emit("stream-viewer-left", {
+                        viewerId: socket.id
+                    });
+                }
+            }
+
+            // Host migration on disconnect
+            if (session.host === socket.id || (session.hostUsername && socket.username === session.hostUsername)) {
+                if (session.members.length > 0) {
+                    session.host = session.members[0].id;
+                    session.hostUsername = session.members[0].username;
+                } else {
+                    session.host = null;
+                    session.hostUsername = null;
+                }
+            }
+
             io.to(code).emit(
                 "members-updated",
-                session.members
+                getPublicMembersWithGames(session)
             );
 
            if (session.members.length === 0) {

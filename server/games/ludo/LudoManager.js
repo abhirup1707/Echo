@@ -26,6 +26,7 @@ function createRoom(roomCode) {
     rooms[roomCode] = {
         roomCode,
         players: [], // { id, username, color, tokens: [] }
+        spectators: [], // { id, username }
         turnIndex: 0,
         diceValue: null,
         diceRolled: false,
@@ -229,8 +230,38 @@ function getPublicLudoRoom(room) {
             username: p.username,
             color: p.color,
             tokens: p.tokens || []
+        })),
+        spectators: (room.spectators || []).map(s => ({
+            id: s.id,
+            username: s.username
         }))
     };
+}
+
+function resetLudoGame(room) {
+    if (!room) return;
+    if (room.spectators && room.spectators.length > 0) {
+        while (room.players.length < 4 && room.spectators.length > 0) {
+            const nextP = room.spectators.shift();
+            if (!room.players.some(p => p.id === nextP.id)) {
+                room.players.push({
+                    id: nextP.id,
+                    username: nextP.username,
+                    tokens: []
+                });
+            }
+        }
+    }
+    room.status = "waiting";
+    room.winner = null;
+    room.diceValue = null;
+    room.diceRolled = false;
+    room.sixCount = 0;
+    room.turnIndex = 0;
+    room.lastAction = "Waiting for players...";
+    room.players.forEach(p => {
+        p.tokens = [];
+    });
 }
 
 module.exports = {
@@ -242,5 +273,6 @@ module.exports = {
     rollDice,
     moveToken,
     advanceTurn,
-    getPublicLudoRoom
+    getPublicLudoRoom,
+    resetLudoGame
 };

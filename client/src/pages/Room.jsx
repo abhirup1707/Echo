@@ -21,6 +21,24 @@ import {
 } from "react-icons/fa";
 
 
+const GAME_EMOJIS = {
+  chess: "♟️",
+  ludo: "🎲",
+  uno: "🎴",
+  tictactoe: "⭕",
+  snakeandladder: "🐍",
+  scribble: "🎨"
+};
+
+const GAME_NAMES = {
+  chess: "Chess",
+  ludo: "Ludo",
+  uno: "UNO",
+  tictactoe: "Tic Tac Toe",
+  snakeandladder: "Snake & Ladder",
+  scribble: "Scribble"
+};
+
 function Room() {
   const { profile } = useContext(ProfileContext);
   const [username] = useState(profile.username);
@@ -46,7 +64,9 @@ const {
     queue,
     setQueue,
     playNext,
-    markChatRead
+    markChatRead,
+    isHost,
+    kickMember
 } = useContext(SessionContext);
 
 const {
@@ -523,6 +543,19 @@ Join Room
                                 <strong>
                                     {member.username} {member.username === profile.username ? " (You)" : ""}
                                 </strong>
+                                {member.currentGame && GAME_EMOJIS[member.currentGame] && (
+                                    <span
+                                        className="room-member-game-badge"
+                                        title={`Playing ${GAME_NAMES[member.currentGame] || member.currentGame}`}
+                                    >
+                                        {GAME_EMOJIS[member.currentGame]}
+                                    </span>
+                                )}
+                                {member.isHost && (
+                                    <span className="room-member-host-badge" title="Room Host">
+                                        👑 Host
+                                    </span>
+                                )}
                                 {speakingUsers[member.id] && (
                                     <div className="voice-talking-bars" title={`${member.username} is speaking`}>
                                         <span className="voice-bar bar-1" />
@@ -558,6 +591,23 @@ Join Room
                                 <span className="member-speaker off" title={`${member.username} has speaker OFF`}><FaVolumeMute /></span>
                             ) : null}
                         </div>
+
+                        {/* Kick Button (Only for Host, never for self or another host) */}
+                        {isHost && member.username !== profile.username && !member.isHost && (
+                            <button
+                                type="button"
+                                className="room-member-kick-btn"
+                                onClick={() => {
+                                    if (window.confirm(`Kick ${member.username} from this room?`)) {
+                                        kickMember(member.id, member.username);
+                                    }
+                                }}
+                                title={`Kick ${member.username} from the room`}
+                            >
+                                👢 Kick
+                            </button>
+                        )}
+
                         <div className="online"/>
                     </div>
 

@@ -15,6 +15,7 @@ function createRoom(roomCode) {
     rooms[roomCode] = {
         roomCode,
         players: [],
+        spectators: [],
         status: "waiting",
         currentTurn: 0,
         mapIndex: 0,
@@ -52,6 +53,7 @@ function getPublicRoom(room) {
     return {
         roomCode: room.roomCode,
         players: room.players,
+        spectators: (room.spectators || []).map(s => ({ id: s.id, username: s.username })),
         status: room.status,
         currentTurn: room.currentTurn,
         mapIndex: room.mapIndex,
@@ -65,6 +67,31 @@ function getPublicRoom(room) {
     };
 }
 
+function resetSLGame(room) {
+    if (!room) return;
+    if (room.spectators && room.spectators.length > 0) {
+        while (room.players.length < 6 && room.spectators.length > 0) {
+            const nextS = room.spectators.shift();
+            if (!room.players.some(p => p.id === nextS.id)) {
+                room.players.push({
+                    id: nextS.id,
+                    username: nextS.username,
+                    position: 0,
+                    color: PLAYER_COLORS[room.players.length]
+                });
+            }
+        }
+    }
+    room.status = "waiting";
+    room.currentTurn = 0;
+    room.dice = null;
+    room.lastMove = null;
+    room.winner = null;
+    room.players.forEach(p => {
+        p.position = 0;
+    });
+}
+
 module.exports = {
     PLAYER_COLORS,
     MAPS,
@@ -74,5 +101,6 @@ module.exports = {
     deleteRoom,
     rollDice,
     getEffect,
-    getPublicRoom
+    getPublicRoom,
+    resetSLGame
 };
