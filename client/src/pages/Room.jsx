@@ -16,7 +16,8 @@ import {
   FaQrcode, 
   FaShareAlt, 
   FaCheck, 
-  FaCopy 
+  FaCopy,
+  FaSignOutAlt 
 } from "react-icons/fa";
 
 
@@ -307,28 +308,25 @@ setTimeout(() => setCopiedInvite(false), 2200);
     </div>
 )}
 
-<div>
+<div className="room-top-right-bar">
+    {sessionRoomCode && (
+        <button
+            type="button"
+            className="leave-room-btn"
+            onClick={leaveRoom}
+            title="Leave this session"
+        >
+            <span className="leave-btn-icon-wrapper">
+                <FaSignOutAlt className="leave-icon" />
+            </span>
+            <span className="leave-btn-label">Leave Session</span>
+        </button>
+    )}
 
-    <button
-
-        className="leave-room-btn"
-
-        onClick={leaveRoom}
-
-    >
-
-        🚪 Leave Session
-
-    </button>
-
-</div>
-
-<div className="room-status">
-
-<div className="status-dot"/>
-
-Connected
-
+    <div className="room-status">
+        <div className="status-dot"/>
+        {sessionRoomCode ? "Connected" : "Idle"}
+    </div>
 </div>
 
 </div>

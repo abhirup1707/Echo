@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import "./App.css";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ProfileContext } from "./context/ProfileContext";
+import SplashScreen from "./components/common/SplashScreen";
 import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
@@ -29,80 +30,50 @@ import Ludo from "./pages/games/Ludo";
 
 function App() {
   const { profile } = useContext(ProfileContext);
+  const [showSplash, setShowSplash] = useState(true);
 
-if (!profile.username) {
-
-    return <Welcome />;
-
-}
   return (
-    <BrowserRouter>
+    <>
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
-      <BraveInstallBanner />
-
-      <Navbar />
-
-      <VoiceBar />
-
-      <div className="app">
-
-        <div className="sidebar-container">
-
-          <Sidebar />
-
-        </div>
-
-        <div className="main-content">
-
-          <FloatingVideoPlayer />
-
-          <Routes>
-
-            <Route path="/" element={<Home />} />
-
-            <Route path="/search" element={<Search />} />
-
-            <Route path="/videos" element={<Videos />} />
-
-            <Route path="/settings" element={<Settings />} />
-
-            <Route path="/room" element={<Room />} />
-
-            <Route path="/join/:roomCode" element={<JoinRoom />} />
-
-            <Route path="/profile" element={<Profile />} />
-
-            <Route path="/games" element={<MiniGames />} />
-
-<Route path="/games/scribble" element={<Scribble />} />
-
-            <Route path="/games/tictactoe" element={<TicTacToe />} />
-
-            <Route path="/games/snakeandladder" element={<SnakeLadder />} />
-
-            <Route path="/games/uno" element={<Uno />} />
-
-            <Route path="/games/chess" element={<Chess />} />
-
-            <Route path="/games/ludo" element={<Ludo />} />
-
-            <Route path="/playlist/:id" element={<Playlist />} />
-
-            <Route path="/playlist/collab/:code" element={<Playlist />} />
-
-            
-
-          </Routes>
-
-        </div>
-
-      </div>
-
-      <MobileNav/>
-
-      <BottomPlayer />
-
-    </BrowserRouter>
+      {!profile.username ? (
+        <Welcome />
+      ) : (
+        <BrowserRouter>
+          <BraveInstallBanner />
+          <Navbar />
+          <VoiceBar />
+          <div className="app">
+            <div className="sidebar-container">
+              <Sidebar />
+            </div>
+            <div className="main-content">
+              <FloatingVideoPlayer />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/videos" element={<Videos />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/room" element={<Room />} />
+                <Route path="/join/:roomCode" element={<JoinRoom />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/games" element={<MiniGames />} />
+                <Route path="/games/scribble" element={<Scribble />} />
+                <Route path="/games/tictactoe" element={<TicTacToe />} />
+                <Route path="/games/snakeandladder" element={<SnakeLadder />} />
+                <Route path="/games/uno" element={<Uno />} />
+                <Route path="/games/chess" element={<Chess />} />
+                <Route path="/games/ludo" element={<Ludo />} />
+                <Route path="/playlist/:id" element={<Playlist />} />
+                <Route path="/playlist/collab/:code" element={<Playlist />} />
+              </Routes>
+            </div>
+          </div>
+          <MobileNav />
+          <BottomPlayer />
+        </BrowserRouter>
+      )}
+    </>
   );
 }
 

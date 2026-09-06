@@ -72,6 +72,121 @@
     50% { box-shadow: 0 0 24px rgba(34, 197, 94, 0.7); }
 }
 
+.room-top-right-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 2;
+}
+
+/* ================= COOL LEAVE SESSION BUTTON ================= */
+.leave-room-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 18px 8px 10px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.14) 0%, rgba(185, 28, 28, 0.07) 100%);
+    border: 1px solid rgba(248, 113, 113, 0.28);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: #fca5a5;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 
+        0 4px 18px rgba(239, 68, 68, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Glowing Cyber Glass Sheen Sweep */
+.leave-room-btn::before {
+    content: "";
+    position: absolute;
+    top: -60%;
+    left: -70%;
+    width: 60%;
+    height: 220%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.22) 50%,
+        transparent 100%
+    );
+    transform: rotate(25deg);
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+}
+
+/* Crimson Ambient Glow Ring */
+.leave-room-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    box-shadow: inset 0 0 12px rgba(239, 68, 68, 0);
+    transition: box-shadow 0.35s ease;
+    pointer-events: none;
+}
+
+.leave-btn-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(248, 113, 113, 0.32);
+    color: #f87171;
+    font-size: 12px;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leave-btn-label {
+    position: relative;
+    z-index: 1;
+    transition: color 0.25s ease;
+}
+
+/* Hover State */
+.leave-room-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.26) 0%, rgba(220, 38, 38, 0.18) 100%);
+    border-color: rgba(248, 113, 113, 0.75);
+    color: #ffffff;
+    box-shadow: 
+        0 6px 25px rgba(239, 68, 68, 0.38),
+        0 0 20px rgba(239, 68, 68, 0.22),
+        inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+.leave-room-btn:hover::before {
+    transform: rotate(25deg) translateX(360%);
+}
+
+.leave-room-btn:hover::after {
+    box-shadow: inset 0 0 14px rgba(239, 68, 68, 0.35);
+}
+
+.leave-room-btn:hover .leave-btn-icon-wrapper {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #f87171;
+    transform: translateX(2px) scale(1.08);
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.8);
+}
+
+/* Active / Pressed State */
+.leave-room-btn:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+}
+
 .room-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -804,10 +919,23 @@
         font-size: 13px;
     }
 
+    .room-top-right-bar {
+        width: 100%;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 6px;
+    }
+
     .leave-room-btn {
-        margin-top: 4px;
-        height: 36px;
-        font-size: 13px;
+        padding: 6px 14px 6px 8px;
+        font-size: 12px;
+        border-radius: 12px;
+    }
+
+    .leave-btn-icon-wrapper {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
     }
 
     .room-grid {
