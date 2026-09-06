@@ -380,17 +380,32 @@
     box-shadow: 0 0 18px rgba(124,58,237,0.35);
 }
 
-.online {
+.online,
+.member-voice-dot {
     width: 11px;
     height: 11px;
+    min-width: 11px;
+    min-height: 11px;
     border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.online,
+.member-voice-dot.voice-joined {
     background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
     animation: onlinePulse 1.8s infinite;
+}
+
+.member-voice-dot.voice-not-joined {
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
 }
 
 @keyframes onlinePulse {
     0% { box-shadow: 0 0 0 0 #22c55e; }
-    100% { box-shadow: 0 0 0 12px transparent; }
+    100% { box-shadow: 0 0 0 10px transparent; }
 }
 
 /* Host Badge */

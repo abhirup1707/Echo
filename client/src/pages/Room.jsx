@@ -547,102 +547,106 @@ Join Room
         </h2>
 
         {
+            members.map(member => {
+                const isMe = member.username === profile.username;
+                const inVoice = isMe ? isInCall : Boolean(member.inVoice || peerStatuses[member.id]);
 
-            members.map(member=>(
+                return (
+                    <div
+                        className={`member ${speakingUsers[member.id] ? "is-speaking" : ""}`}
+                        key={member.id}
+                    >
+                        <div className="member-left">
+                            <div className="member-avatar-box">
+                                <UserAvatar
+                                    avatar={member.avatar || (isMe ? profile.avatar : "")}
+                                    username={member.username}
+                                    size={38}
+                                />
+                                {speakingUsers[member.id] && <span className="avatar-speaking-glow" />}
+                            </div>
 
-                <div
-                    className={`member ${speakingUsers[member.id] ? "is-speaking" : ""}`}
-                    key={member.id}
-                >
-
-                    <div className="member-left">
-
-                        <div className="member-avatar-box">
-                            <UserAvatar
-                                avatar={member.avatar || (member.username === profile.username ? profile.avatar : "")}
-                                username={member.username}
-                                size={38}
-                            />
-                            {speakingUsers[member.id] && <span className="avatar-speaking-glow" />}
-                        </div>
-
-                        <div className="member-info-col">
-                            <div className="member-name-row">
-                                <strong>
-                                    {member.username} {member.username === profile.username ? " (You)" : ""}
-                                </strong>
-                                {member.currentGame && GAME_EMOJIS[member.currentGame] && (
-                                    <span
-                                        className="room-member-game-badge"
-                                        title={`Playing ${GAME_NAMES[member.currentGame] || member.currentGame}`}
-                                    >
-                                        {GAME_EMOJIS[member.currentGame]}
-                                    </span>
-                                )}
-                                {member.isHost && (
-                                    <span className="room-member-host-badge" title="Room Host">
-                                        👑 Host
-                                    </span>
-                                )}
-                                {speakingUsers[member.id] && (
-                                    <div className="voice-talking-bars" title={`${member.username} is speaking`}>
-                                        <span className="voice-bar bar-1" />
-                                        <span className="voice-bar bar-2" />
-                                        <span className="voice-bar bar-3" />
-                                        <span className="voice-bar bar-4" />
-                                    </div>
-                                )}
+                            <div className="member-info-col">
+                                <div className="member-name-row">
+                                    <strong>
+                                        {member.username} {isMe ? " (You)" : ""}
+                                    </strong>
+                                    {member.currentGame && GAME_EMOJIS[member.currentGame] && (
+                                        <span
+                                            className="room-member-game-badge"
+                                            title={`Playing ${GAME_NAMES[member.currentGame] || member.currentGame}`}
+                                        >
+                                            {GAME_EMOJIS[member.currentGame]}
+                                        </span>
+                                    )}
+                                    {member.isHost && (
+                                        <span className="room-member-host-badge" title="Room Host">
+                                            👑 Host
+                                        </span>
+                                    )}
+                                    {speakingUsers[member.id] && (
+                                        <div className="voice-talking-bars" title={`${member.username} is speaking`}>
+                                            <span className="voice-bar bar-1" />
+                                            <span className="voice-bar bar-2" />
+                                            <span className="voice-bar bar-3" />
+                                            <span className="voice-bar bar-4" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                    </div>
+                        <div className="member-right">
+                            {/* Voice Status (Mic / Deafen) - shown when member is in voice */}
+                            {inVoice && (
+                                <div className="member-voice-status">
+                                    {isMe ? (
+                                        isMicOn ? (
+                                            <span className="member-mic on" title="Your mic is ON"><FaMicrophone /></span>
+                                        ) : (
+                                            <span className="member-mic off" title="Your mic is OFF"><FaMicrophoneSlash /></span>
+                                        )
+                                    ) : peerStatuses[member.id]?.isMuted ? (
+                                        <span className="member-mic off" title={`${member.username}'s mic is OFF`}><FaMicrophoneSlash /></span>
+                                    ) : (
+                                        <span className="member-mic on" title={`${member.username}'s mic is ON`}><FaMicrophone /></span>
+                                    )}
 
-                    <div className="member-right">
-                        <div className="member-voice-status">
-                            {member.username === profile.username ? (
-                                isMicOn ? (
-                                    <span className="member-mic on" title="Your mic is ON"><FaMicrophone /></span>
-                                ) : (
-                                    <span className="member-mic off" title="Your mic is OFF"><FaMicrophoneSlash /></span>
-                                )
-                            ) : peerStatuses[member.id]?.isMuted ? (
-                                <span className="member-mic off" title={`${member.username}'s mic is OFF`}><FaMicrophoneSlash /></span>
-                            ) : (
-                                <span className="member-mic on" title={`${member.username}'s mic is ON`}><FaMicrophone /></span>
+                                    {isMe ? (
+                                        !isSpeakerOn && (
+                                            <span className="member-speaker off" title="Your speaker is OFF (Deafened)"><FaVolumeMute /></span>
+                                        )
+                                    ) : peerStatuses[member.id]?.isDeafened ? (
+                                        <span className="member-speaker off" title={`${member.username} has speaker OFF`}><FaVolumeMute /></span>
+                                    ) : null}
+                                </div>
                             )}
 
-                            {member.username === profile.username ? (
-                                !isSpeakerOn && (
-                                    <span className="member-speaker off" title="Your speaker is OFF (Deafened)"><FaVolumeMute /></span>
-                                )
-                            ) : peerStatuses[member.id]?.isDeafened ? (
-                                <span className="member-speaker off" title={`${member.username} has speaker OFF`}><FaVolumeMute /></span>
-                            ) : null}
+                            {/* Kick Button (Only for Host, never for self or another host) */}
+                            {isHost && !isMe && !member.isHost && (
+                                <button
+                                    type="button"
+                                    className="room-member-kick-btn"
+                                    onClick={() => {
+                                        if (window.confirm(`Kick ${member.username} from this room?`)) {
+                                            kickMember(member.id, member.username);
+                                        }
+                                    }}
+                                    title={`Kick ${member.username} from the room`}
+                                >
+                                    👢 Kick
+                                </button>
+                            )}
+
+                            {/* Voice Status Dot: Green if in voice call, Red if not in voice call */}
+                            <div
+                                className={`member-voice-dot ${inVoice ? "voice-joined" : "voice-not-joined"}`}
+                                title={inVoice ? `${member.username} has joined Voice Call (Online)` : `${member.username} has not joined Voice Call`}
+                            />
                         </div>
-
-                        {/* Kick Button (Only for Host, never for self or another host) */}
-                        {isHost && member.username !== profile.username && !member.isHost && (
-                            <button
-                                type="button"
-                                className="room-member-kick-btn"
-                                onClick={() => {
-                                    if (window.confirm(`Kick ${member.username} from this room?`)) {
-                                        kickMember(member.id, member.username);
-                                    }
-                                }}
-                                title={`Kick ${member.username} from the room`}
-                            >
-                                👢 Kick
-                            </button>
-                        )}
-
-                        <div className="online"/>
                     </div>
-
-                </div>
-
-            ))
-
+                );
+            })
         }
 
     </div>

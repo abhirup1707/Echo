@@ -310,8 +310,11 @@ socket.on("voice-join", ({ roomCode, username }) => {
     const session = getSession(roomCode);
     if (!session) return;
 
+    if (!session.voiceMembers) session.voiceMembers = new Set();
+    session.voiceMembers.add(socket.id);
+
     const peersInRoom = (session.members || [])
-        .filter(m => m.id !== socket.id)
+        .filter(m => m.id !== socket.id && session.voiceMembers.has(m.id))
         .map(m => ({ id: m.id, username: m.username }));
 
     socket.emit("voice-all-peers", peersInRoom);
@@ -320,6 +323,8 @@ socket.on("voice-join", ({ roomCode, username }) => {
         socketId: socket.id,
         username
     });
+
+    io.to(roomCode).emit("members-updated", getPublicMembers(session));
 });
 
 socket.on("voice-offer", ({ targetId, offer }) => {
@@ -352,6 +357,11 @@ socket.on("voice-status-update", ({ roomCode, isMuted, isDeafened }) => {
 });
 
 socket.on("voice-leave", ({ roomCode }) => {
+    const session = getSession(roomCode);
+    if (session && session.voiceMembers) {
+        session.voiceMembers.delete(socket.id);
+        io.to(roomCode).emit("members-updated", getPublicMembers(session));
+    }
     socket.to(roomCode).emit("voice-peer-left", {
         socketId: socket.id
     });
@@ -487,6 +497,9 @@ socket.on("kick-member", ({ roomCode, targetSocketId, targetUsername }) => {
     }
 
     // Voice call cleanup for kicked user
+    if (session.voiceMembers) {
+        session.voiceMembers.delete(targetMember.id);
+    }
     socket.to(roomCode).emit("voice-peer-left", {
         socketId: targetMember.id
     });
@@ -630,6 +643,10 @@ socket.on("leave-session", ({ roomCode }) => {
     );
 
     socket.leave(roomCode);
+
+    if (session.voiceMembers) {
+        session.voiceMembers.delete(socket.id);
+    }
 
     socket.to(roomCode).emit("voice-peer-left", {
         socketId: socket.id
@@ -888,6 +905,10 @@ socket.on("movie-download-start", ({ roomCode }) => {
             session.members = session.members.filter(
                 member => member.id !== socket.id
             );
+
+            if (session.voiceMembers) {
+                session.voiceMembers.delete(socket.id);
+            }
 
             socket.to(code).emit("voice-peer-left", {
                 socketId: socket.id

@@ -38,6 +38,8 @@ function createSession(hostSocketId, username, sessionName, avatar = "") {
 
         currentTime: 0,
 
+        voiceMembers: new Set(),
+
 createdAt: new Date()
     };
 
@@ -62,7 +64,8 @@ function getPublicMembers(session) {
             m.isHost ||
             m.id === session.host ||
             (session.hostUsername && m.username === session.hostUsername)
-        )
+        ),
+        inVoice: Boolean(session.voiceMembers && session.voiceMembers.has(m.id))
     }));
 }
 
