@@ -295,18 +295,16 @@ export default function VoiceProvider({ children }) {
     }
   }, [isSpeakerOn]);
 
-  // Handle room changes: automatically join voice when entering a room, leave when leaving
+  // Leave voice call when leaving a room or unmounting (do not auto-join)
   useEffect(() => {
-    if (roomCode) {
-      joinVoiceCall(roomCode);
-    } else {
+    if (!roomCode) {
       leaveVoiceCall();
     }
 
     return () => {
       leaveVoiceCall();
     };
-  }, [roomCode, joinVoiceCall, leaveVoiceCall]);
+  }, [roomCode, leaveVoiceCall]);
 
   // Socket signaling listeners
   useEffect(() => {

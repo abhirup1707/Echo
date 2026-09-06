@@ -17,7 +17,9 @@ import {
   FaShareAlt, 
   FaCheck, 
   FaCopy,
-  FaSignOutAlt 
+  FaSignOutAlt,
+  FaPhoneAlt,
+  FaPhoneSlash
 } from "react-icons/fa";
 
 
@@ -86,6 +88,7 @@ const {
     speakingUsers = {},
     toggleMic,
     toggleSpeaker,
+    joinVoiceCall,
     leaveVoiceCall
 } = useContext(VoiceContext);
 
@@ -303,25 +306,50 @@ setTimeout(() => setCopiedInvite(false), 2200);
         </div>
 
         <div className="room-voice-actions">
-            <button
-                type="button"
-                className={`room-voice-toggle-btn ${isMicOn ? "mic-on" : "mic-off"}`}
-                onClick={toggleMic}
-                title={isMicOn ? "Turn Microphone Off (Mute)" : "Turn Microphone On (Unmute)"}
-            >
-                {isMicOn ? <FaMicrophone /> : <FaMicrophoneSlash />}
-                <span>{isMicOn ? "Mic On" : "Mic Off"}</span>
-            </button>
+            {isInCall ? (
+                <>
+                    <button
+                        type="button"
+                        className={`room-voice-toggle-btn ${isMicOn ? "mic-on" : "mic-off"}`}
+                        onClick={toggleMic}
+                        title={isMicOn ? "Turn Microphone Off (Mute)" : "Turn Microphone On (Unmute)"}
+                    >
+                        {isMicOn ? <FaMicrophone /> : <FaMicrophoneSlash />}
+                        <span>{isMicOn ? "Mic On" : "Mic Off"}</span>
+                    </button>
 
-            <button
-                type="button"
-                className={`room-voice-toggle-btn ${isSpeakerOn ? "speaker-on" : "speaker-off"}`}
-                onClick={toggleSpeaker}
-                title={isSpeakerOn ? "Turn Speaker Off (Deafen)" : "Turn Speaker On"}
-            >
-                {isSpeakerOn ? <FaVolumeUp /> : <FaVolumeMute />}
-                <span>{isSpeakerOn ? "Speaker On" : "Speaker Off"}</span>
-            </button>
+                    <button
+                        type="button"
+                        className={`room-voice-toggle-btn ${isSpeakerOn ? "speaker-on" : "speaker-off"}`}
+                        onClick={toggleSpeaker}
+                        title={isSpeakerOn ? "Turn Speaker Off (Deafen)" : "Turn Speaker On"}
+                    >
+                        {isSpeakerOn ? <FaVolumeUp /> : <FaVolumeMute />}
+                        <span>{isSpeakerOn ? "Speaker On" : "Speaker Off"}</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        className="room-voice-leave-btn"
+                        onClick={leaveVoiceCall}
+                        title="Disconnect from Voice Call"
+                    >
+                        <FaPhoneSlash />
+                        <span>Leave Voice</span>
+                    </button>
+                </>
+            ) : (
+                <button
+                    type="button"
+                    className="room-voice-join-btn"
+                    onClick={() => joinVoiceCall(sessionRoomCode)}
+                    disabled={isConnecting}
+                    title="Join Voice Chat in this room"
+                >
+                    <FaPhoneAlt />
+                    <span>{isConnecting ? "Connecting..." : "Join Voice"}</span>
+                </button>
+            )}
         </div>
 
         {voiceError && <span className="room-voice-error-text">⚠️ {voiceError}</span>}

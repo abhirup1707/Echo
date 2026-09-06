@@ -16,6 +16,7 @@ import {
   FaGamepad,
   FaUsers
 } from "react-icons/fa";
+import UserAvatar from "../common/UserAvatar";
 import "./VoiceBar.css";
 
 export default function VoiceBar() {
@@ -94,10 +95,11 @@ export default function VoiceBar() {
           {activeSpeakers.length > 0 ? (
             <div className="voice-pill-speaker-preview">
               <div className="voice-bubble mini speaking">
-                <img
-                  src={activeSpeakers[0].avatar || "/avatars/avatar1.png"}
-                  alt={activeSpeakers[0].username}
-                  className="voice-bubble-img"
+                <UserAvatar
+                  avatar={activeSpeakers[0].avatar}
+                  username={activeSpeakers[0].username}
+                  size={24}
+                  className="voice-bubble-user-avatar"
                 />
                 <div className="voice-talking-bars mini">
                   <span className="voice-bar bar-1" />
@@ -179,10 +181,11 @@ export default function VoiceBar() {
                 title={`${member.username}${isMe ? " (You)" : ""}${speaking ? " - Speaking..." : muted ? " - Muted" : ""}`}
               >
                 <div className="voice-bubble-avatar-wrapper">
-                  <img
-                    src={member.avatar || "/avatars/avatar1.png"}
-                    alt={member.username}
-                    className="voice-bubble-avatar"
+                  <UserAvatar
+                    avatar={isMe && profile?.avatar ? profile.avatar : member.avatar}
+                    username={member.username}
+                    size={40}
+                    className="voice-bubble-user-avatar"
                   />
                   {speaking && <span className="voice-bubble-glow" />}
 

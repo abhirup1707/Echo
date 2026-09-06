@@ -1182,6 +1182,56 @@
     box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
 }
 
+.room-voice-join-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.room-voice-join-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    filter: brightness(1.1);
+}
+
+.room-voice-join-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.room-voice-leave-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.15));
+    color: #fca5a5;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.room-voice-leave-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(185, 28, 28, 0.25));
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+    color: #ffffff;
+}
+
 .room-voice-error-text {
     font-size: 11px;
     color: #fca5a5;
@@ -1243,7 +1293,9 @@
         gap: 8px;
     }
 
-    .room-voice-toggle-btn {
+    .room-voice-toggle-btn,
+    .room-voice-join-btn,
+    .room-voice-leave-btn {
         flex: 1;
         justify-content: center;
         padding: 8px 12px;
