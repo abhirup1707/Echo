@@ -16,7 +16,8 @@ import {
   FaUsers,
   FaInfoCircle,
   FaStop,
-  FaRedo
+  FaRedo,
+  FaVideo
 } from "react-icons/fa";
 import "./WatchParty.css";
 
@@ -29,6 +30,7 @@ export default function WatchParty() {
     isStreaming,
     activeStream,
     streamError,
+    setStreamError,
     isConnectingStream,
     viewers,
     localStream,
@@ -38,6 +40,7 @@ export default function WatchParty() {
     isStreamMuted,
     setIsStreamMuted,
     startStream,
+    startCameraStream,
     stopStream,
     joinStream,
     leaveStream
@@ -79,14 +82,45 @@ export default function WatchParty() {
     }
   }, [streamVolume, isStreamMuted]);
 
-  // Track fullscreen changes
+  // Track fullscreen changes across all desktop and mobile browsers
   useEffect(() => {
     function handleFullscreenChange() {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      const isNative = Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+      if (!isNative && isFullscreen) {
+        setIsFullscreen(false);
+      }
     }
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
+
+    const fsEvents = [
+      "fullscreenchange",
+      "webkitfullscreenchange",
+      "mozfullscreenchange",
+      "MSFullscreenChange"
+    ];
+    fsEvents.forEach(evt => document.addEventListener(evt, handleFullscreenChange));
+
+    const video = remoteVideoRef.current || localVideoRef.current;
+    const onIosBegin = () => setIsFullscreen(true);
+    const onIosEnd = () => setIsFullscreen(false);
+
+    if (video) {
+      video.addEventListener("webkitbeginfullscreen", onIosBegin);
+      video.addEventListener("webkitendfullscreen", onIosEnd);
+    }
+
+    return () => {
+      fsEvents.forEach(evt => document.removeEventListener(evt, handleFullscreenChange));
+      if (video) {
+        video.removeEventListener("webkitbeginfullscreen", onIosBegin);
+        video.removeEventListener("webkitendfullscreen", onIosEnd);
+      }
+    };
+  }, [isFullscreen]);
 
   // Auto-hide controls when watching
   function handleMouseMove() {
@@ -96,20 +130,65 @@ export default function WatchParty() {
       if (isFullscreen || isTheaterMode) {
         setShowControls(false);
       }
-    }, 3000);
+    }, 3500);
   }
 
-  // Toggle fullscreen
+  // Toggle fullscreen with cross-platform (iOS, Android, Desktop) & CSS fullscreen fallback
   function toggleFullscreen() {
-    if (!stageContainerRef.current) return;
-    if (!document.fullscreenElement) {
-      stageContainerRef.current.requestFullscreen().catch(err => {
-        console.error("Fullscreen error:", err);
-      });
+    const container = stageContainerRef.current;
+    const video = remoteVideoRef.current || localVideoRef.current;
+
+    const isNativeFs = Boolean(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+
+    if (isFullscreen || isNativeFs) {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+
+      if (video && video.webkitExitFullscreen) {
+        try {
+          video.webkitExitFullscreen();
+        } catch (e) {}
+      }
+      setIsFullscreen(false);
     } else {
-      document.exitFullscreen().catch(err => {
-        console.error("Exit fullscreen error:", err);
-      });
+      // Enter fullscreen
+      setIsFullscreen(true);
+      let nativeSucceeded = false;
+
+      if (container) {
+        if (container.requestFullscreen) {
+          container.requestFullscreen().then(() => { nativeSucceeded = true; }).catch(() => {});
+        } else if (container.webkitRequestFullscreen) {
+          container.webkitRequestFullscreen();
+          nativeSucceeded = true;
+        } else if (container.mozRequestFullScreen) {
+          container.mozRequestFullScreen();
+          nativeSucceeded = true;
+        } else if (container.msRequestFullscreen) {
+          container.msRequestFullscreen();
+          nativeSucceeded = true;
+        }
+      }
+
+      // iOS Safari fallback on video element
+      if (!nativeSucceeded && video && video.webkitEnterFullscreen) {
+        try {
+          video.webkitEnterFullscreen();
+        } catch (e) {}
+      }
     }
   }
 
@@ -205,7 +284,10 @@ export default function WatchParty() {
           </div>
         ) : isStreaming ? (
           /* CASE 2: Current User is the Host Streamer */
-          <div className="streamer-dashboard-stage" ref={stageContainerRef}>
+          <div
+            className={`streamer-dashboard-stage ${isFullscreen ? "stage-fullscreen" : ""}`}
+            ref={stageContainerRef}
+          >
             <div className="streamer-live-header">
               <div className="streamer-badge">
                 <span className="live-pulsing-dot" />
@@ -238,6 +320,17 @@ export default function WatchParty() {
               <div className="streamer-watermark">
                 <span>Broadcast Preview (Muted Locally)</span>
               </div>
+
+              {/* Dedicated Fullscreen Button for mobile & desktop */}
+              <button
+                type="button"
+                className="quick-fullscreen-badge"
+                onClick={toggleFullscreen}
+                title={isFullscreen ? "Exit Fullscreen" : "Full Screen"}
+              >
+                {isFullscreen ? <FaCompress /> : <FaExpand />}
+                <span>{isFullscreen ? "Exit Full" : "Full Screen"}</span>
+              </button>
             </div>
 
             <div className="streamer-footer-info">
@@ -251,7 +344,11 @@ export default function WatchParty() {
                 <button type="button" className="theater-mode-btn" onClick={togglePiP} title="Picture in Picture">
                   <FaClone /> PiP Preview
                 </button>
-                <button type="button" className="theater-mode-btn" onClick={toggleFullscreen}>
+                <button
+                  type="button"
+                  className={`theater-mode-btn ${isFullscreen ? "active-fs-btn" : ""}`}
+                  onClick={toggleFullscreen}
+                >
                   {isFullscreen ? <FaCompress /> : <FaExpand />}
                   <span>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</span>
                 </button>
@@ -261,13 +358,24 @@ export default function WatchParty() {
         ) : activeStream ? (
           /* CASE 3: A Friend is Streaming (Viewer Stage) */
           <div
-            className="viewer-theater-stage"
+            className={`viewer-theater-stage ${isFullscreen ? "stage-fullscreen" : ""}`}
             ref={stageContainerRef}
             onMouseMove={handleMouseMove}
           >
             <div className="ambient-stream-glow" />
 
             <div className="viewer-video-container">
+              {/* Dedicated Quick Fullscreen Button in top-right for mobile & desktop */}
+              <button
+                type="button"
+                className={`quick-fullscreen-badge ${showControls ? "visible" : "hidden"}`}
+                onClick={toggleFullscreen}
+                title={isFullscreen ? "Exit Fullscreen" : "Full Screen"}
+              >
+                {isFullscreen ? <FaCompress /> : <FaExpand />}
+                <span>{isFullscreen ? "Exit Full" : "Full Screen"}</span>
+              </button>
+
               {isConnectingStream && !remoteStream && (
                 <div className="viewer-connecting-overlay">
                   <div className="stream-loading-spinner" />
@@ -339,13 +447,14 @@ export default function WatchParty() {
                 </div>
 
                 <div className="viewer-controls-right">
+                  {/* Fullscreen Button - first and prominent so never clipped on mobile */}
                   <button
                     type="button"
-                    className="control-icon-btn"
-                    onClick={togglePiP}
-                    title="Picture-in-Picture"
+                    className={`control-icon-btn fullscreen-control-btn ${isFullscreen ? "active-fs" : ""}`}
+                    onClick={toggleFullscreen}
+                    title={isFullscreen ? "Exit Fullscreen" : "Full Screen"}
                   >
-                    <FaClone />
+                    {isFullscreen ? <FaCompress /> : <FaExpand />}
                   </button>
 
                   <button
@@ -360,10 +469,10 @@ export default function WatchParty() {
                   <button
                     type="button"
                     className="control-icon-btn"
-                    onClick={toggleFullscreen}
-                    title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                    onClick={togglePiP}
+                    title="Picture-in-Picture (Popup)"
                   >
-                    {isFullscreen ? <FaCompress /> : <FaExpand />}
+                    <FaClone />
                   </button>
                 </div>
               </div>
@@ -379,7 +488,7 @@ export default function WatchParty() {
               <div className="host-prompt-text">
                 <h2>Start a Watch Party Stream</h2>
                 <p>
-                  Share a movie playing on your device (VLC, Chrome tab, Netflix, YouTube) directly with everyone in room <strong>{roomCode}</strong>.
+                  Share a movie playing on your device (VLC, Chrome tab, Netflix, YouTube) or stream your live camera directly with everyone in room <strong>{roomCode}</strong>.
                 </p>
               </div>
             </div>
@@ -394,18 +503,41 @@ export default function WatchParty() {
                 maxLength={50}
               />
 
-              <button
-                type="button"
-                className="start-stream-action-btn"
-                onClick={() => startStream({ streamTitle })}
-              >
-                <FaDesktop />
-                <span>Share Screen / Start Stream</span>
-              </button>
+              <div className="host-stream-buttons-group">
+                <button
+                  type="button"
+                  className="start-stream-action-btn"
+                  onClick={() => startStream({ streamTitle })}
+                  title="Share your desktop screen, browser tab, or app"
+                >
+                  <FaDesktop />
+                  <span>Share Screen</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="start-camera-action-btn"
+                  onClick={() => startCameraStream({ streamTitle })}
+                  title="Stream live camera and audio from your phone or PC"
+                >
+                  <FaVideo />
+                  <span>Share Camera</span>
+                </button>
+              </div>
 
               {streamError && (
                 <div className="stream-error-message">
-                  ⚠️ {streamError}
+                  <div className="stream-error-text">⚠️ {streamError}</div>
+                  <button
+                    type="button"
+                    className="stream-camera-fallback-btn"
+                    onClick={() => {
+                      setStreamError(null);
+                      startCameraStream({ streamTitle });
+                    }}
+                  >
+                    <FaVideo /> Stream with Camera Instead
+                  </button>
                 </div>
               )}
             </div>

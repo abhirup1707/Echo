@@ -82,7 +82,7 @@ export default function StreamProvider({ children }) {
     setStreamError(null);
   }, []);
 
-  // Start broadcasting
+  // Start screen broadcasting
   const startStream = useCallback(async (options = {}) => {
     if (!roomCodeRef.current) {
       setStreamError("Join a room before starting a watch party stream.");
@@ -90,6 +90,24 @@ export default function StreamProvider({ children }) {
     }
 
     setStreamError(null);
+
+    // Capability check: does getDisplayMedia exist in this browser?
+    const hasDisplayMedia =
+      typeof navigator !== "undefined" &&
+      Boolean(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === "function");
+
+    if (!hasDisplayMedia) {
+      const isMobile =
+        typeof navigator !== "undefined" &&
+        /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+
+      const errorMsg = isMobile
+        ? "Screen sharing is not supported by mobile web browsers (it requires desktop Chrome/Edge/Firefox or HTTPS). You can share using your Camera instead!"
+        : "Screen sharing is not supported in this browser or requires a secure (HTTPS) connection. You can share using your Camera instead!";
+
+      setStreamError(errorMsg);
+      return false;
+    }
 
     try {
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -133,8 +151,76 @@ export default function StreamProvider({ children }) {
 
     } catch (err) {
       console.warn("Screen share cancelled or failed:", err);
-      if (err.name !== "NotAllowedError") {
+      if (err.name === "NotAllowedError" || err.message?.toLowerCase().includes("permission denied")) {
+        // User cancelled the browser share picker - no error banner needed
+        return false;
+      }
+      if (err.message && err.message.toLowerCase().includes("getdisplaymedia is not a function")) {
+        setStreamError("Screen sharing is not supported on this mobile browser. Try sharing with Camera or using a desktop browser.");
+      } else {
         setStreamError(err.message || "Failed to start screen share.");
+      }
+      return false;
+    }
+  }, [profile.username, stopStream]);
+
+  // Start camera broadcasting (supported on mobile phones and desktop)
+  const startCameraStream = useCallback(async (options = {}) => {
+    if (!roomCodeRef.current) {
+      setStreamError("Join a room before starting a watch party stream.");
+      return false;
+    }
+
+    setStreamError(null);
+
+    const hasUserMedia =
+      typeof navigator !== "undefined" &&
+      Boolean(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === "function");
+
+    if (!hasUserMedia) {
+      setStreamError("Camera and microphone are not supported in this browser or blocked by permissions.");
+      return false;
+    }
+
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: options.facingMode || "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: true
+      });
+
+      localStreamRef.current = mediaStream;
+      setLocalStream(mediaStream);
+      setIsStreaming(true);
+
+      const videoTrack = mediaStream.getVideoTracks()[0];
+      const hasAudio = mediaStream.getAudioTracks().length > 0;
+
+      if (videoTrack) {
+        videoTrack.onended = () => {
+          stopStream();
+        };
+      }
+
+      const streamMetadata = {
+        roomCode: roomCodeRef.current,
+        streamTitle: options.streamTitle || `${profile.username || "Host"}'s Live Camera`,
+        hasAudio,
+        username: profile.username || "Host"
+      };
+
+      socket.emit("stream-start", streamMetadata);
+      return true;
+
+    } catch (err) {
+      console.warn("Camera stream error:", err);
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setStreamError("Camera & microphone permissions were denied. Please allow camera access in your browser settings.");
+      } else {
+        setStreamError(err.message || "Failed to start camera stream.");
       }
       return false;
     }
@@ -406,12 +492,17 @@ export default function StreamProvider({ children }) {
     };
   }, [stopStream, cleanupViewerConnection]);
 
+  const isDisplayMediaSupported =
+    typeof navigator !== "undefined" &&
+    Boolean(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === "function");
+
   return (
     <StreamContext.Provider
       value={{
         isStreaming,
         activeStream,
         streamError,
+        setStreamError,
         isConnectingStream,
         viewers,
         localStream,
@@ -421,9 +512,11 @@ export default function StreamProvider({ children }) {
         isStreamMuted,
         setIsStreamMuted,
         startStream,
+        startCameraStream,
         stopStream,
         joinStream,
-        leaveStream
+        leaveStream,
+        isDisplayMediaSupported
       }}
     >
       {children}
