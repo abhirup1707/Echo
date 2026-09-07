@@ -8,9 +8,9 @@ import { useNavigate } from "react-router-dom";
 
 function Home() {
 
-    const { addToQueue, sendSong } = useContext(SessionContext);
+    const { addToQueue, sendSong, clearQueue } = useContext(SessionContext);
     const { profile } = useContext(ProfileContext);
-    const { recentSongs } = useContext(MusicContext);
+    const { recentSongs, playSong } = useContext(MusicContext);
 
     const {
         playlists,
@@ -54,9 +54,13 @@ function Home() {
 
     function playPlaylist(songs) {
         if (!songs || songs.length === 0) return;
+        if (typeof clearQueue === "function") {
+            clearQueue();
+        }
         sendSong(songs[0]);
+        playSong(songs[0]);
         for (let i = 1; i < songs.length; i++) {
-            addToQueue(songs[i], profile.username);
+            addToQueue(songs[i], profile.username || "Home");
         }
     }
 

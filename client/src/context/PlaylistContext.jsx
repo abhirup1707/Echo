@@ -81,11 +81,11 @@ export function PlaylistProvider({ children }) {
     // PERSONAL PLAYLISTS (localStorage)
     // =====================================================
 
-    function createPlaylist(name) {
+    function createPlaylist(name, initialSongs = []) {
         const newPlaylist = {
             id: `pl-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             name: name.trim(),
-            songs: [],
+            songs: Array.isArray(initialSongs) ? initialSongs.map(s => ({ ...s, addedAt: Date.now() })) : [],
             createdAt: Date.now(),
             isCollab: false
         };

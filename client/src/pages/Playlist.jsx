@@ -16,7 +16,7 @@ function Playlist() {
     const navigate = useNavigate();
 
     const { profile } = useContext(ProfileContext);
-    const { addToQueue } = useContext(SessionContext);
+    const { addToQueue, sendSong, clearQueue } = useContext(SessionContext);
     const { playSong, recentSongs } = useContext(MusicContext);
 
     const {
@@ -169,6 +169,23 @@ function Playlist() {
         navigate("/");
     }
 
+    function handlePlayAll(startIndex = 0) {
+        if (!playlist || !playlist.songs || playlist.songs.length === 0) return;
+        const targetSong = playlist.songs[startIndex] || playlist.songs[0];
+        if (!targetSong) return;
+
+        if (typeof clearQueue === "function") {
+            clearQueue();
+        }
+        sendSong(targetSong);
+        playSong(targetSong);
+
+        // Automatically queue subsequent songs in order so they autoplay seamlessly!
+        for (let i = startIndex + 1; i < playlist.songs.length; i++) {
+            addToQueue(playlist.songs[i], profile?.username || "Playlist");
+        }
+    }
+
 
     return (
 
@@ -266,6 +283,16 @@ function Playlist() {
                 </div>
 
                 <div className="playlist-actions">
+
+                    {playlist.songs.length > 0 && (
+                        <button
+                            className="playlist-play-all-btn"
+                            onClick={() => handlePlayAll(0)}
+                            title="Play all songs in this playlist"
+                        >
+                            ▶ Play All
+                        </button>
+                    )}
 
                     {!isRecents && (
 
@@ -373,16 +400,16 @@ function Playlist() {
 
                 <div className="playlist-grid">
 
-                    {playlist.songs.map(song => (
+                    {playlist.songs.map((song, index) => (
 
                         <div
                             className="playlist-song-wrapper"
-                            key={song.videoId}
+                            key={song.videoId || index}
                         >
 
                             <SongCard
                                 song={song}
-                                onPlay={playSong}
+                                onPlay={() => handlePlayAll(index)}
                                 onQueue={(song) =>
                                     addToQueue(song, profile.username)
                                 }

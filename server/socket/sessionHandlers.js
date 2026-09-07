@@ -565,7 +565,10 @@ socket.on("add-to-queue", ({ roomCode, song, username }) => {
 
     const session = getSession(roomCode);
 
-    if (!session) return;
+    if (!session) {
+        socket.emit("room-not-found");
+        return;
+    }
 
     const queuedSong = {
 
@@ -599,13 +602,31 @@ socket.on("add-to-queue", ({ roomCode, song, username }) => {
 
 });
 
+    socket.on("clear-queue", ({ roomCode }) => {
+        const session = getSession(roomCode);
+        if (!session) return;
+        session.queue = [];
+        io.to(roomCode).emit("queue-updated", session.queue);
+        console.log(`Queue cleared in room ${roomCode}`);
+    });
+
     socket.on("play-next", ({ roomCode }) => {
 
         const session = getSession(roomCode);
 
-        if (!session) return;
+        if (!session) {
+            socket.emit("room-not-found");
+            return;
+        }
 
-        if (session.queue.length === 0) return;
+        if (!session.queue || session.queue.length === 0) return;
+
+        const now = Date.now();
+        if (session.lastPlayNextAt && (now - session.lastPlayNextAt < 1500)) {
+            console.log(`[play-next] Debounced duplicate play-next call in room ${roomCode}`);
+            return;
+        }
+        session.lastPlayNextAt = now;
 
         const nextSong = session.queue.shift();
 
@@ -613,7 +634,7 @@ socket.on("add-to-queue", ({ roomCode, song, username }) => {
 
         session.playing = true;
         session.songTime = 0;
-        session.songUpdatedAt = Date.now();
+        session.songUpdatedAt = now;
 
         io.to(roomCode).emit(
             "song-changed",

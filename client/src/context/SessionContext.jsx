@@ -45,6 +45,12 @@ const [messages, setMessages] = useState([]);
 const [hasUnreadChat, setHasUnreadChat] = useState(false);
 const prevMembersCountRef = useRef(null);
 
+const queueRef = useRef(queue);
+queueRef.current = queue;
+
+const roomCodeRef = useRef(roomCode);
+roomCodeRef.current = roomCode;
+
     useEffect(() => {
 
         socket.on("song-changed", (song) => {
@@ -318,76 +324,64 @@ socket.on("movie-changed",(movie)=>{
     }
 
 function addToQueue(song, username) {
-
     queueSong();
 
-    // Solo Mode
-// Solo Mode
-if (roomCode === "") {
+    const activeRoom = roomCodeRef.current;
+    if (!activeRoom) {
+        const queuedSong = {
+            song,
+            addedBy: {
+                username: username || profile?.username || "Echo User"
+            },
+            addedAt: Date.now()
+        };
 
-    const queuedSong = {
-
-        song,
-
-        addedBy: {
-
-            username
-
-        },
-
-        addedAt: Date.now()
-
-    };
-
-    setQueue(prev => [
-
-        ...prev,
-
-        queuedSong
-
-    ]);
-
-    return;
-
-}
+        setQueue(prev => [
+            ...prev,
+            queuedSong
+        ]);
+        return;
+    }
 
     // Room Mode
     socket.emit("add-to-queue", {
-
-        roomCode,
-
+        roomCode: activeRoom,
         song,
-
-        username
-
+        username: username || profile?.username || "Echo User"
     });
-
 }
 
 function playNext() {
+    const activeRoom = roomCodeRef.current;
+    if (!activeRoom) {
+        const currentQ = queueRef.current;
+        if (!currentQ || currentQ.length === 0) return;
 
-    // Solo Mode
-    if (roomCode === "") {
-
-        if (queue.length === 0) return;
-
-        const nextSong = queue[0];
-
-        playSong(nextSong.song);
+        const nextItem = currentQ[0];
+        const nextSong = nextItem?.song || nextItem;
 
         setQueue(prev => prev.slice(1));
 
+        if (nextSong) {
+            playSong(nextSong);
+        }
         return;
-
     }
 
     // Room Mode
     socket.emit("play-next", {
-
-        roomCode
-
+        roomCode: activeRoom
     });
+}
 
+function clearQueue() {
+    setQueue([]);
+    const activeRoom = roomCodeRef.current;
+    if (activeRoom) {
+        socket.emit("clear-queue", {
+            roomCode: activeRoom
+        });
+    }
 }
 
 function sendVideo(video){
@@ -544,6 +538,8 @@ setCurrentMovie,
     addToQueue,
 
     playNext,
+
+    clearQueue,
 
     sendSong,
     pauseSong,

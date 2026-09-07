@@ -61,12 +61,18 @@ function BottomPlayer() {
     const ignoreTimerUntilRef = useRef(0);
     const pendingSeekTimeRef = useRef(null);
     const pendingInitialSeekRef = useRef(null);
+    const pendingSongRef = useRef(null);
 
     const playNextRef = useRef(playNext);
     playNextRef.current = playNext;
 
     const queueRef = useRef(queue);
     queueRef.current = queue;
+
+    const roomCodeRef = useRef(roomCode);
+    roomCodeRef.current = roomCode;
+
+    const isTransitioningRef = useRef(false);
 
     useEffect(() => {
         function createPlayer() {
@@ -85,6 +91,17 @@ function BottomPlayer() {
                     playsinline: 1
                 },
                 events: {
+                    onReady: (event) => {
+                        apiReadyRef.current = true;
+                        if (pendingSongRef.current && pendingSongRef.current.videoId) {
+                            try {
+                                event.target.loadVideoById(pendingSongRef.current.videoId);
+                                event.target.playVideo();
+                                setIsPlaying(true);
+                                startBackgroundAudio();
+                            } catch (e) {}
+                        }
+                    },
                     onStateChange: (event) => {
                         try {
                             const dur = event.target?.getDuration?.();
@@ -118,10 +135,42 @@ function BottomPlayer() {
                             }
                         } else if (event.data === 0) {
                             // Ended
-                            setIsPlaying(false);
-                            stopBackgroundAudio();
-                            if (queueRef.current.length > 0) {
+                            console.log("[BottomPlayer] Song ended (state 0)");
+                            if (isTransitioningRef.current) {
+                                console.log("[BottomPlayer] Transition already in progress, ignoring duplicate event");
+                                return;
+                            }
+                            isTransitioningRef.current = true;
+                            setTimeout(() => {
+                                isTransitioningRef.current = false;
+                            }, 1500);
+
+                            const hasNextInQueue = queueRef.current && queueRef.current.length > 0;
+                            const inActiveRoom = Boolean(roomCodeRef.current);
+
+                            if (hasNextInQueue || inActiveRoom) {
+                                console.log("[BottomPlayer] Playing next track from queue/room...");
+                                startBackgroundAudio();
                                 playNextRef.current();
+                            } else {
+                                console.log("[BottomPlayer] Queue empty. Playback stopped.");
+                                setIsPlaying(false);
+                                stopBackgroundAudio();
+                            }
+                        }
+                    },
+                    onError: (event) => {
+                        console.warn("[BottomPlayer] YouTube Player error:", event?.data);
+                        // If current video fails (e.g. unembeddable/copyrighted), auto-skip to next
+                        if (queueRef.current && queueRef.current.length > 0) {
+                            if (!isTransitioningRef.current) {
+                                isTransitioningRef.current = true;
+                                setTimeout(() => {
+                                    isTransitioningRef.current = false;
+                                }, 1500);
+                                setTimeout(() => {
+                                    playNextRef.current();
+                                }, 800);
                             }
                         }
                     }
@@ -158,16 +207,37 @@ function BottomPlayer() {
                 } catch (e) {}
             }
             currentVideoIdRef.current = null;
+            pendingSongRef.current = null;
             return;
         }
+
+        pendingSongRef.current = currentSong;
+        const vid = currentSong.videoId;
+
         if (!playerRef.current) return;
 
-        const vid = currentSong.videoId;
-        if (vid === currentVideoIdRef.current) return;
+        if (vid === currentVideoIdRef.current) {
+            if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+                try {
+                    if (typeof playerRef.current.getPlayerState === "function" && playerRef.current.getPlayerState() === 0) {
+                        playerRef.current.seekTo(0, true);
+                    }
+                    playerRef.current.playVideo();
+                    setIsPlaying(true);
+                    startBackgroundAudio();
+                } catch (e) {}
+            }
+            return;
+        }
         currentVideoIdRef.current = vid;
 
         const loadVideo = async () => {
-            const startSec = pendingInitialSeekRef.current || (currentTime > 0 ? currentTime : 0);
+            const startSec = (pendingInitialSeekRef.current !== null && pendingInitialSeekRef.current > 0)
+                ? pendingInitialSeekRef.current
+                : 0;
+            pendingInitialSeekRef.current = null;
+            setCurrentTime(startSec);
+
             for (let attempt = 0; attempt < 20; attempt++) {
                 try {
                     if (startSec > 0) {
@@ -180,6 +250,7 @@ function BottomPlayer() {
                     }
                     await playerRef.current.playVideo();
                     setIsPlaying(true);
+                    startBackgroundAudio();
                     try {
                         const dur = playerRef.current.getDuration();
                         if (dur > 0) setDuration(dur);
