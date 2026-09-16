@@ -33,7 +33,7 @@ jobs:
 
       - name: Install dependencies in client-mobile
         working-directory: client-mobile
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build web application
         working-directory: client-mobile
