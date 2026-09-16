@@ -1,0 +1,64 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: client-mobile/package-lock.json
+
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create client-mobile .env file
+        run: |
+          cat << 'EOF' > client-mobile/.env
+          VITE_API_URL=https://echo-backend-p4kh.onrender.com
+          VITE_YOUTUBE_API_KEY=AIzaSyATFpxhLi14K5SEUshpuXY4yIXQanlF-xE
+          EOF
+
+      - name: Install dependencies in client-mobile
+        working-directory: client-mobile
+        run: npm install
+
+      - name: Build web application
+        working-directory: client-mobile
+        run: npm run build
+
+      - name: Sync with Capacitor Android
+        working-directory: client-mobile
+        run: npx cap sync android
+
+      - name: Make gradlew executable
+        working-directory: client-mobile/android
+        run: chmod +x gradlew
+
+      - name: Build Debug APK with Gradle
+        working-directory: client-mobile/android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Echo-App
+          path: client-mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14

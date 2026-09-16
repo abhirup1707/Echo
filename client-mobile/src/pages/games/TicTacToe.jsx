@@ -1,0 +1,152 @@
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { SessionContext } from "../../context/SessionContext";
+import { ProfileContext } from "../../context/ProfileContext";
+import socket from "../../socket";
+import TicTacToeGame from "../../components/games/tictactoe/TicTacToeGame";
+
+export default function TicTacToe() {
+
+    const navigate = useNavigate();
+    const { roomCode } = useContext(SessionContext);
+    const { profile } = useContext(ProfileContext);
+    const [tttRoom, setTttRoom] = useState(null);
+
+    useEffect(() => {
+
+        function handleRoom(data) {
+            setTttRoom(data);
+        }
+
+        function handleFull() {
+            alert("Room is full! Only 2 players allowed.");
+        }
+
+        socket.on("ttt-room", handleRoom);
+        socket.on("ttt-full", handleFull);
+
+        return () => {
+            socket.off("ttt-room", handleRoom);
+            socket.off("ttt-full", handleFull);
+        };
+
+    }, []);
+
+    useEffect(() => {
+        if (!roomCode) return;
+        sessionStorage.setItem("echo_active_game", "/games/tictactoe");
+        socket.emit("ttt-join", { roomCode, username: profile?.username || "Player" });
+    }, [roomCode, profile?.username]);
+
+    const handleLeave = () => {
+        sessionStorage.removeItem("echo_active_game");
+        socket.emit("ttt-leave", { roomCode });
+        navigate("/games");
+    };
+
+    if (!roomCode) {
+        return (
+            <div className="scribble-no-room" style={{ textAlign: "center" }}>
+                <h1 style={{ fontSize: 36, fontWeight: 800, background: "linear-gradient(135deg, #fff 0%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12 }}>⭕ Tic Tac Toe</h1>
+                <p style={{ color: "#888", fontSize: 15 }}>Join an Echo Session first.</p>
+                <button
+                    style={{
+                        marginTop: "20px",
+                        padding: "10px 22px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontWeight: "700",
+                        cursor: "pointer"
+                    }}
+                    onClick={() => {
+                        sessionStorage.removeItem("echo_active_game");
+                        navigate("/games");
+                    }}
+                >
+                    ⬅ Back to Games
+                </button>
+            </div>
+        );
+    }
+
+    if (!tttRoom) {
+        return (
+            <div className="scribble-no-room" style={{ textAlign: "center" }}>
+                <h1 style={{ fontSize: 36, fontWeight: 800, background: "linear-gradient(135deg, #fff 0%, #c4b5fd 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12 }}>⭕ Joining Tic Tac Toe...</h1>
+                <button
+                    style={{
+                        marginTop: "20px",
+                        padding: "10px 22px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontWeight: "700",
+                        cursor: "pointer"
+                    }}
+                    onClick={handleLeave}
+                >
+                    ⬅ Back to Games
+                </button>
+            </div>
+        );
+    }
+
+    const players = tttRoom.players || [];
+    if (tttRoom.status === "waiting" && players.length < 2) {
+        return (
+            <div className="scribble-page">
+                <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "25px"
+                }}>
+                    <h1>⭕ Tic Tac Toe Lobby</h1>
+                    <button onClick={handleLeave}>⬅ Back</button>
+                </div>
+
+                <div className="scribble-card" style={{ maxWidth: 400 }}>
+                    <h2>Players ({players.length}/2)</h2>
+                    <div className="player-list">
+                        {players.map(p => (
+                            <div className="scribble-player" key={p.id}>
+                                <div className="avatar">{p.symbol}</div>
+                                <span>{p.username}</span>
+                                {p.symbol === "X" && <strong>⭐ Goes First</strong>}
+                            </div>
+                        ))}
+                    </div>
+                    <p style={{ color: "#777", marginTop: 16 }}>
+                        Waiting for opponent to join...
+                    </p>
+
+                    {tttRoom.spectators && tttRoom.spectators.length > 0 && (
+                        <div style={{ marginTop: 16, padding: "10px 12px", background: "rgba(168, 85, 247, 0.1)", border: "1px solid rgba(168, 85, 247, 0.25)", borderRadius: 12 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#d8b4fe", marginBottom: 4 }}>
+                                👀 Waiting / Spectators ({tttRoom.spectators.length}):
+                            </div>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                {tttRoom.spectators.map(s => (
+                                    <span key={s.id} style={{ fontSize: 11, padding: "3px 8px", background: "rgba(255,255,255,0.06)", borderRadius: 8, color: "#f1f5f9" }}>
+                                        {s.username} {s.id === socket.id ? "(You)" : ""}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <TicTacToeGame
+            roomCode={roomCode}
+            tttRoom={tttRoom}
+        />
+    );
+
+}

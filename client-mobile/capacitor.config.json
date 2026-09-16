@@ -1,0 +1,11 @@
+﻿{
+  "appId": "com.echo.musicapp",
+  "appName": "Echo",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

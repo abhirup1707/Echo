@@ -1,0 +1,866 @@
+/* =========================================================
+   ECHO SCRIBBLE — skribbl.io-style layout
+   ========================================================= */
+
+:root {
+    --scribble-topbar-h-desktop: 76px;
+    --scribble-sidebar-w-desktop: 264px;
+    --scribble-topbar-h-mobile: 56px;
+    --scribble-mobile-nav-h: 74px;
+    --scribble-border: 1px solid rgba(255, 255, 255, 0.08);
+    --scribble-panel-bg: #1e1e2a;
+    --scribble-box-radius: 4px;
+}
+
+.sidebar-collapsed {
+    --scribble-sidebar-w-desktop: 84px;
+}
+
+
+/* =========================================================
+   GAME SHELL
+   ========================================================= */
+
+.scribble-game-shell {
+    position: fixed;
+    top: var(--scribble-topbar-h-desktop);
+    left: var(--scribble-sidebar-w-desktop);
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 8px;
+    gap: 0;
+    box-sizing: border-box;
+
+    overflow: hidden;
+    color: #ccc;
+    background: #16161e;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+
+/* =========================================================
+   HEADER BOX
+   ========================================================= */
+
+.scribble-header-box {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 10px 16px;
+    background: var(--scribble-panel-bg);
+    border: var(--scribble-border);
+    border-radius: var(--scribble-box-radius);
+}
+
+.scribble-header-round {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 80px;
+}
+
+.scribble-header-round strong {
+    font-size: 18px;
+    color: #eee;
+}
+
+
+/* =========================================================
+   WORD DISPLAY
+   ========================================================= */
+
+.scribble-word-display {
+    flex: 1;
+    text-align: center;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: #aaa;
+    font-weight: 600;
+}
+
+.scribble-word-display strong {
+    color: #e0d4ff;
+    font-size: 22px;
+    letter-spacing: 4px;
+}
+
+.scribble-word-display strong.scribble-word-revealed {
+    color: #4ade80;
+    font-size: 22px;
+    letter-spacing: 4px;
+}
+
+
+/* =========================================================
+   TIMER
+   ========================================================= */
+
+.scribble-timer {
+    flex-shrink: 0;
+    min-width: 90px;
+    padding: 8px 14px;
+    text-align: center;
+    background: rgba(251, 146, 60, 0.12);
+    border: 1px solid rgba(251, 146, 60, 0.25);
+    border-radius: var(--scribble-box-radius);
+    font-size: 18px;
+    font-weight: 800;
+    color: #fb923c;
+}
+
+
+/* =========================================================
+   PLAY AREA — Canvas (65%) + Chat (35%) side by side
+   ========================================================= */
+
+.scribble-play-area {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 8px;
+    min-height: 0;
+    margin-top: 8px;
+}
+
+
+/* =========================================================
+   CANVAS BOX
+   ========================================================= */
+
+.scribble-canvas-box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: #fafafa;
+    border: var(--scribble-border);
+    border-radius: var(--scribble-box-radius);
+    overflow: hidden;
+}
+
+.scribble-canvas {
+    display: block;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    background: white;
+    cursor: default;
+    touch-action: none;
+}
+
+.scribble-canvas.drawer {
+    cursor: crosshair;
+}
+
+
+/* =========================================================
+   DRAWING TOOLBAR
+   ========================================================= */
+
+.scribble-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #2a2a38;
+    border-top: var(--scribble-border);
+    flex-shrink: 0;
+}
+
+.scribble-colors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.scribble-colors button {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.scribble-colors button:hover {
+    transform: scale(1.2);
+}
+
+.scribble-colors button.active {
+    transform: scale(1.15);
+    border-color: white;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
+}
+
+
+/* =========================================================
+   BRUSH SIZE
+   ========================================================= */
+
+.scribble-brush-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--scribble-box-radius);
+}
+
+.scribble-brush-control span {
+    font-size: 14px;
+}
+
+.scribble-brush-control input {
+    width: 80px;
+    accent-color: #7c3aed;
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   TOOL BUTTONS
+   ========================================================= */
+
+.scribble-tool-btn {
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--scribble-box-radius);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background 0.12s ease;
+}
+
+.scribble-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.scribble-tool-btn.active {
+    background: #7c3aed;
+    color: white;
+    border-color: #7c3aed;
+}
+
+.scribble-tool-btn.danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.scribble-tool-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+
+/* =========================================================
+   CHAT BOX — messages + guess input
+   ========================================================= */
+
+.scribble-chat-box {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--scribble-panel-bg);
+    border: var(--scribble-border);
+    border-radius: var(--scribble-box-radius);
+    overflow: hidden;
+}
+
+.scribble-chat-messages {
+    flex: 1;
+    min-height: 0;
+    padding: 8px 10px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #444 transparent;
+}
+
+.scribble-message {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 6px;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: var(--scribble-box-radius);
+    font-size: 12px;
+}
+
+.scribble-message strong {
+    color: #a78bfa;
+    font-size: 11px;
+}
+
+.scribble-message span {
+    color: #bbb;
+    word-break: break-word;
+}
+
+.scribble-message.correct {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.scribble-message.correct span {
+    color: #86efac;
+    font-weight: 700;
+}
+
+.scribble-message.system {
+    text-align: center;
+    background: rgba(124, 58, 237, 0.1);
+    color: #c4b5fd;
+    font-style: italic;
+}
+
+
+/* =========================================================
+   GUESS FORM (inside chat box)
+   ========================================================= */
+
+.scribble-guess-form {
+    display: flex;
+    gap: 6px;
+    padding: 8px 10px;
+    border-top: var(--scribble-border);
+    flex-shrink: 0;
+}
+
+.scribble-guess-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 10px;
+    background: #2a2a38;
+    color: #eee;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--scribble-box-radius);
+    outline: none;
+    font-size: 13px;
+}
+
+.scribble-guess-form input:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+.scribble-guess-form input::placeholder {
+    color: #666;
+}
+
+.scribble-guess-form button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: var(--scribble-box-radius);
+    background: #7c3aed;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+
+.scribble-guess-form button:hover {
+    background: #6d28d9;
+}
+
+
+/* =========================================================
+   FOOTER STATUS (drawer / guessed)
+   ========================================================= */
+
+.scribble-footer-status {
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    border-top: var(--scribble-border);
+    flex-shrink: 0;
+}
+
+.scribble-footer-status.correct {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.scribble-footer-status.drawer {
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, 0.08);
+}
+
+
+/* =========================================================
+   PLAYERS STRIP — horizontal scrollable row at bottom
+   ========================================================= */
+
+.scribble-players-strip {
+    flex-shrink: 0;
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    margin-top: 8px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #444 transparent;
+    background: var(--scribble-panel-bg);
+    border: var(--scribble-border);
+    border-radius: var(--scribble-box-radius);
+}
+
+.scribble-strip-player {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: var(--scribble-box-radius);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.12s ease;
+}
+
+.scribble-strip-player:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.scribble-strip-avatar {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.scribble-strip-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.scribble-strip-info strong {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    color: #ddd;
+}
+
+.scribble-strip-info span {
+    font-size: 9px;
+    color: #777;
+}
+
+.scribble-strip-badge {
+    flex-shrink: 0;
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   REVEAL BANNER
+   ========================================================= */
+
+.scribble-reveal-banner {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    z-index: 10;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: var(--scribble-box-radius);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    color: #e5e7eb;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.scribble-reveal-banner strong {
+    color: #c4b5fd;
+}
+
+
+/* =========================================================
+   CHOOSING WORD SCREEN
+   ========================================================= */
+
+.scribble-choosing-card {
+    width: min(600px, 92%);
+    margin: 80px auto;
+    padding: 45px 30px;
+    text-align: center;
+    background: var(--scribble-panel-bg);
+    border: var(--scribble-border);
+    border-radius: 14px;
+}
+
+.scribble-big-icon {
+    margin-bottom: 12px;
+    font-size: 55px;
+}
+
+.scribble-choosing-card h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    color: #eee;
+}
+
+.scribble-choosing-card p {
+    margin-bottom: 25px;
+    color: #777;
+    font-size: 15px;
+}
+
+.scribble-choose-timer {
+    display: inline-block;
+    margin-bottom: 15px;
+    padding: 6px 16px;
+    background: rgba(251, 146, 60, 0.12);
+    border: 1px solid rgba(251, 146, 60, 0.25);
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fb923c;
+}
+
+
+/* =========================================================
+   WORD OPTION BUTTONS
+   ========================================================= */
+
+.scribble-word-options {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.scribble-word-options button {
+    padding: 12px 22px;
+    background: rgba(124, 58, 237, 0.15);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.scribble-word-options button:hover {
+    background: #7c3aed;
+    color: white;
+    border-color: #7c3aed;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+
+/* =========================================================
+   WAITING ANIMATION
+   ========================================================= */
+
+.scribble-waiting-animation {
+    display: inline-block;
+    margin-bottom: 12px;
+    font-size: 55px;
+    animation: scribblePencilFloat 1.4s ease-in-out infinite;
+}
+
+@keyframes scribblePencilFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(-8deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(8deg);
+    }
+}
+
+
+/* =========================================================
+   FINISHED SCREEN
+   ========================================================= */
+
+.scribble-finished-card {
+    width: min(560px, 92%);
+    margin: 55px auto;
+    padding: 35px;
+    text-align: center;
+    background: var(--scribble-panel-bg);
+    border: var(--scribble-border);
+    border-radius: 14px;
+}
+
+.scribble-finished-card h1 {
+    margin-bottom: 20px;
+    font-size: 30px;
+    color: #eee;
+}
+
+.scribble-final-leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.scribble-final-player {
+    display: grid;
+    grid-template-columns: 45px 1fr auto;
+    align-items: center;
+    padding: 12px 14px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scribble-final-player > span {
+    font-size: 20px;
+}
+
+.scribble-final-player strong {
+    color: #eee;
+}
+
+.scribble-final-player b {
+    color: #c4b5fd;
+}
+
+.scribble-play-again-btn {
+    margin-top: 20px;
+    padding: 11px 22px;
+    border: none;
+    border-radius: 8px;
+    background: #7c3aed;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.scribble-play-again-btn:hover {
+    background: #6d28d9;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) and (min-width: 601px) {
+
+    .scribble-game-shell {
+        left: var(--scribble-sidebar-w-desktop);
+    }
+
+    .scribble-play-area {
+        grid-template-columns: 1fr 260px;
+    }
+}
+
+
+/* =========================================================
+   PHONE — vertical stack
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .scribble-game-shell {
+        top: var(--scribble-topbar-h-mobile);
+        left: 0;
+        right: 0;
+        bottom: var(--scribble-mobile-nav-h);
+
+        padding: 6px;
+        gap: 0;
+    }
+
+
+    /* HEADER */
+
+    .scribble-header-box {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .scribble-header-round {
+        min-width: auto;
+    }
+
+    .scribble-header-round strong {
+        font-size: 15px;
+    }
+
+    .scribble-word-display {
+        font-size: 15px;
+        letter-spacing: 2px;
+    }
+
+    .scribble-word-display strong {
+        font-size: 17px;
+    }
+
+    .scribble-timer {
+        min-width: auto;
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+
+    /* PLAY AREA — stack vertically */
+
+    .scribble-play-area {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        min-height: 0;
+    }
+
+
+    /* CANVAS */
+
+    .scribble-canvas-box {
+        flex: 1;
+        min-height: 0;
+    }
+
+
+    /* TOOLBAR */
+
+    .scribble-toolbar {
+        gap: 6px;
+        padding: 6px 8px;
+    }
+
+    .scribble-colors button {
+        width: 20px;
+        height: 20px;
+    }
+
+    .scribble-brush-control {
+        width: 100%;
+    }
+
+    .scribble-brush-control input {
+        flex: 1;
+    }
+
+    .scribble-tool-btn {
+        flex: 1;
+        padding: 5px 6px;
+        font-size: 11px;
+    }
+
+
+    /* CHAT */
+
+    .scribble-chat-box {
+        flex: 0 0 auto;
+        max-height: 180px;
+    }
+
+    .scribble-chat-messages {
+        flex: 1;
+        width: 100%;
+        height: 0;
+        padding: 8px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
+        overscroll-behavior: contain;
+    }
+
+    .scribble-message {
+        flex-shrink: 0;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 5px;
+        word-break: break-word;
+    }
+
+
+    /* PLAYERS STRIP */
+
+    .scribble-players-strip {
+        flex-shrink: 0;
+        padding: 6px;
+        margin-top: 6px;
+    }
+
+    .scribble-strip-player {
+        padding: 4px 8px;
+    }
+
+    .scribble-strip-avatar {
+        width: 22px;
+        height: 22px;
+        font-size: 10px;
+    }
+
+    .scribble-strip-info strong {
+        font-size: 10px;
+    }
+
+    .scribble-strip-info span {
+        font-size: 8px;
+    }
+
+
+    /* CHOOSING SCREEN */
+
+    .scribble-choosing-card {
+        margin: 30px auto;
+        padding: 30px 16px;
+    }
+
+    .scribble-choosing-card h1 {
+        font-size: 22px;
+    }
+
+    .scribble-big-icon,
+    .scribble-waiting-animation {
+        font-size: 45px;
+    }
+
+    .scribble-word-options {
+        flex-direction: column;
+    }
+
+    .scribble-word-options button {
+        width: 100%;
+    }
+
+
+    /* FINISHED SCREEN */
+
+    .scribble-finished-card {
+        margin: 25px auto;
+        padding: 24px 14px;
+    }
+
+    .scribble-final-player {
+        grid-template-columns: 38px 1fr auto;
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+}

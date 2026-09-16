@@ -1,0 +1,283 @@
+/* ================= PAGE ================= */
+
+.ttt-page {
+    padding: 30px;
+    max-width: 600px;
+    margin: 0 auto;
+    animation: fadeHome 0.4s ease;
+}
+
+.ttt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.ttt-header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.ttt-header button {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #aaa;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.25s;
+}
+
+.ttt-header button:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,0.2);
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+/* ================= PLAYERS BAR ================= */
+
+.ttt-game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ttt-players-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+    justify-content: center;
+}
+
+.ttt-player-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    color: #888;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 130px;
+    justify-content: center;
+}
+
+.ttt-player-info.active {
+    border-color: rgba(124, 58, 237, 0.5);
+    color: #fff;
+    background: linear-gradient(145deg, rgba(124,58,237,0.15), rgba(124,58,237,0.05));
+    box-shadow:
+        0 0 20px rgba(124, 58, 237, 0.2),
+        0 0 40px rgba(124, 58, 237, 0.05);
+}
+
+.ttt-symbol {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.ttt-symbol.x {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(239, 68, 68, 0.1));
+    color: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+}
+
+.ttt-symbol.o {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.1));
+    color: #3b82f6;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+}
+
+.ttt-score {
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ccc;
+}
+
+.ttt-vs {
+    color: #444;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+/* ================= STATUS ================= */
+
+.ttt-status {
+    font-size: 15px;
+    font-weight: 700;
+    color: #888;
+    margin-bottom: 22px;
+    padding: 10px 24px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.35s;
+    text-align: center;
+}
+
+.ttt-status.my-turn {
+    color: #c4b5fd;
+    background: linear-gradient(145deg, rgba(124, 58, 237, 0.15), rgba(124, 58, 237, 0.05));
+    border-color: rgba(124, 58, 237, 0.2);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+}
+
+.ttt-status.finished {
+    color: #fff;
+    font-size: 17px;
+}
+
+/* ================= BOARD ================= */
+
+.ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: min(360px, 90vw);
+    aspect-ratio: 1;
+    background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 10px;
+    box-shadow:
+        0 8px 32px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.ttt-cell {
+    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 900;
+    cursor: default;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.ttt-cell.clickable {
+    cursor: pointer;
+}
+
+.ttt-cell.clickable:hover {
+    background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    border-color: rgba(255,255,255,0.1);
+    transform: scale(1.04);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.ttt-cell.filled.x {
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.ttt-cell.filled.o {
+    color: #3b82f6;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.ttt-cell.win {
+    background: linear-gradient(145deg, rgba(124, 58, 237, 0.3), rgba(124, 58, 237, 0.1));
+    border-color: rgba(124, 58, 237, 0.4);
+    box-shadow:
+        0 0 24px rgba(124, 58, 237, 0.3),
+        0 0 48px rgba(124, 58, 237, 0.1);
+    animation: tttPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes tttPulse {
+    from { box-shadow: 0 0 24px rgba(124, 58, 237, 0.3), 0 0 48px rgba(124, 58, 237, 0.1); }
+    to { box-shadow: 0 0 32px rgba(124, 58, 237, 0.5), 0 0 60px rgba(124, 58, 237, 0.2); }
+}
+
+/* ================= RESTART ================= */
+
+.ttt-restart-btn {
+    margin-top: 28px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #7C3AED, #6D28D9);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.25);
+}
+
+.ttt-restart-btn:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 8px 28px rgba(124, 58, 237, 0.35),
+        0 0 40px rgba(124, 58, 237, 0.1);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 600px) {
+    .ttt-page {
+        padding: 16px;
+    }
+
+    .ttt-header h1 {
+        font-size: 22px;
+    }
+
+    .ttt-cell {
+        font-size: 36px;
+    }
+
+    .ttt-players-bar {
+        gap: 10px;
+    }
+
+    .ttt-player-info {
+        min-width: 100px;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .ttt-symbol {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,268 @@
+.profile-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 36px 20px 80px 20px;
+    color: white;
+    animation: fadeHome 0.45s ease;
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 36px;
+    position: relative;
+}
+
+/* Avatar Container with Hover Edit Badge */
+.profile-avatar-container {
+    position: relative;
+    cursor: pointer;
+    border-radius: 50%;
+    margin-bottom: 16px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-avatar-container:hover {
+    transform: scale(1.05);
+}
+
+.profile-main-avatar {
+    box-shadow:
+        0 0 35px rgba(124, 58, 237, 0.4),
+        0 10px 30px rgba(0, 0, 0, 0.6);
+    border: 3px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.profile-avatar-edit-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: linear-gradient(135deg, #7C3AED, #4F46E5);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 2px solid #0f172a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+.profile-avatar-container:hover .profile-avatar-edit-badge {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+}
+
+.profile-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 34px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.profile-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.profile-role-pill {
+    font-size: 12px;
+    font-weight: 700;
+    color: #eab308;
+    background: rgba(234, 179, 8, 0.12);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.profile-status-pill {
+    font-size: 12px;
+    font-weight: 600;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.profile-change-avatar-btn {
+    padding: 9px 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    color: #f1f5f9;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+.profile-change-avatar-btn:hover {
+    background: rgba(124, 58, 237, 0.2);
+    border-color: rgba(167, 139, 250, 0.4);
+    transform: translateY(-2px);
+    color: white;
+}
+
+/* Stats */
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.stat-box {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.stat-box:hover {
+    transform: translateY(-5px);
+    border-color: rgba(124, 58, 237, 0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(124, 58, 237, 0.15);
+}
+
+.stat-box h2 {
+    font-size: 32px;
+    margin: 0 0 6px 0;
+    font-weight: 900;
+    background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stat-box span {
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Cards */
+.profile-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 24px;
+    border-radius: 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    transition: border-color 0.25s ease;
+}
+
+.profile-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.profile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.profile-card-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.profile-card-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #a855f7;
+    background: rgba(168, 85, 247, 0.12);
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+.favorite-artist-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #c4b5fd;
+    margin: 0;
+}
+
+/* Recent songs */
+.recent-songs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recent-song {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: all 0.2s ease;
+}
+
+.recent-song:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.recent-song img {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.recent-song-info strong {
+    display: block;
+    font-size: 14px;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 500px;
+}
+
+.recent-song-info p {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 2px 0 0 0;
+}
+
+@media (max-width: 768px) {
+    .profile-page {
+        padding: 20px 14px 90px 14px;
+    }
+
+    .profile-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .stat-box {
+        padding: 16px;
+    }
+
+    .recent-song-info strong {
+        max-width: 200px;
+    }
+}

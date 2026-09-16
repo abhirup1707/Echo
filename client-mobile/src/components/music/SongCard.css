@@ -1,0 +1,384 @@
+.song-card{
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+    padding:16px;
+
+    border-radius:24px;
+
+    background:
+    linear-gradient(
+        145deg,
+        rgba(255,255,255,.05),
+        rgba(255,255,255,.025)
+    );
+
+    backdrop-filter:blur(18px);
+
+    border:1px solid rgba(255,255,255,.06);
+
+    overflow:hidden;
+
+    transition:.35s;
+
+}
+
+/* Purple Glow */
+
+.song-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+
+    radial-gradient(
+
+        circle at top right,
+
+        rgba(124,58,237,.18),
+
+        transparent 55%
+
+    );
+
+    opacity:0;
+
+    transition:.35s;
+
+}
+
+.song-card:hover::before{
+
+    opacity:1;
+
+}
+
+.song-card:hover{
+
+    transform:translateY(-8px) scale(1.015);
+
+    border-color:rgba(124,58,237,.35);
+
+    box-shadow:
+
+        0 15px 40px rgba(0,0,0,.45),
+
+        0 0 35px rgba(124,58,237,.28);
+
+}
+
+/* ================= IMAGE ================= */
+
+.song-image{
+
+    width:190px;
+
+    height:108px;
+
+    object-fit:cover;
+
+    border-radius:18px;
+
+    flex-shrink:0;
+
+    transition:.35s;
+
+}
+
+.song-card:hover .song-image{
+
+    transform:scale(1.05);
+
+}
+
+/* ================= INFO ================= */
+
+.song-info{
+
+    flex:1;
+
+    min-width:0;
+
+    z-index:2;
+
+}
+
+.song-title{
+
+    margin:0;
+
+    font-size:23px;
+
+    font-weight:700;
+
+    color:white;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+.song-artist{
+
+    margin-top:10px;
+
+    font-size:17px;
+
+    color:#a1a1aa;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+/* ================= BUTTONS ================= */
+
+.song-actions{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    z-index:2;
+
+}
+
+.play-btn{
+
+    width:58px;
+
+    height:58px;
+
+    border:none;
+
+    border-radius:50%;
+
+    cursor:pointer;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:18px;
+
+    color:white;
+
+    background:
+
+    linear-gradient(
+
+        135deg,
+
+        #8B5CF6,
+
+        #6D28D9
+
+    );
+
+    transition:.3s;
+
+    box-shadow:
+
+        0 0 20px rgba(124,58,237,.35);
+
+}
+
+.play-btn:hover{
+
+    transform:scale(1.15) rotate(8deg);
+
+    box-shadow:
+
+        0 0 28px rgba(124,58,237,.65);
+
+}
+
+.play-btn svg{
+
+    margin-left:2px;
+
+}
+
+.queue-song-btn{
+
+    width:48px;
+
+    height:48px;
+
+    border:none;
+
+    border-radius:50%;
+
+    cursor:pointer;
+
+    background:#242433;
+
+    color:white;
+
+    font-size:22px;
+
+    transition:.3s;
+
+}
+
+.queue-song-btn:hover{
+
+    background:#7C3AED;
+
+    transform:scale(1.12);
+
+    box-shadow:0 0 20px rgba(124,58,237,.45);
+
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+.song-card{
+
+    display:grid;
+
+    grid-template-columns:70px 1fr auto;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:8px;
+
+}
+
+.song-image{
+
+width:70px;
+
+height:70px;
+
+border-radius:10px;
+
+flex-shrink:0;
+
+}
+
+.song-title{
+
+font-size:14px;
+
+line-height:1.25;
+
+}
+
+.song-artist{
+
+font-size:11px;
+
+margin-top:2px;
+
+}
+
+.play-btn{
+
+width:34px;
+
+height:34px;
+
+font-size:12px;
+
+}
+
+.queue-song-btn{
+
+width:30px;
+
+height:30px;
+
+font-size:14px;
+
+}
+
+.song-actions{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-shrink:0;
+
+}
+
+.song-info{
+
+flex:1;
+
+min-width:0;
+
+overflow:hidden;
+
+}
+
+}
+
+.song-card::after{
+
+content:"";
+
+position:absolute;
+
+left:-120%;
+
+top:0;
+
+width:120%;
+
+height:100%;
+
+background:
+
+linear-gradient(
+
+90deg,
+
+transparent,
+
+rgba(255,255,255,.07),
+
+transparent
+
+);
+
+transition:.8s;
+
+}
+
+.song-card:hover::after{
+
+left:130%;
+
+}

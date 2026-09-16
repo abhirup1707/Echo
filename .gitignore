@@ -1,12 +1,18 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 client/node_modules/
 server/node_modules/
+client-mobile/node_modules/
 
 # Builds
 dist/
 client/dist/
+client-mobile/dist/
 build/
+client-mobile/android/.gradle/
+client-mobile/android/app/build/
+client-mobile/android/build/
+client-mobile/android/local.properties
 
 # Environment & Secrets
 .env

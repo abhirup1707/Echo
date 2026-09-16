@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+client-mobile/node_modules/
+
+# Builds
+dist/
+build/
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/.idea/
+
+# Environment
+.env
+.env.*
+
+# Uploads
+server/uploads/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
