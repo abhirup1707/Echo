@@ -10,6 +10,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Echo" />
     <title>Echo</title>
+    <script>
+      // Force page visibility to stay 'visible' so mobile WebView / YouTube never pauses when screen locks
+      try {
+        Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
+        Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true });
+        Object.defineProperty(document, 'webkitVisibilityState', { get: () => 'visible', configurable: true });
+        window.addEventListener('visibilitychange', (e) => {
+          if (document.visibilityState === 'hidden') {
+            e.stopImmediatePropagation();
+          }
+        }, true);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

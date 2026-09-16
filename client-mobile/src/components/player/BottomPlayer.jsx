@@ -73,6 +73,7 @@ function BottomPlayer() {
     roomCodeRef.current = roomCode;
 
     const isTransitioningRef = useRef(false);
+    const userRequestedPauseRef = useRef(false);
 
     useEffect(() => {
         function createPlayer() {
@@ -98,6 +99,7 @@ function BottomPlayer() {
                                 event.target.loadVideoById(pendingSongRef.current.videoId);
                                 event.target.playVideo();
                                 setIsPlaying(true);
+                                userRequestedPauseRef.current = false;
                                 startBackgroundAudio();
                             } catch (e) {}
                         }
@@ -113,6 +115,7 @@ function BottomPlayer() {
                         if (event.data === 1) {
                             // Playing
                             setIsPlaying(true);
+                            userRequestedPauseRef.current = false;
                             startBackgroundAudio();
 
                             // If there is a pending initial seek (e.g. from joining an ongoing room), seek immediately
@@ -127,11 +130,18 @@ function BottomPlayer() {
                             }
                         } else if (event.data === 2) {
                             // Paused by user or background restriction
-                            setIsPlaying(false);
-                            // On mobile, if paused because user left the tab, keep the OS audio channel
-                            // active so Android keeps the Media Notification ready to resume with one tap!
-                            if (document.visibilityState !== "hidden") {
+                            if (userRequestedPauseRef.current) {
+                                setIsPlaying(false);
                                 stopBackgroundAudio();
+                            } else {
+                                // Background or screen-off involuntary pause: auto-resume!
+                                console.log("[BottomPlayer] Background pause detected — auto-resuming playback...");
+                                startBackgroundAudio();
+                                if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+                                    try {
+                                        playerRef.current.playVideo();
+                                    } catch (e) {}
+                                }
                             }
                         } else if (event.data === 0) {
                             // Ended
@@ -269,6 +279,7 @@ function BottomPlayer() {
         if (!songSyncCommand || !playerRef.current) return;
         try {
             if (songSyncCommand.type === "pause") {
+                userRequestedPauseRef.current = true;
                 playerRef.current.pauseVideo();
                 if (typeof songSyncCommand.time === "number") {
                     playerRef.current.seekTo(songSyncCommand.time, true);
@@ -277,6 +288,7 @@ function BottomPlayer() {
                 }
                 stopBackgroundAudio();
             } else if (songSyncCommand.type === "resume") {
+                userRequestedPauseRef.current = false;
                 if (typeof songSyncCommand.time === "number") {
                     pendingInitialSeekRef.current = songSyncCommand.time;
                     playerRef.current.seekTo(songSyncCommand.time, true);
@@ -286,6 +298,7 @@ function BottomPlayer() {
                 playerRef.current.playVideo();
                 startBackgroundAudio();
             } else if (songSyncCommand.type === "stop") {
+                userRequestedPauseRef.current = true;
                 playerRef.current.stopVideo();
                 currentVideoIdRef.current = null;
                 stopBackgroundAudio();
@@ -324,11 +337,11 @@ function BottomPlayer() {
     useEffect(() => {
         function handleVisibilityChange() {
             if (document.visibilityState === "hidden") {
-                if (isPlaying) {
+                if (!userRequestedPauseRef.current) {
                     startBackgroundAudio();
-                    if (playerRef.current && typeof playerRef.current.getPlayerState === "function") {
+                    if (playerRef.current && typeof playerRef.current.playVideo === "function") {
                         try {
-                            const state = playerRef.current.getPlayerState();
+                            const state = playerRef.current.getPlayerState?.();
                             if (state !== 1) {
                                 playerRef.current.playVideo();
                             }
@@ -336,7 +349,7 @@ function BottomPlayer() {
                     }
                 }
             } else {
-                if (isPlaying && playerRef.current && typeof playerRef.current.getPlayerState === "function") {
+                if (!userRequestedPauseRef.current && playerRef.current && typeof playerRef.current.getPlayerState === "function") {
                     try {
                         const state = playerRef.current.getPlayerState();
                         if (state === 2) {
@@ -349,7 +362,7 @@ function BottomPlayer() {
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [isPlaying]);
+    }, []);
 
     // Synchronize OS Lock Screen & Media Center (Media Session API)
     useEffect(() => {
@@ -369,6 +382,7 @@ function BottomPlayer() {
             duration,
             currentTime,
             onPlay: () => {
+                userRequestedPauseRef.current = false;
                 if (playerRef.current && typeof playerRef.current.playVideo === "function") {
                     try { playerRef.current.playVideo(); } catch (e) {}
                 }
@@ -377,6 +391,7 @@ function BottomPlayer() {
                 startBackgroundAudio();
             },
             onPause: () => {
+                userRequestedPauseRef.current = true;
                 if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
                     try { playerRef.current.pauseVideo(); } catch (e) {}
                 }
@@ -452,6 +467,7 @@ function BottomPlayer() {
 
     function handleTogglePlay() {
         if (isPlaying) {
+            userRequestedPauseRef.current = true;
             const cur =
                 playerRef.current && typeof playerRef.current.getCurrentTime === "function"
                     ? playerRef.current.getCurrentTime()
@@ -464,6 +480,7 @@ function BottomPlayer() {
             pauseSong(cur);
             stopBackgroundAudio();
         } else {
+            userRequestedPauseRef.current = false;
             const cur =
                 playerRef.current && typeof playerRef.current.getCurrentTime === "function"
                     ? playerRef.current.getCurrentTime()
@@ -479,6 +496,7 @@ function BottomPlayer() {
     }
 
     function handleTurnOff() {
+        userRequestedPauseRef.current = true;
         stopSong();
         stopBackgroundAudio();
         if (playerRef.current && typeof playerRef.current.stopVideo === "function") {
