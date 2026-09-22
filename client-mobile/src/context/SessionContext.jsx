@@ -44,6 +44,7 @@ const [videoSyncCommand, setVideoSyncCommand] = useState(null);
     const [queue, setQueue] = useState([]);
     const [autoQueueEnabled, setAutoQueueEnabled] = useState(true);
     const seenAutoQueueIdsRef = useRef(new Set());
+    const sessionQueueHistoryTitlesRef = useRef(new Set());
     const isFetchingAutoQueueRef = useRef(false);
     const lastReplenishedSongIdRef = useRef(null);
     
@@ -399,9 +400,25 @@ async function playWithAutoQueue(song) {
 
     setAutoQueueEnabled(true);
 
-    const seen = new Set();
-    if (song.videoId) seen.add(String(song.videoId));
-    seenAutoQueueIdsRef.current = seen;
+    // Collect all titles and IDs from existing queue and session history to avoid re-queueing previous tracks
+    const previousTitles = Array.from(sessionQueueHistoryTitlesRef.current);
+    const currentQ = queueRef.current || [];
+    currentQ.forEach(item => {
+        const vid = item?.song?.videoId || item?.videoId;
+        const title = item?.song?.title || item?.title;
+        if (vid) seenAutoQueueIdsRef.current.add(String(vid));
+        if (title) {
+            sessionQueueHistoryTitlesRef.current.add(title);
+            previousTitles.push(title);
+        }
+    });
+
+    // Mark current song as seen so it and its variations (8k, 16k, lyrical) won't be queued
+    if (song.videoId) seenAutoQueueIdsRef.current.add(String(song.videoId));
+    if (song.title) {
+        sessionQueueHistoryTitlesRef.current.add(song.title);
+        previousTitles.push(song.title);
+    }
     lastReplenishedSongIdRef.current = song.videoId;
 
     clearQueue();
@@ -409,10 +426,16 @@ async function playWithAutoQueue(song) {
 
     try {
         isFetchingAutoQueueRef.current = true;
-        const related = await getRelatedSongs(song, Array.from(seen), 2);
+        const related = await getRelatedSongs(
+            song,
+            Array.from(seenAutoQueueIdsRef.current),
+            2,
+            previousTitles
+        );
         for (const track of related) {
-            if (track.videoId && !seen.has(String(track.videoId))) {
-                seen.add(String(track.videoId));
+            if (track.videoId && !seenAutoQueueIdsRef.current.has(String(track.videoId))) {
+                seenAutoQueueIdsRef.current.add(String(track.videoId));
+                if (track.title) sessionQueueHistoryTitlesRef.current.add(track.title);
                 addToQueue(track, "Smart Auto-Queue");
             }
         }
@@ -433,11 +456,14 @@ useEffect(() => {
 
     lastReplenishedSongIdRef.current = currentSong.videoId;
     seenAutoQueueIdsRef.current.add(String(currentSong.videoId));
+    if (currentSong.title) sessionQueueHistoryTitlesRef.current.add(currentSong.title);
 
     const currentQ = queueRef.current || [];
     currentQ.forEach(item => {
         const vid = item?.song?.videoId || item?.videoId;
+        const title = item?.song?.title || item?.title;
         if (vid) seenAutoQueueIdsRef.current.add(String(vid));
+        if (title) sessionQueueHistoryTitlesRef.current.add(title);
     });
 
     async function replenish() {
@@ -448,12 +474,14 @@ useEffect(() => {
             const related = await getRelatedSongs(
                 currentSong,
                 Array.from(seenAutoQueueIdsRef.current),
-                2
+                2,
+                Array.from(sessionQueueHistoryTitlesRef.current)
             );
 
             for (const track of related) {
                 if (track.videoId && !seenAutoQueueIdsRef.current.has(String(track.videoId))) {
                     seenAutoQueueIdsRef.current.add(String(track.videoId));
+                    if (track.title) sessionQueueHistoryTitlesRef.current.add(track.title);
                     addToQueue(track, "Smart Auto-Queue");
                 }
             }
