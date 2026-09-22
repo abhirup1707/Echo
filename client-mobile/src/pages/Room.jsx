@@ -399,136 +399,53 @@ setTimeout(() => setCopiedInvite(false), 2200);
             <p style={{ color: "#9ca3af", marginTop: "8px" }}>Connecting you to the session</p>
         </div>
     ) : (
-<div className="room-card">
-
-<h2>Join Session</h2>
-
-<br/>
-
-<div
-    style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "15px",
-        background: "#1d1d27",
-        padding: "15px",
-        borderRadius: "12px",
-        marginBottom: "20px"
-    }}
->
-
-    <UserAvatar
-        avatar={profile.avatar}
-        username={profile.username}
-        size={48}
-    />
-
-    <div>
-
-        <div
-            style={{
-                fontWeight: "bold",
-                fontSize: "18px"
-            }}
-        >
-            {profile.username}
-        </div>
-
-        <div
-            style={{
-                color: "#9ca3af",
-                fontSize: "13px"
-            }}
-        >
-            Ready to listen 🎵
-        </div>
-
+<div className="room-card join-session-card">
+    <div className="join-session-header">
+        <span className="join-session-badge">LIVE MULTIPLAYER</span>
+        <h2>Enter or Create Session</h2>
+        <p>Listen together, watch movies, chat, and play mini-games in real-time.</p>
     </div>
 
-</div>
+    <div className="join-session-user-box">
+        <UserAvatar
+            avatar={profile.avatar}
+            username={profile.username}
+            size={52}
+        />
+        <div className="join-session-user-info">
+            <strong>{profile.username || "Guest User"}</strong>
+            <span>Ready to listen together 🎵</span>
+        </div>
+    </div>
 
-<input
+    <div className="join-session-form">
+        <input
+            className="join-session-input"
+            placeholder="ENTER ROOM CODE (E.G. WGRG23)"
+            value={roomCode}
+            onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+            maxLength={12}
+        />
 
-placeholder="Room Code"
+        <div className="join-session-btn-row">
+            <button
+                type="button"
+                className="join-session-btn create-btn"
+                onClick={createRoom}
+            >
+                ✨ Create Room
+            </button>
 
-value={roomCode}
-
-onChange={(e)=>setRoomCode(e.target.value.toUpperCase())}
-
-style={{
-
-width:"100%",
-
-padding:"12px",
-
-marginBottom:"20px",
-
-borderRadius:"10px",
-
-background:"#26262f",
-
-border:"none",
-
-color:"white"
-
-}}
-
-/>
-
-<button
-
-onClick={createRoom}
-
-style={{
-
-padding:"12px 20px",
-
-marginRight:"10px",
-
-background:"#7c3aed",
-
-color:"white",
-
-border:"none",
-
-borderRadius:"10px",
-
-cursor:"pointer"
-
-}}
-
->
-
-Create Room
-
-</button>
-
-<button
-
-onClick={joinRoom}
-
-style={{
-
-padding:"12px 20px",
-
-background:"#2563eb",
-
-color:"white",
-
-border:"none",
-
-borderRadius:"10px",
-
-cursor:"pointer"
-
-}}
-
->
-
-Join Room
-
-</button>
-
+            <button
+                type="button"
+                className="join-session-btn join-btn"
+                onClick={joinRoom}
+                disabled={!roomCode.trim()}
+            >
+                🚀 Join Room
+            </button>
+        </div>
+    </div>
 </div>
 )
 

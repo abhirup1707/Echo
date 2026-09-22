@@ -1,35 +1,52 @@
+/* =========================================
+   PREMIUM SETTINGS PAGE - DARK LUXE THEME
+   ========================================= */
+
 .settings-page {
     max-width: 820px;
     margin: 0 auto;
-    padding: 32px 20px 80px 20px;
-    color: white;
-    animation: fadeHome 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 20px 14px 180px 14px;
+    color: #ffffff;
+    animation: fadeSettings 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeSettings {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 .settings-header {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 .settings-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    background: rgba(124, 58, 237, 0.15);
-    border: 1px solid rgba(124, 58, 237, 0.35);
-    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 13px;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 9999px;
     font-size: 11px;
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 1px;
     color: #c4b5fd;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     text-transform: uppercase;
+    box-shadow: 0 0 14px rgba(139, 92, 246, 0.15);
 }
 
 .settings-header h1 {
-    margin: 0 0 8px 0;
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
+    margin: 0 0 6px 0;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #ffffff 30%, #ddd6fe 70%, #8B5CF6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -38,63 +55,66 @@
 .settings-subtitle {
     margin: 0;
     color: #94a3b8;
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.45;
 }
 
 /* Card Base */
 .settings-card {
-    background: linear-gradient(145deg, rgba(25, 25, 38, 0.7), rgba(16, 16, 26, 0.85));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(145deg, rgba(24, 24, 38, 0.7), rgba(13, 13, 22, 0.85));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
-    padding: 26px;
-    margin-bottom: 22px;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .settings-card:hover {
-    border-color: rgba(124, 58, 237, 0.25);
-    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45);
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
 }
 
 .settings-card-header {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 14px;
+    margin-bottom: 18px;
 }
 
 .settings-icon {
-    font-size: 22px;
+    font-size: 20px;
     color: #a78bfa;
-    margin-top: 2px;
+    margin-top: 3px;
     flex-shrink: 0;
 }
 
 .settings-card-header h2 {
     margin: 0 0 4px 0;
-    font-size: 19px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
     color: #f1f5f9;
+    letter-spacing: -0.2px;
 }
 
 .settings-card-header p {
     margin: 0;
     color: #94a3b8;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.4;
 }
 
 /* Avatar Card */
 .avatar-settings-card {
     display: flex;
+    flex-direction: column;
+    text-align: center;
     align-items: center;
-    gap: 24px;
-    background: linear-gradient(145deg, rgba(124, 58, 237, 0.12), rgba(18, 18, 28, 0.9));
-    border: 1px solid rgba(124, 58, 237, 0.25);
+    gap: 18px;
+    background: linear-gradient(145deg, rgba(139, 92, 246, 0.12), rgba(15, 15, 25, 0.85));
+    border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
 .avatar-settings-preview {
@@ -109,69 +129,57 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
-    border: 2px solid #0f0f18;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    border: 2px solid #0b0b14;
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.avatar-camera-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.7);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
 }
 
 .avatar-settings-info {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
 }
 
 .avatar-settings-info h2 {
     margin: 0 0 6px 0;
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 19px;
+    font-weight: 800;
     color: #ffffff;
 }
 
 .avatar-settings-info p {
     margin: 0 0 16px 0;
-    font-size: 14px;
+    font-size: 13px;
     color: #94a3b8;
     line-height: 1.4;
 }
 
 .avatar-settings-actions {
     display: flex;
-    gap: 12px;
+    gap: 10px;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
 .settings-action-btn {
-    padding: 10px 18px;
+    padding: 9px 16px;
     border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .settings-action-btn.primary {
-    background: linear-gradient(135deg, #7c3aed, #6366f1);
-    color: white;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    color: #ffffff;
     border: none;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
-}
-
-.settings-action-btn.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.5);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
 }
 
 .settings-action-btn.secondary {
@@ -180,55 +188,44 @@
     color: #cbd5e1;
 }
 
-.settings-action-btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
 /* Input Group */
 .settings-input-group {
     display: flex;
-    gap: 12px;
-    align-items: center;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .settings-input-group input {
-    flex: 1;
-    padding: 14px 18px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     background: rgba(10, 10, 18, 0.6);
-    color: white;
-    font-size: 15px;
+    color: #ffffff;
+    font-size: 14px;
     outline: none;
-    transition: all 0.25s ease;
+    box-sizing: border-box;
 }
 
 .settings-input-group input:focus {
-    border-color: rgba(124, 58, 237, 0.6);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15), 0 0 20px rgba(124, 58, 237, 0.1);
-    background: rgba(15, 15, 24, 0.9);
+    border-color: rgba(139, 92, 246, 0.6);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
 }
 
 .settings-save-btn {
-    padding: 14px 24px;
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
     border: none;
     border-radius: 12px;
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
-    color: white;
-    font-size: 14px;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    color: #ffffff;
+    font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
-    white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
-    transition: all 0.25s ease;
-}
-
-.settings-save-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.45);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
 }
 
 /* Toggle Rows */
@@ -237,7 +234,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 14px;
 }
 
 .settings-toggle-row:first-of-type {
@@ -247,15 +245,16 @@
 
 .settings-toggle-row strong {
     display: block;
-    font-size: 15px;
+    font-size: 14px;
     color: #f1f5f9;
     margin-bottom: 2px;
 }
 
 .settings-toggle-row p {
     margin: 0;
-    font-size: 13px;
+    font-size: 12.5px;
     color: #94a3b8;
+    line-height: 1.35;
 }
 
 /* Switch */
@@ -292,11 +291,12 @@
     background-color: white;
     border-radius: 50%;
     transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 input:checked + .slider {
-    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
 }
 
 input:checked + .slider:before {
@@ -306,7 +306,7 @@ input:checked + .slider:before {
 /* Danger Zone */
 .danger {
     border: 1px solid rgba(239, 68, 68, 0.25) !important;
-    background: linear-gradient(145deg, rgba(239, 68, 68, 0.06), rgba(16, 16, 26, 0.85)) !important;
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.08), rgba(16, 16, 26, 0.85)) !important;
 }
 
 .danger-icon {
@@ -314,27 +314,22 @@ input:checked + .slider:before {
 }
 
 .reset-btn {
-    padding: 12px 22px;
-    background: linear-gradient(135deg, #dc2626, #991b1b);
+    width: 100%;
+    justify-content: center;
+    padding: 11px 20px;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
     border: none;
     border-radius: 12px;
     color: white;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
-    transition: all 0.25s ease;
 }
 
-.reset-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.45);
-    background: linear-gradient(135deg, #ef4444, #b91c1c);
-}
-
-/* Brave & Background Play Guide Card */
+/* Brave Guide Card */
 .brave-guide-card {
     border: 1px solid rgba(249, 115, 22, 0.35) !important;
     background: linear-gradient(145deg, rgba(249, 115, 22, 0.08), rgba(16, 16, 26, 0.9)) !important;
@@ -343,39 +338,32 @@ input:checked + .slider:before {
 .brave-guide-steps {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-top: 10px;
+    gap: 12px;
+    margin-top: 8px;
 }
 
 .bg-step-item {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 14px;
-    padding: 16px;
-    transition: all 0.2s ease;
-}
-
-.bg-step-item:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(249, 115, 22, 0.25);
+    padding: 14px;
 }
 
 .bg-step-num {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: linear-gradient(135deg, #f97316, #ea580c);
     color: white;
     font-weight: 800;
-    font-size: 14px;
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.4);
 }
 
 .bg-step-info {
@@ -385,15 +373,15 @@ input:checked + .slider:before {
 .bg-step-info strong {
     display: block;
     color: #f1f5f9;
-    font-size: 15px;
-    margin-bottom: 4px;
+    font-size: 14px;
+    margin-bottom: 3px;
 }
 
 .bg-step-info p {
     margin: 0;
     color: #94a3b8;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 12.5px;
+    line-height: 1.45;
 }
 
 .bg-step-info em {
@@ -404,7 +392,7 @@ input:checked + .slider:before {
 
 .brave-verified-tag {
     display: inline-block;
-    margin-top: 8px;
+    margin-top: 6px;
     background: rgba(34, 197, 94, 0.15);
     border: 1px solid rgba(34, 197, 94, 0.35);
     color: #4ade80;
@@ -412,31 +400,4 @@ input:checked + .slider:before {
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 6px;
-}
-
-/* Responsive */
-@media (max-width: 640px) {
-    .settings-page {
-        padding: 20px 14px 70px 14px;
-    }
-
-    .avatar-settings-card {
-        flex-direction: column;
-        text-align: center;
-        align-items: center;
-    }
-
-    .avatar-settings-actions {
-        justify-content: center;
-    }
-
-    .settings-input-group {
-        flex-direction: column;
-    }
-
-    .settings-input-group input,
-    .settings-save-btn {
-        width: 100%;
-        justify-content: center;
-    }
 }

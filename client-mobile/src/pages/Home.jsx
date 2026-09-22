@@ -65,29 +65,44 @@ function Home() {
     }
 
 
+    const greeting = (() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 17) return "Good afternoon";
+        return "Good evening";
+    })();
+
     return (
-
         <div className="home-page">
-
-            {/* ── HEADER ── */}
-
-            <div className="home-header">
-
-                <h1 className="home-title">
-
-                    Home
-
-                </h1>
-
-                <button
-                    className="home-add-playlist-btn"
-                    onClick={() => setShowModal(true)}
-                >
-                    + New Playlist
-                </button>
-
+            {/* ── HERO BANNER ── */}
+            <div className="home-hero-banner">
+                <div className="home-hero-content">
+                    <div className="home-hero-badge">
+                        <span className="badge-pulse-dot" />
+                        <span>PREMIUM AUDIO EXPERIENCE</span>
+                    </div>
+                    <h1 className="home-title">
+                        {greeting}, <span className="home-username">{profile.username || "Friend"}</span>
+                    </h1>
+                    <p className="home-hero-subtitle">
+                        Synchronized listening, collaborative sessions, and non-stop music.
+                    </p>
+                    <div className="home-quick-actions">
+                        <button className="home-quick-btn dj-btn" onClick={() => navigate("/dj")}>
+                            ✨ AI DJ Studio
+                        </button>
+                        <button className="home-quick-btn video-btn" onClick={() => navigate("/videos")}>
+                            🎬 Watch Together
+                        </button>
+                        <button className="home-quick-btn games-btn" onClick={() => navigate("/games")}>
+                            🎮 Mini Games
+                        </button>
+                        <button className="home-quick-btn add-btn" onClick={() => setShowModal(true)}>
+                            + New Playlist
+                        </button>
+                    </div>
+                </div>
             </div>
-
 
             {/* ── YOUR PLAYLISTS ── */}
 
@@ -305,21 +320,25 @@ function Home() {
 
 
             {/* ── EMPTY STATE ── */}
-
             {recentSongs.length === 0 &&
                 playlists.length === 0 &&
                 collabPlaylists.length === 0 && (
-
-                <div className="home-empty">
-
-                    <div className="home-empty-icon">🎶</div>
-
-                    <h2>Welcome to Echo</h2>
-
-                    <p>Search for songs to start listening, or create a playlist.</p>
-
+                <div className="home-empty glass-card">
+                    <div className="home-empty-icon">🎧</div>
+                    <h2>Start Your Sonic Journey</h2>
+                    <p>Search your favorite tracks, collaborate with friends, or let the AI DJ curate an instant vibe.</p>
+                    <div className="home-empty-actions">
+                        <button className="home-empty-btn primary" onClick={() => navigate("/search")}>
+                            🔍 Search Songs
+                        </button>
+                        <button className="home-empty-btn secondary" onClick={() => setShowModal(true)}>
+                            + Create Playlist
+                        </button>
+                        <button className="home-empty-btn dj" onClick={() => navigate("/dj")}>
+                            ✨ Launch AI DJ
+                        </button>
+                    </div>
                 </div>
-
             )}
 
 

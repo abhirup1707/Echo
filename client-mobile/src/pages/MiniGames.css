@@ -1,17 +1,18 @@
 /* =========================================
-   PREMIUM HD MINI GAMES PAGE
+   PREMIUM MINI GAMES ARENA
    ========================================= */
 
 .games-page {
     width: 100%;
-    color: white;
-    animation: fadeGames 0.4s ease;
+    color: #ffffff;
+    padding-bottom: 180px;
+    animation: fadeGames 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeGames {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(12px);
     }
     to {
         opacity: 1;
@@ -20,14 +21,38 @@
 }
 
 .games-header {
-    margin-bottom: 36px;
+    margin-bottom: 26px;
+}
+
+.games-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.28);
+    color: #c4b5fd;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    margin-bottom: 14px;
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.15);
+}
+
+.games-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #a78bfa;
+    box-shadow: 0 0 8px #a78bfa;
 }
 
 .games-page h1 {
-    font-size: 38px;
-    font-weight: 800;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, #ffffff 30%, #c4b5fd 70%, #7C3AED 100%);
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0 0 8px 0;
+    background: linear-gradient(135deg, #ffffff 30%, #ddd6fe 70%, #8B5CF6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -35,24 +60,15 @@
 }
 
 .games-subtitle {
-    color: #9ca3af;
-    font-size: 15px;
+    color: #94a3b8;
+    font-size: 14px;
     font-weight: 500;
+    margin: 0;
+    line-height: 1.5;
 }
 
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 26px;
-}
-
-@media (max-width: 768px) {
-    .games-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .games-page h1 {
-        font-size: 26px;
-    }
+    grid-template-columns: 1fr;
+    gap: 16px;
 }

@@ -1,12 +1,12 @@
 :root {
-    --primary: #7C3AED;
+    --primary: #8B5CF6;
     --primary-gradient: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-    --primary-glow: rgba(124, 58, 237, 0.4);
+    --primary-glow: rgba(139, 92, 246, 0.45);
     --secondary: #06B6D4;
-    --bg-main: #07070b;
-    --card-bg: rgba(16, 16, 26, 0.7);
-    --card-border: rgba(255, 255, 255, 0.07);
-    --card-border-glow: rgba(124, 58, 237, 0.35);
+    --bg-main: #07070c;
+    --card-bg: rgba(18, 18, 28, 0.72);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-border-glow: rgba(139, 92, 246, 0.45);
 }
 
 html {
@@ -29,8 +29,8 @@ html {
 .main-content {
     flex: 1;
     min-height: calc(100vh - 74px);
-    padding: 34px 40px;
-    padding-bottom: 140px;
+    padding: 32px 38px;
+    padding-bottom: 150px;
     overflow-y: auto;
     animation: fadeContent 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -49,17 +49,17 @@ html {
 /* Premium Glassmorphic Cards */
 .glass {
     background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--card-border);
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass:hover {
     border-color: var(--card-border-glow);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(124, 58, 237, 0.15);
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 28px rgba(139, 92, 246, 0.2);
 }
 
 /* Standardized Premium Headings */
@@ -78,6 +78,7 @@ h2 {
     font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.3px;
+    color: #f8fafc;
 }
 
 input {
@@ -86,8 +87,24 @@ input {
 }
 
 input:focus {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
-    border-color: rgba(124, 58, 237, 0.6) !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+    border-color: rgba(139, 92, 246, 0.65) !important;
+}
+
+/* Common Glow Buttons */
+.btn-primary-glow {
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 10px 20px;
+    box-shadow: 0 4px 18px rgba(139, 92, 246, 0.35);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(139, 92, 246, 0.5);
 }
 
 /* ================= MOBILE RESPONSIVENESS ================= */
@@ -104,7 +121,7 @@ input:focus {
     .main-content {
         min-height: 100vh;
         padding: 16px 14px;
-        padding-bottom: 170px; /* Generous space to never clip above bottom player & nav */
+        padding-bottom: 180px; /* Generous space to never clip above bottom player & nav */
     }
 
     h1 {

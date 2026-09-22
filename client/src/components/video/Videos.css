@@ -1,327 +1,277 @@
+/* =========================================================
+   WATCH TOGETHER / VIDEOS PAGE - ULTRA-PREMIUM CINEMA THEME
+   ========================================================= */
+
 .videos-page {
-    animation: videoFade 0.45s ease;
-    color: white;
+    width: 100%;
+    animation: videoFade 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    color: #f8fafc;
 }
 
-.videos-page h1 {
-    position: relative;
-    display: inline-block;
-    font-size: 44px;
-    font-weight: 800;
+@keyframes videoFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ================= HEADER ================= */
+
+.videos-header-wrap {
     margin-bottom: 28px;
-    background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #7C3AED 100%);
+}
+
+.videos-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    background: rgba(139, 92, 246, 0.16);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    color: #c4b5fd;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.videos-title {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.6px;
+    margin: 0 0 8px 0;
+    background: linear-gradient(135deg, #ffffff 20%, #c4b5fd 70%, #8b5cf6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-.videos-page h1::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -10px;
-    width: 65%;
-    height: 4px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #7C3AED, transparent);
+.videos-subtitle {
+    font-size: 15px;
+    color: #94a3b8;
+    max-width: 640px;
+    margin: 0;
+    line-height: 1.5;
 }
 
-.videos-page h1::before {
-    content: "";
+/* ================= SEARCH BAR ================= */
+
+.videos-search-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 34px;
+    display: flex;
+    align-items: center;
+}
+
+.videos-search-icon {
     position: absolute;
-    width: 190px;
-    height: 190px;
-    left: -70px;
-    top: -70px;
-    background: #7C3AED;
-    opacity: 0.12;
-    filter: blur(80px);
-    border-radius: 50%;
-    z-index: -1;
+    left: 20px;
+    color: #8b5cf6;
+    font-size: 18px;
+    pointer-events: none;
 }
 
 .video-search {
     width: 100%;
-    height: 62px;
-    padding: 0 24px;
-    border: none;
-    outline: none;
+    height: 60px;
+    padding: 0 54px 0 56px;
     border-radius: 18px;
-    color: white;
-    font-size: 16px;
-    margin-bottom: 35px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    color: #ffffff;
+    font-size: 15.5px;
+    font-weight: 500;
+    background: rgba(18, 18, 28, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.06);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .video-search:focus {
-    border-color: rgba(124, 58, 237, 0.5);
-    box-shadow:
-        0 0 0 3px rgba(124,58,237,0.12),
-        0 0 28px rgba(124,58,237,0.15);
-    background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+    border-color: #8b5cf6;
+    background: rgba(26, 26, 38, 0.85);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.25), 0 0 0 2px rgba(139, 92, 246, 0.2);
 }
 
 .video-search::placeholder {
-    color: #6d6d7a;
+    color: #64748b;
 }
+
+.videos-search-clear {
+    position: absolute;
+    right: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.videos-search-clear:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #ffffff;
+}
+
+/* ================= VIDEO GRID ================= */
 
 .video-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 24px;
 }
 
+/* ================= UPLOAD MOVIE SECTION ================= */
+
 .upload-section {
     margin-top: 55px;
-    padding: 32px;
-    border-radius: 24px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-    border: 1px solid rgba(255,255,255,0.06);
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
+    padding: 36px;
+    border-radius: 26px;
+    background: linear-gradient(145deg, rgba(24, 24, 38, 0.85), rgba(16, 16, 26, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
 }
 
 .upload-section::before {
     content: "";
     position: absolute;
-    width: 240px;
-    height: 240px;
-    right: -60px;
-    top: -60px;
-    background: #7C3AED;
-    opacity: 0.12;
-    filter: blur(80px);
+    width: 280px;
+    height: 280px;
+    right: -70px;
+    top: -70px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+    filter: blur(70px);
     border-radius: 50%;
+    pointer-events: none;
 }
 
 .upload-section h2 {
-    font-size: 28px;
-    margin-bottom: 18px;
+    font-size: 26px;
+    margin-bottom: 10px;
     font-weight: 800;
+    color: #ffffff;
 }
 
 .upload-section p {
-    color: #9ca3af;
-    margin-bottom: 22px;
+    color: #94a3b8;
+    font-size: 14.5px;
+    margin-bottom: 24px;
+    max-width: 580px;
+    line-height: 1.5;
 }
 
 .upload-btn {
-    padding: 15px 32px;
+    padding: 13px 28px;
     border: none;
-    border-radius: 16px;
-    font-size: 16px;
+    border-radius: 14px;
+    font-size: 15px;
     font-weight: 700;
     color: white;
     cursor: pointer;
     background: linear-gradient(135deg, #8B5CF6, #6D28D9);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 18px rgba(139, 92, 246, 0.4);
     letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .upload-btn:hover {
-    transform: translateY(-3px);
-    box-shadow:
-        0 8px 28px rgba(124,58,237,0.4),
-        0 0 30px rgba(124,58,237,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(139, 92, 246, 0.55);
 }
 
-.movie-player {
-    margin-top: 45px;
-    padding: 28px;
-    border-radius: 24px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-    transition: box-shadow 0.3s;
-}
-
-.movie-player:hover {
-    box-shadow:
-        0 8px 36px rgba(0,0,0,0.3),
-        0 0 30px rgba(124,58,237,0.1);
-}
-
-.movie-player h2 {
-    margin-bottom: 20px;
-    font-size: 28px;
-    font-weight: 800;
-}
-
-.movie-player video {
-    width: 100%;
-    border-radius: 18px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.45);
-}
-
-.videos-page hr {
-    border: none;
-    height: 1px;
-    background: rgba(255,255,255,0.06);
-    margin: 45px 0;
-}
-
-.empty-movie {
-    height: 240px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    color: #6d6d7a;
-    border-radius: 20px;
-    border: 2px dashed rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.01);
-}
-
-.empty-movie h3 {
-    margin-bottom: 12px;
-    font-size: 26px;
-}
-
-.empty-movie p {
-    color: #555;
-}
-
-@keyframes videoFade {
-    from {
-        opacity: 0;
-        transform: translateY(14px);
-    }
-    to {
-        opacity: 1;
-        transform: none;
-    }
-}
-
+/* Upload Progress Telemetry */
 .upload-progress {
-    margin-top: 22px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-    backdrop-filter: blur(12px);
+    margin-top: 24px;
     padding: 20px;
     border-radius: 18px;
-    border: 1px solid rgba(124,58,237,0.2);
-    animation: fadeUpload 0.35s ease;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    background: rgba(10, 10, 16, 0.7);
+    border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
 .progress-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 12px;
+    font-size: 14px;
     font-weight: 700;
-    color: white;
+    color: #c4b5fd;
+    margin-bottom: 12px;
 }
 
 .progress-bar {
-    height: 10px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 20px;
+    width: 100%;
+    height: 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
     overflow: hidden;
+    margin-bottom: 14px;
 }
 
 .progress-fill {
     height: 100%;
-    width: 0;
-    background: linear-gradient(90deg, #7C3AED, #A855F7);
-    transition: width 0.25s;
-    border-radius: 20px;
-    box-shadow: 0 0 14px rgba(124,58,237,0.55);
-}
-
-@keyframes fadeUpload {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: none;
-    }
+    background: linear-gradient(90deg, #8B5CF6, #EC4899);
+    border-radius: 6px;
+    transition: width 0.3s ease;
 }
 
 .upload-details {
-    margin-top: 14px;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    color: #cfcfd6;
-    font-size: 14px;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 12.5px;
+    color: #94a3b8;
 }
 
-.upload-details p {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.movie-player {
+    margin-top: 40px;
 }
 
-@media(max-width:768px) {
-    .videos-page {
-        padding-bottom: 145px;
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+    .videos-title {
+        font-size: 26px;
     }
 
-    .videos-page h1 {
-        font-size: 28px;
-        margin-bottom: 18px;
-    }
-
-    .videos-page h1::before {
-        width: 120px;
-        height: 120px;
-        left: -35px;
-        top: -35px;
-        filter: blur(55px);
+    .videos-subtitle {
+        font-size: 13.5px;
     }
 
     .video-search {
-        height: 54px;
-        padding: 0 18px;
-        border-radius: 15px;
-        font-size: 15px;
-        margin-bottom: 20px;
+        height: 52px;
+        font-size: 14px;
+        padding: 0 46px 0 48px;
+    }
+
+    .videos-search-icon {
+        left: 16px;
+        font-size: 16px;
     }
 
     .video-grid {
-        display: flex;
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 16px;
     }
 
     .upload-section {
-        padding: 20px;
-        border-radius: 18px;
+        padding: 24px 18px;
+        border-radius: 20px;
     }
 
     .upload-section h2 {
-        font-size: 22px;
-    }
-
-    .upload-btn {
-        width: 100%;
-        padding: 14px;
-        border-radius: 14px;
-    }
-
-    .movie-player {
-        padding: 16px;
-        border-radius: 18px;
-    }
-
-    .movie-player h2 {
-        font-size: 22px;
-    }
-
-    .movie-player video {
-        border-radius: 12px;
+        font-size: 20px;
     }
 }

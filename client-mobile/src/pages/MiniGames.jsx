@@ -65,7 +65,16 @@ export default function MiniGames() {
 
     return (
         <div className="games-page">
-            <h1>🎮 Mini Games</h1>
+            <div className="games-header">
+                <div className="games-badge">
+                    <span className="games-badge-dot"></span>
+                    <span>MULTIPLAYER ARENA</span>
+                </div>
+                <h1>🎮 Mini Games</h1>
+                <p className="games-subtitle">
+                    Jump into real-time multiplayer battles with your room members.
+                </p>
+            </div>
 
             <div className="games-grid">
                 <GameCard

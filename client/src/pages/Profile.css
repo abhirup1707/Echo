@@ -1,9 +1,24 @@
+/* =========================================
+   PREMIUM PROFILE PAGE - DARK LUXE THEME
+   ========================================= */
+
 .profile-page {
     max-width: 860px;
     margin: 0 auto;
-    padding: 36px 20px 80px 20px;
-    color: white;
-    animation: fadeHome 0.45s ease;
+    padding: 36px 24px 160px 24px;
+    color: #ffffff;
+    animation: fadeProfile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeProfile {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 .profile-header {
@@ -15,100 +30,130 @@
     position: relative;
 }
 
-/* Avatar Container with Hover Edit Badge */
+/* Ambient backlight behind avatar */
+.profile-header::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.22) 0%, rgba(6, 182, 212, 0.1) 50%, transparent 75%);
+    pointer-events: none;
+    filter: blur(28px);
+    z-index: 0;
+}
+
+/* Avatar Container with Animated Halo & Hover Badge */
 .profile-avatar-container {
     position: relative;
     cursor: pointer;
     border-radius: 50%;
-    margin-bottom: 16px;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 18px;
+    z-index: 1;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 4px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.5), rgba(236, 72, 153, 0.8));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(139, 92, 246, 0.3);
 }
 
 .profile-avatar-container:hover {
-    transform: scale(1.05);
+    transform: scale(1.06);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 35px rgba(139, 92, 246, 0.5);
 }
 
 .profile-main-avatar {
-    box-shadow:
-        0 0 35px rgba(124, 58, 237, 0.4),
-        0 10px 30px rgba(0, 0, 0, 0.6);
-    border: 3px solid rgba(255, 255, 255, 0.25) !important;
+    display: block;
+    border: 3px solid #0b0b14 !important;
+    border-radius: 50%;
+    overflow: hidden;
 }
 
 .profile-avatar-edit-badge {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
-    background: linear-gradient(135deg, #7C3AED, #4F46E5);
-    color: white;
+    bottom: 4px;
+    right: 4px;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    color: #ffffff;
     font-size: 11px;
     font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 2px solid #0f172a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    transition: all 0.2s ease;
+    padding: 5px 11px;
+    border-radius: 9999px;
+    border: 2px solid #0b0b14;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .profile-avatar-container:hover .profile-avatar-edit-badge {
-    transform: scale(1.1);
-    background: linear-gradient(135deg, #a855f7, #6366f1);
+    transform: scale(1.08);
+    background: linear-gradient(135deg, #A78BFA, #7C3AED);
+    box-shadow: 0 6px 18px rgba(139, 92, 246, 0.6);
 }
 
 .profile-header h1 {
     margin: 0 0 10px 0;
     font-size: 34px;
     font-weight: 800;
-    background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
+    background: linear-gradient(135deg, #ffffff 30%, #ddd6fe 70%, #8B5CF6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    z-index: 1;
 }
 
 .profile-badge-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
+    z-index: 1;
 }
 
 .profile-role-pill {
     font-size: 12px;
     font-weight: 700;
-    color: #eab308;
-    background: rgba(234, 179, 8, 0.12);
-    border: 1px solid rgba(234, 179, 8, 0.3);
-    padding: 4px 12px;
-    border-radius: 20px;
+    color: #fcd34d;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 4px 14px;
+    border-radius: 9999px;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.15);
 }
 
 .profile-status-pill {
     font-size: 12px;
-    font-weight: 600;
-    color: #22c55e;
-    background: rgba(34, 197, 94, 0.12);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    padding: 4px 12px;
-    border-radius: 20px;
+    font-weight: 700;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 4px 14px;
+    border-radius: 9999px;
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.15);
 }
 
 .profile-change-avatar-btn {
-    padding: 9px 20px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 10px 22px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
     color: #f1f5f9;
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    backdrop-filter: blur(10px);
-    transition: all 0.2s ease;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1;
 }
 
 .profile-change-avatar-btn:hover {
-    background: rgba(124, 58, 237, 0.2);
+    background: rgba(139, 92, 246, 0.18);
     border-color: rgba(167, 139, 250, 0.4);
     transform: translateY(-2px);
-    color: white;
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.25);
 }
 
 /* Stats */
@@ -120,30 +165,32 @@
 }
 
 .stat-box {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    background: linear-gradient(145deg, rgba(26, 26, 40, 0.65), rgba(16, 16, 26, 0.8));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
-    padding: 20px;
+    padding: 22px 18px;
     text-align: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
 }
 
 .stat-box:hover {
-    transform: translateY(-5px);
-    border-color: rgba(124, 58, 237, 0.4);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(124, 58, 237, 0.15);
+    transform: translateY(-4px);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(139, 92, 246, 0.18);
 }
 
 .stat-box h2 {
-    font-size: 32px;
+    font-size: 34px;
     margin: 0 0 6px 0;
     font-weight: 900;
-    background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+    background: linear-gradient(135deg, #ddd6fe, #8B5CF6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
 }
 
 .stat-box span {
@@ -154,26 +201,26 @@
 
 /* Cards */
 .profile-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+    background: linear-gradient(145deg, rgba(24, 24, 38, 0.65), rgba(15, 15, 24, 0.75));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 24px;
     border-radius: 22px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-    transition: border-color 0.25s ease;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+    transition: all 0.25s ease;
 }
 
 .profile-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.14);
 }
 
 .profile-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .profile-card-header h2 {
@@ -181,17 +228,19 @@
     font-size: 18px;
     font-weight: 800;
     color: #f8fafc;
+    letter-spacing: -0.2px;
 }
 
 .profile-card-tag {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #a855f7;
-    background: rgba(168, 85, 247, 0.12);
+    letter-spacing: 0.8px;
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
     padding: 3px 10px;
-    border-radius: 12px;
+    border-radius: 9999px;
 }
 
 .favorite-artist-text {
@@ -199,13 +248,14 @@
     font-weight: 600;
     color: #c4b5fd;
     margin: 0;
+    line-height: 1.5;
 }
 
 /* Recent songs */
 .recent-songs-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .recent-song {
@@ -214,14 +264,15 @@
     align-items: center;
     padding: 10px 14px;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
 
 .recent-song:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(139, 92, 246, 0.25);
+    transform: translateX(3px);
 }
 
 .recent-song img {
@@ -229,7 +280,13 @@
     height: 48px;
     border-radius: 10px;
     object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
+}
+
+.recent-song-info {
+    min-width: 0;
+    flex: 1;
 }
 
 .recent-song-info strong {
@@ -239,30 +296,40 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 500px;
 }
 
 .recent-song-info p {
     font-size: 12px;
     color: #94a3b8;
     margin: 2px 0 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 @media (max-width: 768px) {
     .profile-page {
-        padding: 20px 14px 90px 14px;
+        padding: 24px 16px 180px 16px;
+    }
+
+    .profile-header h1 {
+        font-size: 28px;
     }
 
     .profile-stats {
-        grid-template-columns: 1fr;
-        gap: 10px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
 
     .stat-box {
-        padding: 16px;
+        padding: 14px 8px;
     }
 
-    .recent-song-info strong {
-        max-width: 200px;
+    .stat-box h2 {
+        font-size: 24px;
+    }
+
+    .stat-box span {
+        font-size: 11px;
     }
 }

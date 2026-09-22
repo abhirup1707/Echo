@@ -4,6 +4,7 @@ import { SessionContext } from "../context/SessionContext";
 import VideoCard from "../components/video/VideoCard";
 import MoviePlayer from "../components/video/MoviePlayer";
 import axios from "axios";
+import { FaSearch, FaFilm, FaCloudUploadAlt, FaTimes } from "react-icons/fa";
 
 import "../components/video/Videos.css";
 
@@ -170,24 +171,32 @@ async function uploadMovie(file) {
     }, [query]);
 
     return (
-
         <div className="videos-page">
+            <div className="videos-header-wrap">
+                <div className="videos-badge">
+                    <span className="badge-pulse-dot" />
+                    <span>SYNCHRONIZED CINEMA</span>
+                </div>
+                <h1 className="videos-title">🎬 Watch Together</h1>
+                <p className="videos-subtitle">
+                    Search and watch any YouTube video in real-time sync with room participants, or host a local movie screening.
+                </p>
+            </div>
 
-            <h1>
-                🎬 Watch Together
-            </h1>
-
-            <input
-
-                className="video-search"
-
-                placeholder="Search YouTube videos..."
-
-                value={query}
-
-                onChange={(e) => setQuery(e.target.value)}
-
-            />
+            <div className="videos-search-wrapper">
+                <FaSearch className="videos-search-icon" />
+                <input
+                    className="video-search"
+                    placeholder="Search YouTube videos (e.g. music videos, movie trailers, tutorials)..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+                {query && (
+                    <button className="videos-search-clear" onClick={() => setQuery("")}>
+                        <FaTimes />
+                    </button>
+                )}
+            </div>
 
             <div className="video-grid">
 
