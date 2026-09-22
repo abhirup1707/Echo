@@ -116,15 +116,15 @@ value={{
     },
 
     joinSession(room){
-
-        setProfile(prev=>({
-
-            ...prev,
-
-            sessionsJoined:prev.sessionsJoined+1,
-
-            lastRoom:room
-        }));
+        if (!room) return;
+        setProfile(prev => {
+            if (prev.lastRoom === room) return prev;
+            return {
+                ...prev,
+                sessionsJoined: prev.sessionsJoined + 1,
+                lastRoom: room
+            };
+        });
     },
 
     updateAvatar(avatar){

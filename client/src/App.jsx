@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import "./App.css";
-import { useContext, useState } from "react";
+import { useContext, useState, useCallback } from "react";
 import { ProfileContext } from "./context/ProfileContext";
 import SplashScreen from "./components/common/SplashScreen";
 import Welcome from "./pages/Welcome";
@@ -33,9 +33,13 @@ function App() {
   const { profile } = useContext(ProfileContext);
   const [showSplash, setShowSplash] = useState(true);
 
+  const handleFinishSplash = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
   return (
     <>
-      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen onFinish={handleFinishSplash} />}
 
       {!profile.username ? (
         <Welcome />

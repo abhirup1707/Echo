@@ -46,17 +46,8 @@ function Room() {
   const [username] = useState(profile.username);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copiedInvite, setCopiedInvite] = useState(false);
-  const [isJoiningPending, setIsJoiningPending] = useState(() => {
-    return Boolean(sessionStorage.getItem("echo_auto_join_room"));
-  });
 
-  const [roomCode, setRoomCode] = useState(
-    sessionStorage.getItem("echo_auto_join_room") ||
-    sessionStorage.getItem("echoRoomCode") || ""
-  );
- 
-  
-const {
+  const {
     roomCode: sessionRoomCode,
     setRoomCode: setSessionRoomCode,
     username: sessionUsername,
@@ -69,7 +60,17 @@ const {
     markChatRead,
     isHost,
     kickMember
-} = useContext(SessionContext);
+  } = useContext(SessionContext);
+
+  const [isJoiningPending, setIsJoiningPending] = useState(() => {
+    return Boolean(sessionStorage.getItem("echo_auto_join_room")) && !sessionRoomCode;
+  });
+
+  const [roomCode, setRoomCode] = useState(
+    sessionRoomCode ||
+    sessionStorage.getItem("echo_auto_join_room") ||
+    sessionStorage.getItem("echoRoomCode") || ""
+  );
 
 const {
     setCurrentSong,
@@ -124,18 +125,19 @@ useEffect(() => {
     } else if (sessionRoomCode) {
       setIsJoiningPending(false);
     }
-  }, [profile?.username, sessionRoomCode, setSessionRoomCode, setSessionUsername]);
+  }, [profile?.username, sessionRoomCode]);
 
   useEffect(() => {
-socket.on("session-created", (room) => {
-    setSessionRoomCode(room.code);
-    setSessionUsername(username);
-    setMembers(room.members);
-    setIsJoiningPending(false);
-});
+    socket.on("session-created", (room) => {
+      setSessionRoomCode(room.code);
+      setSessionUsername(username);
+      setMembers(room.members);
+      setIsJoiningPending(false);
+    });
 
     socket.on("members-updated", (members) => {
       setMembers(members);
+      setIsJoiningPending(false);
     });
 
     socket.on("room-not-found", () => {

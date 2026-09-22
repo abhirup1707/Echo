@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ProfileContext } from "../context/ProfileContext";
 import { SessionContext } from "../context/SessionContext";
@@ -9,6 +9,7 @@ export default function JoinRoom() {
     const { profile } = useContext(ProfileContext);
     const { setRoomCode: setSessionRoomCode, setUsername: setSessionUsername } = useContext(SessionContext);
     const navigate = useNavigate();
+    const hasJoinedRef = useRef(false);
 
     useEffect(() => {
         if (!roomCode) {
@@ -17,6 +18,12 @@ export default function JoinRoom() {
         }
 
         const cleanCode = roomCode.trim().toUpperCase();
+
+        if (hasJoinedRef.current) return;
+        hasJoinedRef.current = true;
+
+        sessionStorage.setItem("echo_auto_join_room", cleanCode);
+        sessionStorage.setItem("echoRoomCode", cleanCode);
 
         // If user already has a profile name, auto-join immediately
         if (profile?.username) {
@@ -28,16 +35,10 @@ export default function JoinRoom() {
             });
             setSessionRoomCode(cleanCode);
             setSessionUsername(profile.username);
-            sessionStorage.removeItem("echo_auto_join_room");
-            sessionStorage.removeItem("echoRoomCode");
-            navigate("/room", { replace: true });
-        } else {
-            // If profile is not ready yet, store pending code and redirect to room
-            sessionStorage.setItem("echo_auto_join_room", cleanCode);
-            sessionStorage.setItem("echoRoomCode", cleanCode);
-            navigate("/room", { replace: true });
         }
-    }, [roomCode, profile?.username, navigate, setSessionRoomCode, setSessionUsername]);
+
+        navigate("/room", { replace: true });
+    }, [roomCode, profile?.username]);
 
     return (
         <div
@@ -66,7 +67,7 @@ export default function JoinRoom() {
                 Entering Room #{roomCode?.toUpperCase()}...
             </div>
             <div style={{ color: "#9ca3af", fontSize: "14px" }}>
-                Connecting you with {profile?.username || "friends"}
+                Connecting you to the session...
             </div>
             <style>{`
                 @keyframes spin {

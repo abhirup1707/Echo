@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./SplashScreen.css";
 
 export default function SplashScreen({ onFinish }) {
     const [exiting, setExiting] = useState(false);
+    const onFinishRef = useRef(onFinish);
+    onFinishRef.current = onFinish;
 
     useEffect(() => {
         // Trigger fade out at 2.65s
@@ -12,19 +14,19 @@ export default function SplashScreen({ onFinish }) {
 
         // Completely finish and unmount at 3.1s (total duration ~3s)
         const finishTimer = setTimeout(() => {
-            if (onFinish) onFinish();
+            if (onFinishRef.current) onFinishRef.current();
         }, 3100);
 
         return () => {
             clearTimeout(exitTimer);
             clearTimeout(finishTimer);
         };
-    }, [onFinish]);
+    }, []);
 
     function handleSkip() {
         setExiting(true);
         setTimeout(() => {
-            if (onFinish) onFinish();
+            if (onFinishRef.current) onFinishRef.current();
         }, 250);
     }
 
