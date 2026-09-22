@@ -9,8 +9,13 @@ const ICE_SERVERS = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:stun2.l.google.com:19302" }
-  ]
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
+    { urls: "stun:stun.cloudflare.com:3478" },
+    { urls: "stun:openrelay.metered.ca:80" }
+  ],
+  iceCandidatePoolSize: 10
 };
 
 export default function StreamProvider({ children }) {
@@ -26,8 +31,14 @@ export default function StreamProvider({ children }) {
   const [remoteStream, setRemoteStream] = useState(null);
   const [streamVolume, setStreamVolume] = useState(1);
   const [isStreamMuted, setIsStreamMuted] = useState(false);
+  const [hasScreenAudio, setHasScreenAudio] = useState(false);
+  const [hasMicAudio, setHasMicAudio] = useState(false);
+  const [isStreamMicMuted, setIsStreamMicMuted] = useState(false);
 
   const localStreamRef = useRef(null);
+  const displayStreamRef = useRef(null);
+  const micStreamRef = useRef(null);
+  const streamAudioCtxRef = useRef(null);
   const remoteStreamRef = useRef(null);
   const streamerPeerConnectionsRef = useRef(new Map()); // viewerId -> RTCPeerConnection
   const viewerPeerConnectionRef = useRef(null); // RTCPeerConnection to streamer
@@ -64,6 +75,33 @@ export default function StreamProvider({ children }) {
       setLocalStream(null);
     }
 
+    if (displayStreamRef.current) {
+      displayStreamRef.current.getTracks().forEach(track => {
+        try {
+          track.stop();
+        } catch (e) {}
+      });
+      displayStreamRef.current = null;
+    }
+
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach(track => {
+        try {
+          track.stop();
+        } catch (e) {}
+      });
+      micStreamRef.current = null;
+    }
+
+    if (streamAudioCtxRef.current) {
+      try {
+        if (streamAudioCtxRef.current.state !== "closed") {
+          streamAudioCtxRef.current.close();
+        }
+      } catch (e) {}
+      streamAudioCtxRef.current = null;
+    }
+
     streamerPeerConnectionsRef.current.forEach((pc) => {
       try {
         pc.close();
@@ -80,6 +118,25 @@ export default function StreamProvider({ children }) {
     setActiveStream(null);
     setViewers([]);
     setStreamError(null);
+    setHasScreenAudio(false);
+    setHasMicAudio(false);
+    setIsStreamMicMuted(false);
+  }, []);
+
+  // Toggle microphone while streaming screen
+  const toggleStreamMic = useCallback(() => {
+    if (micStreamRef.current) {
+      const tracks = micStreamRef.current.getAudioTracks();
+      if (tracks.length > 0) {
+        const nextEnabled = !tracks[0].enabled;
+        tracks.forEach(t => {
+          t.enabled = nextEnabled;
+        });
+        setIsStreamMicMuted(!nextEnabled);
+        return !nextEnabled;
+      }
+    }
+    return false;
   }, []);
 
   // Start screen broadcasting
@@ -110,27 +167,107 @@ export default function StreamProvider({ children }) {
     }
 
     try {
-      const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          cursor: "always",
-          displaySurface: "browser",
-          frameRate: { ideal: 30, max: 60 },
-          width: { ideal: 1920, max: 1920 },
-          height: { ideal: 1080, max: 1080 }
-        },
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
+      // 1. Capture display media (screen/tab/window) with audio requested
+      let displayStream;
+      try {
+        displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            cursor: "always",
+            frameRate: { ideal: 30, max: 60 },
+            width: { ideal: 1920, max: 1920 },
+            height: { ideal: 1080, max: 1080 }
+          },
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            suppressLocalAudioPlayback: false
+          },
+          systemAudio: "include",
+          selfBrowserSurface: "include",
+          surfaceSwitching: "include",
+          monitorTypeSurfaces: "include"
+        });
+      } catch (advancedErr) {
+        if (advancedErr.name === "NotAllowedError" || advancedErr.message?.toLowerCase().includes("permission denied")) {
+          throw advancedErr;
         }
-      });
+        // Fallback with standard constraints if advanced constraints fail
+        displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+      }
 
-      localStreamRef.current = mediaStream;
-      setLocalStream(mediaStream);
+      displayStreamRef.current = displayStream;
+
+      // 2. Capture microphone audio so the streamer's voice is included (default: true)
+      let micStream = null;
+      if (options.includeMic !== false && navigator.mediaDevices?.getUserMedia) {
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
+          micStreamRef.current = micStream;
+        } catch (micErr) {
+          console.warn("Could not capture microphone for screen share:", micErr);
+        }
+      }
+
+      const displayAudioTracks = displayStream.getAudioTracks();
+      const micAudioTracks = micStream ? micStream.getAudioTracks() : [];
+      const hasDisplayAudio = displayAudioTracks.length > 0;
+      const hasMic = micAudioTracks.length > 0;
+
+      let combinedAudioTrack = null;
+
+      // 3. Mix display audio (system/movie/tab) + microphone (streamer's voice)
+      if (hasDisplayAudio && hasMic) {
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            const audioCtx = new AudioContextClass();
+            streamAudioCtxRef.current = audioCtx;
+
+            const destination = audioCtx.createMediaStreamDestination();
+
+            const displaySource = audioCtx.createMediaStreamSource(new MediaStream([displayAudioTracks[0]]));
+            const micSource = audioCtx.createMediaStreamSource(new MediaStream([micAudioTracks[0]]));
+
+            displaySource.connect(destination);
+            micSource.connect(destination);
+
+            combinedAudioTrack = destination.stream.getAudioTracks()[0];
+          }
+        } catch (mixErr) {
+          console.warn("Audio mixing failed, falling back to display audio:", mixErr);
+          combinedAudioTrack = displayAudioTracks[0];
+        }
+      } else if (hasDisplayAudio) {
+        combinedAudioTrack = displayAudioTracks[0];
+      } else if (hasMic) {
+        combinedAudioTrack = micAudioTracks[0];
+      }
+
+      const tracksToStream = [displayStream.getVideoTracks()[0]];
+      if (combinedAudioTrack) {
+        tracksToStream.push(combinedAudioTrack);
+      }
+
+      const finalStream = new MediaStream(tracksToStream);
+      localStreamRef.current = finalStream;
+      setLocalStream(finalStream);
       setIsStreaming(true);
+      setHasScreenAudio(hasDisplayAudio);
+      setHasMicAudio(hasMic);
+      setIsStreamMicMuted(false);
 
-      const videoTrack = mediaStream.getVideoTracks()[0];
-      const hasAudio = mediaStream.getAudioTracks().length > 0;
+      const videoTrack = displayStream.getVideoTracks()[0];
+      const hasAudio = tracksToStream.length > 1;
 
       // Handle browser's native "Stop sharing" bar
       if (videoTrack) {
@@ -322,6 +459,16 @@ export default function StreamProvider({ children }) {
         }
       };
 
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "failed") {
+          try {
+            if (typeof pc.restartIce === "function") {
+              pc.restartIce();
+            }
+          } catch (e) {}
+        }
+      };
+
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === "disconnected" || pc.connectionState === "failed" || pc.connectionState === "closed") {
           pc.close();
@@ -358,7 +505,7 @@ export default function StreamProvider({ children }) {
         try {
           pc.close();
         } catch (e) {}
-        streamerPeerConnectionsRef.current.delete(viewerId);
+          streamerPeerConnectionsRef.current.delete(viewerId);
       }
       streamerPendingCandidatesRef.current.delete(viewerId);
       setViewers(prev => prev.filter(v => v.id !== viewerId));
@@ -376,6 +523,14 @@ export default function StreamProvider({ children }) {
           remoteStreamRef.current = event.streams[0];
           setRemoteStream(event.streams[0]);
           setIsConnectingStream(false);
+        } else if (event.track) {
+          if (!remoteStreamRef.current) {
+            const newStream = new MediaStream();
+            remoteStreamRef.current = newStream;
+            setRemoteStream(newStream);
+          }
+          remoteStreamRef.current.addTrack(event.track);
+          setIsConnectingStream(false);
         }
       };
 
@@ -385,6 +540,16 @@ export default function StreamProvider({ children }) {
             targetId: from,
             candidate: event.candidate
           });
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "failed") {
+          try {
+            if (typeof pc.restartIce === "function") {
+              pc.restartIce();
+            }
+          } catch (e) {}
         }
       };
 
@@ -511,6 +676,10 @@ export default function StreamProvider({ children }) {
         setStreamVolume,
         isStreamMuted,
         setIsStreamMuted,
+        hasScreenAudio,
+        hasMicAudio,
+        isStreamMicMuted,
+        toggleStreamMic,
         startStream,
         startCameraStream,
         stopStream,

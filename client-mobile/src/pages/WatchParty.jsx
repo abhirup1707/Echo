@@ -17,7 +17,9 @@ import {
   FaInfoCircle,
   FaStop,
   FaRedo,
-  FaVideo
+  FaVideo,
+  FaMicrophone,
+  FaMicrophoneSlash
 } from "react-icons/fa";
 import "./WatchParty.css";
 
@@ -39,6 +41,10 @@ export default function WatchParty() {
     setStreamVolume,
     isStreamMuted,
     setIsStreamMuted,
+    hasScreenAudio,
+    hasMicAudio,
+    isStreamMicMuted,
+    toggleStreamMic,
     startStream,
     startCameraStream,
     stopStream,
@@ -55,6 +61,8 @@ export default function WatchParty() {
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [isPlayingLocally, setIsPlayingLocally] = useState(true);
   const [showControls, setShowControls] = useState(true);
+  const [includeMicVoice, setIncludeMicVoice] = useState(true);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const controlsTimeoutRef = useRef(null);
 
   // Attach local stream to local video element
@@ -64,14 +72,50 @@ export default function WatchParty() {
     }
   }, [localStream, isStreaming]);
 
-  // Attach remote stream to remote video element
+  // Attach remote stream to remote video element with resilient autoplay handling
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.volume = isStreamMuted ? 0 : streamVolume;
-      remoteVideoRef.current.play().catch(err => {
-        console.warn("Auto-play failed, waiting for user click:", err);
-      });
+    const video = remoteVideoRef.current;
+    if (video && remoteStream) {
+      video.srcObject = remoteStream;
+      video.volume = isStreamMuted ? 0 : streamVolume;
+
+      const attemptPlay = async () => {
+        try {
+          await video.play();
+          setAutoplayBlocked(false);
+        } catch (err) {
+          console.warn("Unmuted autoplay blocked by browser policy, falling back to muted autoplay:", err);
+          try {
+            video.muted = true;
+            await video.play();
+            setAutoplayBlocked(true);
+          } catch (e2) {
+            console.error("Muted playback also failed:", e2);
+          }
+        }
+      };
+
+      attemptPlay();
+
+      const unlockAudio = () => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.muted = isStreamMuted;
+          remoteVideoRef.current.volume = isStreamMuted ? 0 : streamVolume;
+          remoteVideoRef.current.play().then(() => {
+            setAutoplayBlocked(false);
+          }).catch(() => {});
+        }
+      };
+
+      window.addEventListener("click", unlockAudio, { once: true });
+      window.addEventListener("touchstart", unlockAudio, { once: true });
+      window.addEventListener("keydown", unlockAudio, { once: true });
+
+      return () => {
+        window.removeEventListener("click", unlockAudio);
+        window.removeEventListener("touchstart", unlockAudio);
+        window.removeEventListener("keydown", unlockAudio);
+      };
     }
   }, [remoteStream, streamVolume, isStreamMuted]);
 
@@ -298,6 +342,20 @@ export default function WatchParty() {
                 <span className="streamer-viewers-count">
                   <FaUsers /> {viewers.length} Watching
                 </span>
+                <span className={`streamer-audio-indicator ${hasScreenAudio ? "active" : "inactive"}`} title={hasScreenAudio ? "Capturing movie / system sound" : "No system audio captured (check Share Audio in browser)"}>
+                  <FaVolumeUp /> {hasScreenAudio ? "Screen Audio" : "No Screen Audio"}
+                </span>
+                {hasMicAudio && (
+                  <button
+                    type="button"
+                    className={`streamer-mic-btn ${isStreamMicMuted ? "muted" : "active"}`}
+                    onClick={toggleStreamMic}
+                    title={isStreamMicMuted ? "Unmute your voice on stream" : "Mute your voice on stream"}
+                  >
+                    {isStreamMicMuted ? <FaMicrophoneSlash /> : <FaMicrophone />}
+                    <span>{isStreamMicMuted ? "Voice Muted" : "Voice Live"}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   className="streamer-stop-btn"
@@ -388,6 +446,25 @@ export default function WatchParty() {
                     <FaRedo /> Reconnect
                   </button>
                 </div>
+              )}
+
+              {autoplayBlocked && (
+                <button
+                  type="button"
+                  className="stream-unmute-overlay-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (remoteVideoRef.current) {
+                      remoteVideoRef.current.muted = isStreamMuted;
+                      remoteVideoRef.current.volume = isStreamMuted ? 0 : streamVolume;
+                      remoteVideoRef.current.play().then(() => {
+                        setAutoplayBlocked(false);
+                      }).catch(() => {});
+                    }
+                  }}
+                >
+                  <FaVolumeUp /> Click to Unmute Audio
+                </button>
               )}
 
               <video
@@ -503,11 +580,23 @@ export default function WatchParty() {
                 maxLength={50}
               />
 
+              <div className="host-audio-options">
+                <label className="host-mic-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={includeMicVoice}
+                    onChange={(e) => setIncludeMicVoice(e.target.checked)}
+                  />
+                  <FaMicrophone />
+                  <span>Include my microphone audio (voice)</span>
+                </label>
+              </div>
+
               <div className="host-stream-buttons-group">
                 <button
                   type="button"
                   className="start-stream-action-btn"
-                  onClick={() => startStream({ streamTitle })}
+                  onClick={() => startStream({ streamTitle, includeMic: includeMicVoice })}
                   title="Share your desktop screen, browser tab, or app"
                 >
                   <FaDesktop />
@@ -523,6 +612,11 @@ export default function WatchParty() {
                   <FaVideo />
                   <span>Share Camera</span>
                 </button>
+              </div>
+
+              <div className="host-audio-help-note">
+                <FaInfoCircle />
+                <span>To share movie/video sound from PC, select <strong>Entire Screen</strong> or <strong>Chrome Tab</strong> and ensure <em>Share audio</em> is checked in the browser dialog.</span>
               </div>
 
               {streamError && (
