@@ -256,7 +256,7 @@ export default function VoiceBar() {
           <button
             type="button"
             className="voice-control-btn join-call-btn"
-            onClick={joinVoiceCall}
+            onClick={() => joinVoiceCall(roomCode)}
             title="Join Voice Chat"
           >
             <FaPhoneAlt />

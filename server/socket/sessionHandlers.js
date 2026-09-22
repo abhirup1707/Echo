@@ -324,7 +324,7 @@ socket.on("voice-join", ({ roomCode, username }) => {
         username
     });
 
-    io.to(roomCode).emit("members-updated", getPublicMembers(session));
+    io.to(roomCode).emit("members-updated", getPublicMembersWithGames(session));
 });
 
 socket.on("voice-offer", ({ targetId, offer }) => {
@@ -356,11 +356,18 @@ socket.on("voice-status-update", ({ roomCode, isMuted, isDeafened }) => {
     });
 });
 
+socket.on("voice-speaking", ({ roomCode, isSpeaking }) => {
+    socket.to(roomCode).emit("voice-peer-speaking", {
+        socketId: socket.id,
+        isSpeaking: Boolean(isSpeaking)
+    });
+});
+
 socket.on("voice-leave", ({ roomCode }) => {
     const session = getSession(roomCode);
     if (session && session.voiceMembers) {
         session.voiceMembers.delete(socket.id);
-        io.to(roomCode).emit("members-updated", getPublicMembers(session));
+        io.to(roomCode).emit("members-updated", getPublicMembersWithGames(session));
     }
     socket.to(roomCode).emit("voice-peer-left", {
         socketId: socket.id
