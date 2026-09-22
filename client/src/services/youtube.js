@@ -158,3 +158,72 @@ export async function searchVideos(query) {
         return [];
     }
 }
+
+/**
+ * Searches for related/similar audio songs for a given track,
+ * ensuring exclusions are respected and exactly `count` tracks are returned.
+ */
+export async function getRelatedSongs(song, excludeVideoIds = [], count = 2) {
+    if (!song) return [];
+
+    const excludeSet = new Set((excludeVideoIds || []).map(id => String(id)));
+    if (song.videoId) excludeSet.add(String(song.videoId));
+
+    const cleanArtist = (song.artist || "")
+        .replace(/- topic/i, "")
+        .replace(/vevo/i, "")
+        .replace(/official/i, "")
+        .trim();
+
+    const cleanTitle = (song.title || "")
+        .replace(/\(.*?\)|\[.*?\]|\{.*?\}/g, "")
+        .replace(/\b(official\s+audio|official\s+video|lyric\s+video|audio|video|full\s+song|remix)\b/gi, "")
+        .trim();
+
+    const candidates = [];
+    const addedIds = new Set();
+
+    // Query 1: Clean artist + clean title + audio
+    const primaryQuery = cleanArtist ? `${cleanArtist} ${cleanTitle} audio` : `${cleanTitle} audio`;
+    const firstBatch = await searchSongs(primaryQuery, 12, true);
+
+    for (const item of firstBatch) {
+        const vid = item?.id?.videoId;
+        if (!vid || excludeSet.has(vid) || addedIds.has(vid)) continue;
+        addedIds.add(vid);
+        candidates.push({
+            title: item.snippet.title,
+            artist: item.snippet.channelTitle?.replace(/- topic/i, "").trim() || cleanArtist || "Echo Artist",
+            cover: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || "",
+            videoId: vid,
+            durationFormatted: "3:30",
+            durationSeconds: 210,
+            isAutoQueue: true
+        });
+        if (candidates.length >= count) break;
+    }
+
+    // Query 2 fallback if we need more candidates
+    if (candidates.length < count && cleanArtist) {
+        const fallbackQuery = `${cleanArtist} top songs audio`;
+        const secondBatch = await searchSongs(fallbackQuery, 12, true);
+
+        for (const item of secondBatch) {
+            const vid = item?.id?.videoId;
+            if (!vid || excludeSet.has(vid) || addedIds.has(vid)) continue;
+            addedIds.add(vid);
+            candidates.push({
+                title: item.snippet.title,
+                artist: item.snippet.channelTitle?.replace(/- topic/i, "").trim() || cleanArtist,
+                cover: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || "",
+                videoId: vid,
+                durationFormatted: "3:30",
+                durationSeconds: 210,
+                isAutoQueue: true
+            });
+            if (candidates.length >= count) break;
+        }
+    }
+
+    return candidates.slice(0, count);
+}

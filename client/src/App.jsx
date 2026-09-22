@@ -7,6 +7,7 @@ import SplashScreen from "./components/common/SplashScreen";
 import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
+import AIDJ from "./pages/AIDJ";
 import Settings from "./pages/Settings";
 import Room from "./pages/Room";
 import Profile from "./pages/Profile";
@@ -57,6 +58,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/search" element={<Search />} />
+                <Route path="/dj" element={<AIDJ />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/stream" element={<WatchParty />} />
                 <Route path="/settings" element={<Settings />} />

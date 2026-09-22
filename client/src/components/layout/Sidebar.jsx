@@ -4,6 +4,7 @@ import "./Sidebar.css";
 import {
     FaHome,
     FaSearch,
+    FaRobot,
     FaVideo,
     FaTv,
     FaUsers,
@@ -31,6 +32,11 @@ function Sidebar() {
             name: "Music",
             path: "/search",
             icon: <FaSearch />
+        },
+        {
+            name: "AI DJ",
+            path: "/dj",
+            icon: <FaRobot />
         },
         {
             name: "Videos",

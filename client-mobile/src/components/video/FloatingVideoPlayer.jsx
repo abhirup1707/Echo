@@ -1,24 +1,12 @@
-import { useContext, useEffect, useRef, useState, useCallback } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { SessionContext } from "../../context/SessionContext";
 import {
-    FaPlay,
-    FaPause,
-    FaPowerOff,
-    FaVolumeUp,
-    FaVolumeMute,
     FaExpand,
     FaCompress,
-    FaTimes
+    FaPowerOff
 } from "react-icons/fa";
 import "./FloatingVideoPlayer.css";
-
-function formatTime(seconds) {
-    if (!seconds || isNaN(seconds) || seconds < 0) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-}
 
 function FloatingVideoPlayer() {
     const {
@@ -26,7 +14,6 @@ function FloatingVideoPlayer() {
         pauseVideo,
         resumeVideo,
         stopVideo,
-        seekVideo,
         videoSyncCommand
     } = useContext(SessionContext);
 
@@ -35,17 +22,11 @@ function FloatingVideoPlayer() {
 
     const playerContainerRef = useRef(null);
     const playerRef = useRef(null);
-    const isSeekingRef = useRef(false);
-    const ignoreTimerUntilRef = useRef(0);
-    const pendingSeekTimeRef = useRef(null);
+    const isRemoteSyncRef = useRef(false);
 
-    const [isPlaying, setIsPlaying] = useState(true);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [isMuted, setIsMuted] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Initialize or reload YouTube player
+    // Initialize or reload official YouTube player
     useEffect(() => {
         if (!currentVideo) {
             if (playerRef.current) {
@@ -59,6 +40,21 @@ function FloatingVideoPlayer() {
 
         let isMounted = true;
 
+        function applyIframePermissions() {
+            try {
+                const iframe = playerContainerRef.current?.querySelector("iframe") || playerRef.current?.getIframe?.();
+                if (iframe) {
+                    iframe.setAttribute("allowfullscreen", "true");
+                    iframe.setAttribute("webkitallowfullscreen", "true");
+                    iframe.setAttribute("mozallowfullscreen", "true");
+                    iframe.setAttribute(
+                        "allow",
+                        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                    );
+                }
+            } catch (e) {}
+        }
+
         function initPlayer() {
             if (!isMounted || !playerContainerRef.current) return;
 
@@ -66,7 +62,7 @@ function FloatingVideoPlayer() {
                 try {
                     playerRef.current.loadVideoById(currentVideo.videoId);
                     playerRef.current.playVideo();
-                    setIsPlaying(true);
+                    applyIframePermissions();
                     return;
                 } catch (e) {}
             }
@@ -77,29 +73,42 @@ function FloatingVideoPlayer() {
                 videoId: currentVideo.videoId,
                 playerVars: {
                     autoplay: 1,
-                    controls: 0,
+                    controls: 1,       // Official native YouTube controls (official settings gear, quality selector, fullscreen)
+                    fs: 1,             // Official native YouTube fullscreen button
                     rel: 0,
-                    modestbranding: 1,
-                    enablejsapi: 1
+                    modestbranding: 0,
+                    enablejsapi: 1,
+                    playsinline: 1,
+                    origin: window.location.origin,
+                    iv_load_policy: 3
                 },
                 events: {
                     onReady: (event) => {
                         if (!isMounted) return;
-                        event.target.playVideo();
-                        setIsPlaying(true);
+                        applyIframePermissions();
+                        try {
+                            event.target.playVideo();
+                        } catch (e) {}
                     },
                     onStateChange: (event) => {
                         if (!isMounted) return;
-                        if (event.data === 1) {
-                            setIsPlaying(true);
-                        } else if (event.data === 2) {
-                            setIsPlaying(false);
-                        } else if (event.data === 0) {
-                            setIsPlaying(false);
+                        if (isRemoteSyncRef.current) return;
+
+                        // Synchronize official YouTube player state with the room
+                        if (window.YT && event.data === window.YT.PlayerState.PLAYING) {
+                            const cur = event.target.getCurrentTime ? event.target.getCurrentTime() : 0;
+                            resumeVideo(cur);
+                        } else if (window.YT && event.data === window.YT.PlayerState.PAUSED) {
+                            const cur = event.target.getCurrentTime ? event.target.getCurrentTime() : 0;
+                            pauseVideo(cur);
                         }
                     }
                 }
             });
+
+            // Ensure iframe permissions are set as soon as the DOM element is inserted
+            setTimeout(applyIframePermissions, 50);
+            setTimeout(applyIframePermissions, 300);
         }
 
         if (window.YT && window.YT.Player) {
@@ -129,165 +138,45 @@ function FloatingVideoPlayer() {
     useEffect(() => {
         if (!videoSyncCommand || !playerRef.current) return;
         try {
+            isRemoteSyncRef.current = true;
             if (videoSyncCommand.type === "pause") {
                 playerRef.current.pauseVideo();
                 if (typeof videoSyncCommand.time === "number") {
                     playerRef.current.seekTo(videoSyncCommand.time, true);
-                    setCurrentTime(videoSyncCommand.time);
-                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
-                setIsPlaying(false);
             } else if (videoSyncCommand.type === "resume") {
                 if (typeof videoSyncCommand.time === "number") {
                     playerRef.current.seekTo(videoSyncCommand.time, true);
-                    setCurrentTime(videoSyncCommand.time);
-                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
                 playerRef.current.playVideo();
-                setIsPlaying(true);
             } else if (videoSyncCommand.type === "stop") {
                 playerRef.current.stopVideo();
-                setIsPlaying(false);
             } else if (videoSyncCommand.type === "seek") {
                 if (typeof videoSyncCommand.time === "number") {
                     playerRef.current.seekTo(videoSyncCommand.time, true);
-                    setCurrentTime(videoSyncCommand.time);
-                    ignoreTimerUntilRef.current = Date.now() + 800;
                 }
             }
         } catch (e) {
             console.warn("YouTube video sync command error:", e);
+        } finally {
+            setTimeout(() => {
+                isRemoteSyncRef.current = false;
+            }, 400);
         }
     }, [videoSyncCommand]);
 
-    // Polling current video playback time
-    useEffect(() => {
-        if (!isPlaying || !currentVideo) return;
-
-        const timer = setInterval(() => {
-            if (
-                playerRef.current &&
-                typeof playerRef.current.getCurrentTime === "function" &&
-                !isSeekingRef.current &&
-                Date.now() > ignoreTimerUntilRef.current
-            ) {
-                try {
-                    const cur = playerRef.current.getCurrentTime() || 0;
-                    const dur = playerRef.current.getDuration() || 0;
-                    setCurrentTime(cur);
-                    if (dur > 0 && dur !== duration) setDuration(dur);
-                } catch (e) {}
-            }
-        }, 400);
-
-        return () => clearInterval(timer);
-    }, [isPlaying, currentVideo, duration]);
-
-    function handleTogglePlay() {
-        if (isPlaying) {
-            const cur =
-                playerRef.current && typeof playerRef.current.getCurrentTime === "function"
-                    ? playerRef.current.getCurrentTime()
-                    : currentTime;
-            if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
-                try {
-                    playerRef.current.pauseVideo();
-                } catch (e) {}
-            }
-            pauseVideo(cur);
-            setIsPlaying(false);
-        } else {
-            const cur =
-                playerRef.current && typeof playerRef.current.getCurrentTime === "function"
-                    ? playerRef.current.getCurrentTime()
-                    : currentTime;
-            if (playerRef.current && typeof playerRef.current.playVideo === "function") {
-                try {
-                    playerRef.current.playVideo();
-                } catch (e) {}
-            }
-            resumeVideo(cur);
-            setIsPlaying(true);
-        }
-    }
-
     function handleTurnOffVideo() {
+        if (document.fullscreenElement) {
+            try {
+                document.exitFullscreen();
+            } catch (e) {}
+        }
         if (playerRef.current && typeof playerRef.current.stopVideo === "function") {
             try {
                 playerRef.current.stopVideo();
             } catch (e) {}
         }
         stopVideo();
-    }
-
-    function handleSeekStart() {
-        isSeekingRef.current = true;
-    }
-
-    function handleSeekChange(e) {
-        const val = parseFloat(e.target.value);
-        if (!isNaN(val)) {
-            isSeekingRef.current = true;
-            pendingSeekTimeRef.current = val;
-            setCurrentTime(val);
-        }
-    }
-
-    const handleSeekCommit = useCallback((e) => {
-        if (!isSeekingRef.current && pendingSeekTimeRef.current === null) return;
-
-        let targetTime = pendingSeekTimeRef.current;
-        if (targetTime === null && e && e.target && e.target.value !== undefined) {
-            targetTime = parseFloat(e.target.value);
-        }
-        if (targetTime === null || isNaN(targetTime)) {
-            targetTime = currentTime;
-        }
-
-        const maxDuration = duration > 0 ? duration : (playerRef.current?.getDuration?.() || 0);
-        if (maxDuration > 0) {
-            targetTime = Math.max(0, Math.min(targetTime, maxDuration));
-        }
-
-        if (playerRef.current && typeof playerRef.current.seekTo === "function") {
-            try {
-                playerRef.current.seekTo(targetTime, true);
-            } catch (err) {}
-        }
-        setCurrentTime(targetTime);
-        if (typeof seekVideo === "function") {
-            seekVideo(targetTime);
-        }
-        ignoreTimerUntilRef.current = Date.now() + 800;
-        isSeekingRef.current = false;
-        pendingSeekTimeRef.current = null;
-    }, [duration, currentTime, seekVideo]);
-
-    useEffect(() => {
-        function handleGlobalPointerUp(e) {
-            if (isSeekingRef.current) {
-                handleSeekCommit(e);
-            }
-        }
-        window.addEventListener("pointerup", handleGlobalPointerUp);
-        window.addEventListener("touchend", handleGlobalPointerUp);
-        return () => {
-            window.removeEventListener("pointerup", handleGlobalPointerUp);
-            window.removeEventListener("touchend", handleGlobalPointerUp);
-        };
-    }, [handleSeekCommit]);
-
-    function toggleMute() {
-        if (!playerRef.current) return;
-        try {
-            if (isMuted) {
-                playerRef.current.unMute();
-                setIsMuted(false);
-            } else {
-                playerRef.current.mute();
-                setIsMuted(true);
-            }
-        } catch (e) {}
     }
 
     if (!currentVideo) return null;
@@ -297,11 +186,10 @@ function FloatingVideoPlayer() {
         : isExpanded
             ? "video-theater-mode video-large"
             : "video-mini-mode video-mini";
-    const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
         <div className={`floating-video-root ${playerModeClass}`}>
-            {/* Header / Quick Actions */}
+            {/* Header / Room Actions */}
             <div className="floating-video-top-bar">
                 <div className="floating-video-title-wrap">
                     <span className="live-badge">SYNCED VIDEO</span>
@@ -320,85 +208,19 @@ function FloatingVideoPlayer() {
                         </button>
                     )}
                     <button
-                        className="floating-btn close-video"
+                        className="floating-btn stop-video-btn-top"
                         onClick={handleTurnOffVideo}
                         title="Turn Off Video (Syncs with Room)"
                     >
-                        <FaTimes />
+                        <FaPowerOff style={{ marginRight: 5, fontSize: 11 }} />
+                        <span>Turn Off</span>
                     </button>
                 </div>
             </div>
 
-            {/* Video Container Frame */}
+            {/* Official YouTube Video Frame */}
             <div className="floating-video-frame-wrap">
                 <div ref={playerContainerRef} className="floating-yt-embed" />
-            </div>
-
-            {/* Custom Synchronized Controls Deck */}
-            <div className="floating-video-controls-deck">
-                {/* Progress Slider */}
-                <div className="video-progress-wrap">
-                    <input
-                        type="range"
-                        className="video-progress-slider"
-                        min="0"
-                        max={duration > 0 ? duration : 100}
-                        step="any"
-                        value={currentTime}
-                        disabled={!currentVideo || duration === 0}
-                        onPointerDown={handleSeekStart}
-                        onTouchStart={handleSeekStart}
-                        onMouseDown={handleSeekStart}
-                        onChange={handleSeekChange}
-                        onPointerUp={handleSeekCommit}
-                        onMouseUp={handleSeekCommit}
-                        onTouchEnd={handleSeekCommit}
-                        style={{
-                            background: `linear-gradient(to right, #ec4899 0%, #8b5cf6 ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%, rgba(255,255,255,0.15) 100%)`
-                        }}
-                    />
-                </div>
-
-                <div className="video-controls-row">
-                    <div className="video-controls-left">
-                        {/* Play / Pause Button */}
-                        <button
-                            className="video-control-btn play-btn"
-                            onClick={handleTogglePlay}
-                            title={isPlaying ? "Pause Video (Syncs with Room)" : "Play Video (Syncs with Room)"}
-                        >
-                            {isPlaying ? <FaPause /> : <FaPlay style={{ marginLeft: 2 }} />}
-                        </button>
-
-                        {/* Turn Off Button */}
-                        <button
-                            className="video-control-btn stop-video-btn"
-                            onClick={handleTurnOffVideo}
-                            title="Turn Off Video (Syncs with Room)"
-                        >
-                            <FaPowerOff />
-                            <span className="stop-video-label">Turn Off</span>
-                        </button>
-
-                        {/* Time */}
-                        <div className="video-time-display">
-                            <span>{formatTime(currentTime)}</span>
-                            <span className="time-sep">/</span>
-                            <span>{formatTime(duration)}</span>
-                        </div>
-                    </div>
-
-                    <div className="video-controls-right">
-                        {/* Volume Mute */}
-                        <button
-                            className="video-control-btn mute-btn"
-                            onClick={toggleMute}
-                            title={isMuted ? "Unmute" : "Mute"}
-                        >
-                            {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     );

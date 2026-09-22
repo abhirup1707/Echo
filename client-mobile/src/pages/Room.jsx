@@ -744,9 +744,13 @@ Join Room
                                     {item.song.artist}
                                 </p>
                             </div>
-                            <span className="room-queue-adder" title={`Added by ${item.addedBy?.username || "Friend"}`}>
-                                👤 {item.addedBy?.username || "Friend"}
-                            </span>
+                            {item.addedBy?.username === "Smart Auto-Queue" || item.song?.isAutoQueue ? (
+                                <span className="room-queue-auto-badge">✨ Auto-Vibe</span>
+                            ) : (
+                                <span className="room-queue-adder" title={`Added by ${item.addedBy?.username || "Friend"}`}>
+                                    👤 {item.addedBy?.username || "Friend"}
+                                </span>
+                            )}
                         </div>
                     ))
                 )}

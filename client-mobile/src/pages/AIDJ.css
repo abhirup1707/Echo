@@ -1,0 +1,791 @@
+/* ========================================================= */
+/* 🎧 AI DJ STUDIO STYLES (MOBILE)                           */
+/* ========================================================= */
+.aidj-page {
+    position: relative;
+    padding-bottom: 90px;
+    animation: aidjFadeIn 0.5s ease-out;
+}
+
+@keyframes aidjFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ambient Backdrops */
+.aidj-ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.aidj-glow-1 {
+    width: 380px;
+    height: 380px;
+    top: -40px;
+    left: 10%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, transparent 70%);
+}
+
+.aidj-glow-2 {
+    width: 440px;
+    height: 440px;
+    top: 80px;
+    right: 5%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, transparent 70%);
+}
+
+/* Hero Section */
+.aidj-hero {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 32px;
+    padding: 24px 0 10px;
+}
+
+.aidj-hero-content {
+    flex: 1;
+    max-width: 680px;
+}
+
+.aidj-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    background: rgba(168, 85, 247, 0.14);
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    font-size: 11px;
+    font-weight: 800;
+    color: #c084fc;
+    letter-spacing: 1.2px;
+    margin-bottom: 14px;
+}
+
+.aidj-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #a855f7;
+    box-shadow: 0 0 10px #a855f7;
+    animation: aidjDotPulse 1.5s infinite;
+}
+
+@keyframes aidjDotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.35); opacity: 0.6; }
+}
+
+.aidj-hero-title {
+    font-size: 46px;
+    font-weight: 900;
+    line-height: 1.15;
+    color: #ffffff;
+    margin: 0 0 14px 0;
+    letter-spacing: -0.5px;
+}
+
+.aidj-title-gradient {
+    background: linear-gradient(135deg, #a855f7 0%, #06b6d4 50%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.aidj-hero-subtitle {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.aidj-hero-subtitle strong {
+    color: #e2e8f0;
+}
+
+/* Turntable / Vinyl Widget */
+.aidj-turntable-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    backdrop-filter: blur(16px);
+}
+
+.aidj-vinyl {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #111;
+    border: 3px solid #222;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.aidj-vinyl.spinning {
+    animation: vinylSpin 3s linear infinite;
+}
+
+@keyframes vinylSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.aidj-vinyl-grooves {
+    position: absolute;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.aidj-vinyl-center {
+    position: relative;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7 0%, #06b6d4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+.aidj-equalizer {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 22px;
+}
+
+.aidj-equalizer span {
+    width: 4px;
+    background: linear-gradient(to top, #a855f7, #06b6d4);
+    border-radius: 2px;
+    animation: djEqWave 1.2s ease-in-out infinite alternate;
+}
+
+.aidj-equalizer span:nth-child(1) { height: 35%; animation-delay: 0.1s; }
+.aidj-equalizer span:nth-child(2) { height: 80%; animation-delay: 0.3s; }
+.aidj-equalizer span:nth-child(3) { height: 50%; animation-delay: 0.2s; }
+.aidj-equalizer span:nth-child(4) { height: 95%; animation-delay: 0.4s; }
+.aidj-equalizer span:nth-child(5) { height: 40%; animation-delay: 0.15s; }
+
+@keyframes djEqWave {
+    0% { transform: scaleY(0.4); }
+    100% { transform: scaleY(1); }
+}
+
+/* ========================================================= */
+/* 🎛️ CONSOLE STATION                                         */
+/* ========================================================= */
+.aidj-console-card {
+    position: relative;
+    z-index: 1;
+    border-radius: 24px;
+    padding: 28px 32px;
+    background: linear-gradient(145deg, rgba(26, 17, 48, 0.88) 0%, rgba(15, 10, 32, 0.94) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.28);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 60px rgba(124, 58, 237, 0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    overflow: hidden;
+}
+
+.aidj-card-glow-mesh {
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(6, 182, 212, 0.1) 60%, transparent 80%);
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Quick Vibes */
+.aidj-quick-vibes {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 22px;
+}
+
+.aidj-quick-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fb923c;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.aidj-quick-chips-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.aidj-vibe-chip {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.aidj-vibe-chip:hover:not(:disabled) {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: rgba(168, 85, 247, 0.45);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25);
+}
+
+/* Inputs Grid */
+.aidj-input-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.aidj-input-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+.aidj-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.aidj-text-input {
+    width: 100%;
+    height: 54px;
+    padding: 0 48px 0 18px;
+    border-radius: 14px;
+    background: rgba(10, 8, 20, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.aidj-text-input:focus {
+    border-color: #a855f7;
+    background: rgba(15, 10, 28, 0.9);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+.aidj-clear-btn {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.aidj-clear-btn:hover {
+    color: #ffffff;
+}
+
+/* Duration Box */
+.aidj-duration-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 54px;
+    border-radius: 14px;
+    background: rgba(10, 8, 20, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0 12px;
+    transition: all 0.25s ease;
+}
+
+.aidj-duration-input-wrapper:focus-within {
+    border-color: #06b6d4;
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.aidj-duration-number-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #38bdf8;
+    font-size: 24px;
+    font-weight: 800;
+    outline: none;
+    width: 80px;
+}
+
+.aidj-duration-unit-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.aidj-estimate-tag {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* Actions Row */
+.aidj-actions-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.aidj-generate-main-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 50%, #4f46e5 100%);
+    border: none;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.aidj-generate-main-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.6);
+    filter: brightness(1.1);
+}
+
+.aidj-generating-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.aidj-generating-status-live {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.aidj-spin-icon {
+    animation: spinIcon 1s linear infinite;
+    color: #a855f7;
+    font-size: 16px;
+}
+
+@keyframes spinIcon {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.aidj-cancel-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.aidj-cancel-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: white;
+}
+
+/* ========================================================= */
+/* 📊 LIVE PROGRESS HUD                                       */
+/* ========================================================= */
+.aidj-progress-hud {
+    position: relative;
+    z-index: 1;
+    margin-top: 24px;
+    padding: 20px;
+    border-radius: 16px;
+    background: rgba(10, 8, 22, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.aidj-hud-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.aidj-hud-status-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+.aidj-hud-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+    animation: aidjDotPulse 1.2s infinite;
+}
+
+.aidj-hud-track-count {
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.aidj-progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    margin-bottom: 18px;
+}
+
+.aidj-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #a855f7 0%, #06b6d4 100%);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+/* Now Playing Banner */
+.aidj-now-playing-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.28);
+    margin-bottom: 18px;
+}
+
+.aidj-np-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.aidj-np-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.aidj-np-info {
+    min-width: 0;
+}
+
+.aidj-np-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #c084fc;
+    margin-bottom: 2px;
+}
+
+.aidj-np-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.aidj-np-artist {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 2px 0 0 0;
+}
+
+.aidj-np-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.aidj-live-wave {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+}
+
+.aidj-live-wave span {
+    width: 3px;
+    background: #22c55e;
+    border-radius: 2px;
+    animation: waveBar 0.8s ease-in-out infinite alternate;
+}
+
+.aidj-live-wave span:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.aidj-live-wave span:nth-child(2) { height: 100%; animation-delay: 0.25s; }
+.aidj-live-wave span:nth-child(3) { height: 60%; animation-delay: 0.4s; }
+
+.aidj-np-sync-tag {
+    font-size: 10px;
+    font-weight: 700;
+    color: #22c55e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* HUD Footer & Save */
+.aidj-hud-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.aidj-toggle-list-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.aidj-toggle-list-btn:hover {
+    color: #ffffff;
+}
+
+.aidj-hud-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.aidj-save-playlist-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.22) 0%, rgba(16, 185, 129, 0.28) 100%);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #86efac;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.aidj-save-playlist-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.35) 0%, rgba(16, 185, 129, 0.4) 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+.aidj-save-playlist-btn.saved {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: #22c55e;
+    color: #4ade80;
+    cursor: default;
+}
+
+/* Tracklist Grid */
+.aidj-tracks-stream-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+}
+
+.aidj-track-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.aidj-track-row:hover {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: rgba(168, 85, 247, 0.35);
+    transform: translateX(3px);
+}
+
+.aidj-track-row.is-active {
+    background: rgba(168, 85, 247, 0.25);
+    border-color: #a855f7;
+}
+
+.aidj-track-idx {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    min-width: 22px;
+}
+
+.aidj-track-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.aidj-track-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.aidj-track-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.aidj-track-artist {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 2px 0 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.aidj-track-dur-badge {
+    color: #64748b;
+    font-size: 10px;
+}
+
+.aidj-track-play-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.aidj-track-row:hover .aidj-track-play-btn {
+    background: #a855f7;
+    transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+    .aidj-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .aidj-turntable-card {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .aidj-input-grid {
+        grid-template-columns: 1fr;
+    }
+    .aidj-hero-title {
+        font-size: 36px;
+    }
+    .aidj-console-card {
+        padding: 20px 16px;
+    }
+}

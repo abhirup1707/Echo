@@ -3,12 +3,14 @@ import socket from "../socket";
 import { MusicContext } from "./MusicContext";
 import { ProfileContext } from "./ProfileContext";
 import { playJoinSound, playLeaveSound } from "../utils/audioFx";
+import { getRelatedSongs } from "../services/youtube";
 
 export const SessionContext = createContext();
 
 export default function SessionProvider({ children }) {
 
     const {
+        currentSong,
         playSong,
         pauseSong: localPause,
         resumeSong: localResume,
@@ -40,16 +42,24 @@ const [videoSyncCommand, setVideoSyncCommand] = useState(null);
     const [members, setMembers] = useState([]);
 
     const [queue, setQueue] = useState([]);
+    const [autoQueueEnabled, setAutoQueueEnabled] = useState(true);
+    const seenAutoQueueIdsRef = useRef(new Set());
+    const isFetchingAutoQueueRef = useRef(false);
+    const lastReplenishedSongIdRef = useRef(null);
     
-const [messages, setMessages] = useState([]);
-const [hasUnreadChat, setHasUnreadChat] = useState(false);
-const prevMembersCountRef = useRef(null);
+    const [messages, setMessages] = useState([]);
+    const [hasUnreadChat, setHasUnreadChat] = useState(false);
+    const prevMembersCountRef = useRef(null);
 
-const queueRef = useRef(queue);
-queueRef.current = queue;
+    const queueRef = useRef(queue);
+    queueRef.current = queue;
 
-const roomCodeRef = useRef(roomCode);
-roomCodeRef.current = roomCode;
+    const roomCodeRef = useRef(roomCode);
+    roomCodeRef.current = roomCode;
+
+    const isHost = Boolean(
+        members.find(m => (m.id === socket?.id || m.username === profile?.username) && m.isHost)
+    );
 
     useEffect(() => {
 
@@ -384,6 +394,80 @@ function clearQueue() {
     }
 }
 
+async function playWithAutoQueue(song) {
+    if (!song) return;
+
+    setAutoQueueEnabled(true);
+
+    const seen = new Set();
+    if (song.videoId) seen.add(String(song.videoId));
+    seenAutoQueueIdsRef.current = seen;
+    lastReplenishedSongIdRef.current = song.videoId;
+
+    clearQueue();
+    sendSong(song);
+
+    try {
+        isFetchingAutoQueueRef.current = true;
+        const related = await getRelatedSongs(song, Array.from(seen), 2);
+        for (const track of related) {
+            if (track.videoId && !seen.has(String(track.videoId))) {
+                seen.add(String(track.videoId));
+                addToQueue(track, "Smart Auto-Queue");
+            }
+        }
+    } catch (e) {
+        console.warn("[Auto-Queue] Error fetching initial related tracks:", e);
+    } finally {
+        isFetchingAutoQueueRef.current = false;
+    }
+}
+
+// Dynamic 2-track auto-queue replenishment when each subsequent song starts playing
+useEffect(() => {
+    if (!autoQueueEnabled || !currentSong || !currentSong.videoId) return;
+    if (lastReplenishedSongIdRef.current === currentSong.videoId) return;
+
+    const activeRoom = roomCodeRef.current;
+    if (activeRoom && !isHost) return;
+
+    lastReplenishedSongIdRef.current = currentSong.videoId;
+    seenAutoQueueIdsRef.current.add(String(currentSong.videoId));
+
+    const currentQ = queueRef.current || [];
+    currentQ.forEach(item => {
+        const vid = item?.song?.videoId || item?.videoId;
+        if (vid) seenAutoQueueIdsRef.current.add(String(vid));
+    });
+
+    async function replenish() {
+        if (isFetchingAutoQueueRef.current) return;
+        try {
+            isFetchingAutoQueueRef.current = true;
+            console.log(`[Auto-Queue] Replenishing 2 tracks for current song: ${currentSong.title}`);
+            const related = await getRelatedSongs(
+                currentSong,
+                Array.from(seenAutoQueueIdsRef.current),
+                2
+            );
+
+            for (const track of related) {
+                if (track.videoId && !seenAutoQueueIdsRef.current.has(String(track.videoId))) {
+                    seenAutoQueueIdsRef.current.add(String(track.videoId));
+                    addToQueue(track, "Smart Auto-Queue");
+                }
+            }
+        } catch (e) {
+            console.warn("[Auto-Queue] Replenishment error:", e);
+        } finally {
+            isFetchingAutoQueueRef.current = false;
+        }
+    }
+
+    replenish();
+}, [currentSong?.videoId, autoQueueEnabled, isHost]);
+
+
 function sendVideo(video){
     setCurrentVideo(video);
     if(roomCode==="") return;
@@ -500,10 +584,6 @@ function recordSession(room) {
         });
     }
 
-    const isHost = Boolean(
-        members.find(m => (m.id === socket?.id || m.username === profile?.username) && m.isHost)
-    );
-
     return (
 
 <SessionContext.Provider
@@ -527,6 +607,10 @@ value={{
     queue,
 
     setQueue,
+
+    autoQueueEnabled,
+    setAutoQueueEnabled,
+    playWithAutoQueue,
 
     currentVideo,
 

@@ -43,6 +43,8 @@ function BottomPlayer() {
         roomCode,
         members,
         queue,
+        autoQueueEnabled,
+        setAutoQueueEnabled,
         playNext,
         pauseSong,
         resumeSong,
@@ -714,27 +716,25 @@ function BottomPlayer() {
                     <div className="queue-panel">
 
                         <div className="queue-header">
-
-                            <h2>
-
-                                <FaMusic/>
-
-                                Queue
-
-                            </h2>
+                            <div className="queue-header-left">
+                                <h2>
+                                    <FaMusic/> Queue ({queue.length})
+                                </h2>
+                                <button
+                                    className={`queue-auto-toggle ${autoQueueEnabled ? "active" : ""}`}
+                                    onClick={() => setAutoQueueEnabled(!autoQueueEnabled)}
+                                    title={autoQueueEnabled ? "Continuous Auto-Queue is ON" : "Continuous Auto-Queue is OFF"}
+                                >
+                                    ⚡ Continuous Auto-Queue: {autoQueueEnabled ? "ON" : "OFF"}
+                                </button>
+                            </div>
 
                             <button
-
                                 className="close-btn"
-
                                 onClick={() => setShowQueue(false)}
-
                             >
-
                                 ✕
-
                             </button>
-
                         </div>
 
                         <div className="queue-controls">
@@ -842,25 +842,19 @@ function BottomPlayer() {
                                         />
 
                                         <div className="queued-info">
-
                                             <strong>
-
                                                 {item.song.title}
-
                                             </strong>
-
                                             <p>
-
                                                 {item.song.artist}
-
                                             </p>
-
-                                            <small>
-
-                                                👤 {item.addedBy.username}
-
-                                            </small>
-
+                                            {item.addedBy?.username === "Smart Auto-Queue" || item.song?.isAutoQueue ? (
+                                                <span className="queue-auto-badge">✨ Auto-Vibe (Next)</span>
+                                            ) : (
+                                                <small>
+                                                    👤 {item.addedBy?.username || "You"}
+                                                </small>
+                                            )}
                                         </div>
 
                                     </div>

@@ -2,6 +2,7 @@ import { useContext } from "react";
 import {
     FaHome,
     FaSearch,
+    FaRobot,
     FaVideo,
     FaTv,
     FaUsers,
@@ -25,11 +26,15 @@ export default function MobileNav() {
                 <FaHome />
             </NavLink>
 
-            <NavLink to="/search">
+            <NavLink to="/search" title="Search">
                 <FaSearch />
             </NavLink>
 
-            <NavLink to="/videos">
+            <NavLink to="/dj" title="AI DJ">
+                <FaRobot />
+            </NavLink>
+
+            <NavLink to="/videos" title="Videos">
                 <FaVideo />
             </NavLink>
 
