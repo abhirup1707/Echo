@@ -38,9 +38,9 @@
 }
 
 .video-info h3 {
-    font-size: 14px;
-    line-height: 1.35;
-    margin: 0 0 6px 0;
+    font-size: 15.5px;
+    line-height: 1.4;
+    margin: 0 0 8px 0;
     color: #f8fafc;
     font-weight: 700;
     display: -webkit-box;
@@ -48,7 +48,8 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: 38px;
+    min-height: 42px;
+    word-break: break-word;
 }
 
 .video-info p {
